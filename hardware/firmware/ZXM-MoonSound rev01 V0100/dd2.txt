@@ -1,0 +1,26 @@
+Atmel Pof2jed  Version 4.45 Jan 10 2005
+Copyright 1998 Atmel Corporation. All Rights Reserved.
+
+  EPM7032SLC44-10 --> 1502asPLCC44
+Input file                : D:\max2work\ZXM-SoundCard\dd2.pof
+Output file               : D:\max2work\ZXM-SoundCard\dd2.jed
+Conversion Report file    : D:\max2work\ZXM-SoundCard\dd2.txt
+
+Conversion is completed
+
+Options :  (1502 only)
+   Powerdown :		OFF
+   Security Bit :	AUTO
+   Slew Rate :		AUTO
+   PinClk :		OFF
+   Race Coverage :	ON
+   Pin Keeper :		OFF
+   Macrocell Low Power:	AUTO
+   Power Reset :	ALWAYS
+   ITD on GCLK1 :	ON
+   ITD on GCLK2 :	ON
+   ITD on GCLK3 :	ON
+   Open Collector :	AUTO
+   JTAG mode :		AUTO
+   TDI Pullup :		OFF
+   TMS Pullup :		OFF

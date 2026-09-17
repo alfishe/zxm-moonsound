@@ -1,0 +1,13 @@
+TITLE "Мультиплексор 2 в 1 ";
+
+SUBDESIGN 2MUX1
+(
+  A, B, SEL : INPUT;
+  Y : OUTPUT;
+)
+BEGIN
+	 IF SEL ==0 THEN  Y = A;
+   	 ELSE Y = B;
+ 	 END IF;
+END;
+

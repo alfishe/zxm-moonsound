@@ -1,0 +1,3047 @@
+0001   0000             		DEVICE ZXSPECTRUM128
+0002   0000             
+0003   0000             REPDEL: 		EQU 	5C09h				;Time (in 50ths of a second) that a key must be held down before it repeats. This starts off at 35.
+0004   0000             REPPER:    	EQU	5C0Ah                           ;Delay (in 50ths of a second) between successive repeats of a key held down - initially 5.
+0005   0000             BORDCR: 		EQU 	5C48h
+0006   0000             ATTR_P: 		EQU 	5C8Dh
+0007   0000             
+0008   0000             MOON_BASE: 	equ	0C4h
+0009   0000             MOON_REG1: 	equ	MOON_BASE
+0010   0000             MOON_DAT1: 	equ	MOON_BASE+1
+0011   0000             MOON_REG2: 	equ	MOON_BASE+2
+0012   0000             MOON_DAT2: 	equ	MOON_BASE+3
+0013   0000             MOON_STAT: 	equ	MOON_BASE
+0014   0000             
+0015   0000             MOON_WREG: 	equ	7Eh
+0016   0000             MOON_WDAT: 	equ	MOON_WREG+1
+0017   0000             
+0018   0000             		.org 	6000h
+0019   6000             
+0020   6000             ;-------------------------------------------------------------------
+0021   6000             ; описание: Точка входа в программу после передачи управления из ОС
+0022   6000             ;---------------------------------------------------------------------
+0023   6000             MoonService_Start: 		
+0024   6000 F3          		di	
+0025   6001 3E 10       		ld	a, 10h
+0026   6003 01 FD 7F    		ld	bc, 7FFDh
+0027   6006 ED 79       		out	(c), a
+0028   6008 CD 0E 64    		call	MoonService_init_card		;инициализация и проверка наличия карты
+0029   600B             
+0030   600B F5          		push	af                              ;запомним результат 
+0031   600C FD CB 30 DE 		set	3, (iy + 30h)			;включим CAPS LOCK (5С3A + 30h)
+0032   6010 21 10 01    		ld	hl, 110h
+0033   6013 22 09 5C    		ld	(REPDEL), hl
+0034   6016             
+0035   6016 3E 28       		ld	a, 28h
+0036   6018 CD 9C 64    		call	VideoDRV_clear_screen   	;очищаем экран
+0037   601B FD CB 01 AE 		res	5, (iy + 1)
+0038   601F FD CB 30 BE 		res	7, (iy + 30h)
+0039   6023 FD CB 37 9E 		res	3, (iy + 37h)
+0040   6027 CD 7D 64    		call	VideoDRV_create_scraddr 	;создаем таблицу адресов экрана
+0041   602A F1          		pop	af
+0042   602B             
+0043   602B C2 4A 61    		jp	nz,MoonService_card_not_found	;карта не найдена
+0044   602E             
+0045   602E             loc_0_6032: 
+0046   602E DD 21 A7 69 		ld	ix, MoonService_window_name	;создаем окно программы
+0047   6032 CD 7B 65    		call	VideoDRV_create_window
+0048   6035             
+0049   6035 DD 21 0E 6A 		ld	ix, MoonService_window_help     ;создадим окно помощи
+0050   6039 CD 7B 65    		call	VideoDRV_create_window
+0051   603C             
+0052   603C DD 21 E5 69 		ld	ix, MoonService_window_info	;создадим окно информации о страницах ПЗУ
+0053   6040 CD 7B 65    		call	VideoDRV_create_window
+0054   6043 CD 59 60    		call	MoonService_card_info
+0055   6046             
+0056   6046 DD 21 6D 69 		ld	ix, MoonService_window_menu	;создадим окно меню
+0057   604A CD 7B 65    		call	VideoDRV_create_window
+0058   604D             loc_0_60AC: 
+0059   604D CD 7F 62    		call	MoonService_key_pressed		;опрос клавиатуры меню
+0060   6050 CD 6F 68    		call	MoonService_menu_action         ;обработка события, при ввыборе пунктов меню
+0061   6053 0D          		db	0Dh				;код клавиши - Ввод
+0062   6054 70 61       		dw	MoonService_menu_execute
+0063   6056 00          		db	00h				;конец таблицы	
+0064   6057 18 F4       		jr	loc_0_60AC
+0065   6059             ;-------------------------------------------------------------------
+0066   6059             ; описание: Вывод информации о карте
+0067   6059             ; параметры: нет                                                    
+0068   6059             ; возвращаемое  значение: нет
+0069   6059             ;---------------------------------------------------------------------
+0070   6059             MoonService_card_info: 
+0071   6059 21 3B 69    		ld	hl, MoonService_msg_Dev		;выведем информацию о чипе
+0072   605C CD 50 67    		call	VideoDRV_print_string
+0073   605F 21 1B 69    		ld	hl,MoonService_id_ym278
+0074   6062 3A 60 77    		ld	a,(MoonService_dev_id)
+0075   6065 FE 20       		cp	20h
+0076   6067 28 03       		jr	z,MoonService_chip_0
+0077   6069 21 13 69    		ld	hl,MoonService_id_unk
+0078   606C             MoonService_chip_0: 
+0079   606C CD 50 67    		call	VideoDRV_print_string
+0080   606F             
+0081   606F 21 4D 69    		ld	hl, MoonService_msg_ROM		;выведем информацию о ПЗУ
+0082   6072 CD 50 67    		call	VideoDRV_print_string
+0083   6075 21 34 69    		ld	hl, MoonService_mem_2048		
+0084   6078 CD 50 67    		call	VideoDRV_print_string
+0085   607B             
+0086   607B 21 44 69    		ld	hl, MoonService_msg_RAM		;выведем информацию о ОЗУ
+0087   607E CD 50 67    		call	VideoDRV_print_string
+0088   6081             
+0089   6081 0E 00       		ld	c,0				;признак что памяти нет
+0090   6083             
+0091   6083 11 11 02    		ld	de,0211h			;открываем ОЗУ на запись
+0092   6086 CD 48 64    		call	MoonService_wave_out
+0093   6089             	
+0094   6089 11 20 03    		ld	de,0320h			;устанавливаем адрес 200000h
+0095   608C CD 48 64    		call	MoonService_wave_out
+0096   608F             
+0097   608F 11 00 04    		ld	de,0400h                        ;старший байт
+0098   6092 CD 48 64    		call	MoonService_wave_out		
+0099   6095 14          		inc	d                               ;05 - младший байт адреса
+0100   6096 CD 48 64    		call	MoonService_wave_out
+0101   6099 11 55 06    		ld	de,0655h                        ;06 -запишем данные -> 55h
+0102   609C CD 48 64    		call	MoonService_wave_out		
+0103   609F CD 59 64    		call	MoonService_busy		;проверим готовность микросхемы
+0104   60A2 1E AA       		ld	e,0AAh                          ;06 -запишем данные -> 0AAh
+0105   60A4 CD 48 64    		call	MoonService_wave_out		
+0106   60A7 CD 59 64    		call	MoonService_busy		;проверим готовность микросхемы
+0107   60AA             
+0108   60AA 00          		nop
+0109   60AB 00          		nop
+0110   60AC 00          		nop
+0111   60AD             
+0112   60AD 11 11 02    		ld	de,0211h			;открываем ОЗУ на чтение
+0113   60B0 CD 48 64    		call	MoonService_wave_out
+0114   60B3 11 20 03    		ld	de,0320h			;устанавливаем адрес 200000h
+0115   60B6 CD 48 64    		call	MoonService_wave_out
+0116   60B9 11 00 04    		ld	de,0400h                        ;старший байт
+0117   60BC CD 48 64    		call	MoonService_wave_out		
+0118   60BF 14          		inc	d                               ;05 - младший байт адреса
+0119   60C0 CD 48 64    		call	MoonService_wave_out
+0120   60C3 14          		inc	d   
+0121   60C4 CD 51 64    		call	MoonService_wave_in
+0122   60C7 6F          		ld	l,a
+0123   60C8 CD 51 64    		call	MoonService_wave_in
+0124   60CB             
+0125   60CB FE AA       		cp	0AAh				;сравним что прочитали	
+0126   60CD 20 09       		jr	nz, MoonService_chip_1
+0127   60CF 7D          		ld	a,l
+0128   60D0 FE 55       		cp	55h				;сравним что прочитали	
+0129   60D2 20 04       		jr	nz, MoonService_chip_1
+0130   60D4 3E 01       		ld	a,1
+0131   60D6 B1          		or	c
+0132   60D7 4F          		ld	c,a
+0133   60D8             MoonService_chip_1: 
+0134   60D8 11 11 02    		ld	de,0211h			;открываем ОЗУ на запись
+0135   60DB CD 48 64    		call	MoonService_wave_out
+0136   60DE 11 28 03    		ld	de,0328h			;устанавливаем адрес 280000h
+0137   60E1 CD 48 64    		call	MoonService_wave_out
+0138   60E4             
+0139   60E4 11 00 04    		ld	de,0400h                        ;старший байт
+0140   60E7 CD 48 64    		call	MoonService_wave_out		
+0141   60EA 14          		inc	d                               ;младший байт адреса
+0142   60EB CD 48 64    		call	MoonService_wave_out
+0143   60EE 11 AA 06    		ld	de,06AAh                        ;06 -запишем данные -> AAh
+0144   60F1 CD 48 64    		call	MoonService_wave_out		
+0145   60F4 CD 59 64    		call	MoonService_busy		;проверим готовность микросхемы
+0146   60F7 1E 55       		ld	e,55h                          	;06 -запишем данные -> 55h
+0147   60F9 CD 48 64    		call	MoonService_wave_out		
+0148   60FC CD 59 64    		call	MoonService_busy		;проверим готовность микросхемы
+0149   60FF             
+0150   60FF 00          		nop
+0151   6100 00          		nop
+0152   6101 00          		nop
+0153   6102             
+0154   6102 11 11 02    		ld	de,0211h			;открываем ОЗУ на чтение
+0155   6105 CD 48 64    		call	MoonService_wave_out
+0156   6108 11 28 03    		ld	de,0328h			;устанавливаем адрес 280000h
+0157   610B CD 48 64    		call	MoonService_wave_out
+0158   610E 11 00 04    		ld	de,0400h                        ;старший байт
+0159   6111 CD 48 64    		call	MoonService_wave_out		
+0160   6114 14          		inc	d                               ;05 - младший байт адреса
+0161   6115 CD 48 64    		call	MoonService_wave_out
+0162   6118 14          		inc	d   
+0163   6119 CD 51 64    		call	MoonService_wave_in
+0164   611C 6F          		ld	l,a
+0165   611D CD 51 64    		call	MoonService_wave_in
+0166   6120             
+0167   6120 FE 55       		cp	55h				;сравним что прочитали	
+0168   6122 20 09       		jr	nz, MoonService_chip_2
+0169   6124 7D          		ld	a,l
+0170   6125 FE AA       		cp	0AAh				;сравним что прочитали	
+0171   6127 20 04       		jr	nz, MoonService_chip_2
+0172   6129 3E 02       		ld	a,2
+0173   612B B1          		or	c
+0174   612C 4F          		ld	c,a
+0175   612D             MoonService_chip_2: 
+0176   612D 79          		ld	a,c
+0177   612E 32 61 77    		ld	(MoonService_dev_mem),a
+0178   6131 21 22 69    		ld	hl,MoonService_mem_none	
+0179   6134 A7          		and	a
+0180   6135 28 0A       		jr	z,MoonService_chip_3
+0181   6137 21 2D 69    		ld	hl,MoonService_mem_1024
+0182   613A FE 03       		cp	3
+0183   613C 28 03       		jr	z,MoonService_chip_3
+0184   613E 21 27 69    		ld	hl,MoonService_mem_512
+0185   6141             MoonService_chip_3: 
+0186   6141 CD 50 67    		call	VideoDRV_print_string
+0187   6144 11 10 02    		ld	de, 0210h			;закрываем доступ к ОЗУ карты
+0188   6147 C3 48 64    		jp	MoonService_wave_out
+0189   614A             ;-------------------------------------------------------------------
+0190   614A             ; описание: Вывод сообщения об отсутствии карты 
+0191   614A             ; параметры: нет                                
+0192   614A             ; возвращаемое  значение: нет
+0193   614A             ;---------------------------------------------------------------------
+0194   614A             MoonService_card_not_found: 
+0195   614A DD 21 56 69 		ld	ix,MoonService_window_message    ;адрес окна 
+0196   614E CD 7B 65    		call	VideoDRV_create_window       	;создадим текущее окно
+0197   6151             
+0198   6151 21 DF 68    		ld	hl, aErrorSndNotFound          
+0199   6154 CD 50 67    		call	VideoDRV_print_string        	;выведем сообщение
+0200   6157             
+0201   6157 CD 5F 64    		call	MoonService_press_anykey         ;ждем нажатия любой клавиши
+0202   615A C3 78 62    		jp	MoonService_exit
+0203   615D             ;-------------------------------------------------------------------
+0204   615D             ; описание: Вывод сообщения об отсутствии памяти ОЗУ
+0205   615D             ; параметры: нет                                
+0206   615D             ; возвращаемое  значение: нет
+0207   615D             ;---------------------------------------------------------------------
+0208   615D             MoonService_ram_not_found: 
+0209   615D DD 21 56 69 		ld	ix,MoonService_window_message    ;адрес окна 
+0210   6161 CD 7B 65    		call	VideoDRV_create_window       ;создадим текущее окно
+0211   6164             
+0212   6164 21 FC 68    		ld	hl, aErrorRamNotFound          
+0213   6167 CD 50 67    		call	VideoDRV_print_string        ;выведем сообщение
+0214   616A             
+0215   616A CD 5F 64    		call	MoonService_press_anykey         ;ждем нажатия любой клавиши
+0216   616D C3 00 60    		jp	MoonService_Start
+0217   6170             ;-------------------------------------------------------------------
+0218   6170             ; описание: Обработчик пунктов меню
+0219   6170             ; параметры: нет                    
+0220   6170             ; возвращаемое  значение: нет
+0221   6170             ;---------------------------------------------------------------------
+0222   6170             MoonService_menu_execute: 
+0223   6170 DD 7E 12    		ld	a, (ix + 12h)
+0224   6173 A7          		and	a
+0225   6174 28 07       		jr	z, MoonService_test_ram
+0226   6176 3D          		dec	a
+0227   6177 CA CB 6B    		jp	z, MoonService_test_rom
+0228   617A C3 78 62    		jp	MoonService_exit
+0229   617D             ;-------------------------------------------------------------------
+0230   617D             ; описание: Процесс тестирования ОЗУ
+0231   617D             ; параметры: нет
+0232   617D             ; возвращаемое  значение: нет
+0233   617D             ;---------------------------------------------------------------------
+0234   617D             MoonService_test_ram: 
+0235   617D 3A 61 77    		ld	a,(MoonService_dev_mem)		;проверим наличие банков памяти
+0236   6180 A7          		and	a
+0237   6181 CA 5D 61    		jp 	z,MoonService_ram_not_found
+0238   6184             
+0239   6184 DD 21 19 6B 		ld	ix, MoonService_window_hram     ;окно справки
+0240   6188 CD 7B 65    		call	VideoDRV_create_window
+0241   618B             
+0242   618B DD 21 8D 6A 		ld	ix, MoonService_window_tram     ;создадим окно теста
+0243   618F CD 7B 65    		call	VideoDRV_create_window
+0244   6192 AF          		xor	a
+0245   6193             MoonService_test_ram_00: 
+0246   6193 32 62 77    		ld	(MoonService_check_byte),a
+0247   6196             
+0248   6196 3A 61 77    		ld	a,(MoonService_dev_mem)		;проверим наличие банка 0
+0249   6199 E6 01       		and	1
+0250   619B CA E8 61    		jp 	z,MoonService_test_ram_12
+0251   619E             
+0252   619E 21 30 10    		ld	hl,1030h
+0253   61A1 01 00 00    		ld	bc,0000h			;B - номер банка, С - номер сегмента
+0254   61A4 16 08       		ld	d,8				;число сегментов-столбцов
+0255   61A6             MoonService_test_ram_0: 
+0256   61A6 22 4F 6F    		ld	(MoonService_text_tpos + 1),hl
+0257   61A9             
+0258   61A9 CD 79 63    		call	MoonService_check_segment	;проверка одного сегмента
+0259   61AC 3E 0F       		ld	a,0fh                           ;сегмент исправен
+0260   61AE 28 02       		jr      z,MoonService_test_ram_01
+0261   61B0 3E 0A       		ld	a,0ah				;сегмент неисправен
+0262   61B2             MoonService_test_ram_01: 
+0263   61B2 32 52 6F    		ld	(MoonService_text_tcol + 1),a
+0264   61B5 0C          		inc	c				;увеличим номер сегмента
+0265   61B6             
+0266   61B6 C5          		push	bc
+0267   61B7 21 4E 6F    		ld	hl,MoonService_text_tpos
+0268   61BA CD 50 67    		call	VideoDRV_print_string
+0269   61BD C1          		pop	bc
+0270   61BE             
+0271   61BE 1E 03       		ld	e,3				;число сегментов в строке
+0272   61C0             MoonService_test_ram_1: 
+0273   61C0 CD 79 63    		call	MoonService_check_segment	;проверка одного сегмента
+0274   61C3             
+0275   61C3 3E 0F       		ld	a,0fh                           ;сегмент исправен
+0276   61C5 28 02       		jr      z,MoonService_test_ram_11
+0277   61C7 3E 0A       		ld	a,0ah				;сегмент неисправен
+0278   61C9             MoonService_test_ram_11: 
+0279   61C9 32 52 6F    		ld	(MoonService_text_tcol + 1),a
+0280   61CC 0C          		inc	c				;увеличим номер сегмента
+0281   61CD             
+0282   61CD C5          		push	bc
+0283   61CE 21 51 6F    		ld	hl,MoonService_text_tcol ;seg
+0284   61D1 CD 50 67    		call	VideoDRV_print_string
+0285   61D4 C1          		pop	bc
+0286   61D5             
+0287   61D5 CD 70 64    		call	MoonService_check_anykey
+0288   61D8 C2 75 62    		jp	nz,MoonService_test_ram_5
+0289   61DB             		
+0290   61DB 1D          		dec	e
+0291   61DC 20 E2       		jr	nz,MoonService_test_ram_1
+0292   61DE             
+0293   61DE 2A 4F 6F    		ld	hl,(MoonService_text_tpos + 1)
+0294   61E1 7D          		ld	a,l
+0295   61E2 C6 08       		add	a,8
+0296   61E4 6F          		ld	l,a
+0297   61E5 15          		dec	d
+0298   61E6 20 BE       		jr	nz,MoonService_test_ram_0
+0299   61E8             
+0300   61E8             MoonService_test_ram_12: 
+0301   61E8 3A 61 77    		ld	a,(MoonService_dev_mem)		;проверим наличие банка 1
+0302   61EB E6 02       		and	2
+0303   61ED CA 39 62    		jp 	z,MoonService_test_ram_32
+0304   61F0             
+0305   61F0 21 30 87    		ld	hl,8730h
+0306   61F3 01 00 01    		ld	bc,0100h			;B - номер банка, С - номер сегмента
+0307   61F6 16 08       		ld	d,8				;число сегментов-столбцов
+0308   61F8             MoonService_test_ram_2: 
+0309   61F8 22 4F 6F    		ld	(MoonService_text_tpos + 1),hl
+0310   61FB             
+0311   61FB CD 79 63    		call	MoonService_check_segment	;проверка одного сегмента
+0312   61FE 3E 0F       		ld	a,0fh                           ;сегмент исправен
+0313   6200 28 02       		jr      z,MoonService_test_ram_21
+0314   6202 3E 0A       		ld	a,0ah				;сегмент неисправен
+0315   6204             MoonService_test_ram_21: 
+0316   6204 32 52 6F    		ld	(MoonService_text_tcol + 1),a
+0317   6207 0C          		inc	c				;увеличим номер сегмента
+0318   6208             
+0319   6208 C5          		push	bc
+0320   6209 21 4E 6F    		ld	hl,MoonService_text_tpos
+0321   620C CD 50 67    		call	VideoDRV_print_string
+0322   620F C1          		pop	bc
+0323   6210             
+0324   6210 1E 03       		ld	e,3				;число сегментов в строке
+0325   6212             MoonService_test_ram_3: 
+0326   6212 CD 79 63    		call	MoonService_check_segment	;проверка одного сегмента
+0327   6215 3E 0F       		ld	a,0fh                           ;сегмент исправен
+0328   6217 28 02       		jr      z,MoonService_test_ram_31
+0329   6219 3E 0A       		ld	a,0ah				;сегмент неисправен
+0330   621B             MoonService_test_ram_31: 
+0331   621B 32 52 6F    		ld	(MoonService_text_tcol + 1),a
+0332   621E 0C          		inc	c				;увеличим номер сегмента
+0333   621F             
+0334   621F C5          		push	bc
+0335   6220 21 53 6F    		ld	hl,MoonService_text_tseg
+0336   6223 CD 50 67    		call	VideoDRV_print_string
+0337   6226 C1          		pop	bc
+0338   6227             
+0339   6227 CD 70 64    		call	MoonService_check_anykey
+0340   622A 20 49       		jr	nz,MoonService_test_ram_5
+0341   622C             
+0342   622C 1D          		dec	e
+0343   622D 20 E3       		jr	nz,MoonService_test_ram_3
+0344   622F             
+0345   622F 2A 4F 6F    		ld	hl,(MoonService_text_tpos + 1)
+0346   6232 7D          		ld	a,l
+0347   6233 C6 08       		add	a,8
+0348   6235 6F          		ld	l,a
+0349   6236 15          		dec	d
+0350   6237 20 BF       		jr	nz,MoonService_test_ram_2
+0351   6239             
+0352   6239             MoonService_test_ram_32: 		
+0353   6239 21 00 40    		ld	hl,4000h			;пауза между тестами
+0354   623C             MoonService_test_ram_33: 		
+0355   623C 2B          		dec	hl
+0356   623D 7D          		ld	a,l
+0357   623E B4          		or	h
+0358   623F 20 FB       		jr	nz,MoonService_test_ram_33
+0359   6241             		
+0360   6241 3E 0F       		ld	a,0fh
+0361   6243 32 5D 6F    		ld	(MoonService_text_col + 1),a
+0362   6246 21 5C 6F    		ld	hl,MoonService_text_col
+0363   6249 CD 50 67    		call	VideoDRV_print_string
+0364   624C             	
+0365   624C 21 30 10    		ld	hl,1030h
+0366   624F 16 08       		ld	d,8
+0367   6251             MoonService_test_ram_4: 		
+0368   6251 22 59 6F    		ld	(MoonService_text_pos + 1),hl
+0369   6254 21 58 6F    		ld	hl,MoonService_text_pos
+0370   6257 CD 50 67    		call	VideoDRV_print_string
+0371   625A 1E 24       		ld	e,24h
+0372   625C             MoonService_test_ram_41: 
+0373   625C 3E 20                       ld	a,20h
+0374   625E CD 6C 67    		call	VideoDRV_print_char
+0375   6261 1D          		dec	e
+0376   6262 20 F8       		jr	nz,MoonService_test_ram_41	
+0377   6264             
+0378   6264 2A 59 6F    		ld	hl,(MoonService_text_pos + 1)
+0379   6267 7D          		ld	a,l
+0380   6268 C6 08       		add	a,8
+0381   626A 6F          		ld	l,a
+0382   626B 15          		dec	d
+0383   626C 20 E3       		jr	nz,MoonService_test_ram_4
+0384   626E             
+0385   626E 3A 62 77    		ld	a,(MoonService_check_byte)
+0386   6271 3C          		inc	a
+0387   6272 C3 93 61    		jp	MoonService_test_ram_00
+0388   6275             		
+0389   6275             MoonService_test_ram_5: 
+0390   6275 C3 00 60    		jp	MoonService_Start
+0391   6278             ;-------------------------------------------------------------------
+0392   6278             ; описание: Выход из программы в TR-DOS
+0393   6278             ; параметры: нет
+0394   6278             ; возвращаемое  значение: нет
+0395   6278             ;---------------------------------------------------------------------
+0396   6278             MoonService_exit: 
+0397   6278 21 00 00    		ld	hl, 0
+0398   627B E5          		push	hl
+0399   627C C3 2F 3D    		jp	3D2Fh
+0400   627F             ;-------------------------------------------------------------------
+0401   627F             ; описание: Обработка событий меню
+0402   627F             ; параметры: нет
+0403   627F             ; возвращаемое  значение: нет
+0404   627F             ;---------------------------------------------------------------------
+0405   627F             MoonService_key_pressed: 
+0406   627F DD 4E 12    		ld	c, (ix + 12h)
+0407   6282 DD 46 13    		ld	b, (ix + 13h)
+0408   6285 CD 52 63    		call	sub_0_626B			;отрисовка курсора
+0409   6288 FD CB 37 DE 		set	3, (iy + 37h)
+0410   628C             loc_0_61A5: 
+0411   628C FD CB 37 5E 		bit	3, (iy + 37h)
+0412   6290 28 04       		jr	z, loc_0_61AF
+0413   6292 FD CB 37 9E 		res	3, (iy + 37h)
+0414   6296             loc_0_61AF: 
+0415   6296 FB          		ei	
+0416   6297 76          		halt	
+0417   6298 F3          		di	
+0418   6299 FD CB 01 6E 		bit	5, (iy + 1)
+0419   629D 28 ED       		jr	z, loc_0_61A5
+0420   629F FD 7E CE    		ld	a, (iy - 32h)
+0421   62A2 FD CB 01 AE 		res	5, (iy + 1)
+0422   62A6 FE 0A       		cp	0Ah				;нажали кнопку - Стрелка вниз
+0423   62A8 20 09       		jr	nz, loc_0_61CC                  ;нет, тогда на обработку другой кнопки
+0424   62AA CD D3 62    		call	MoonService_key_down
+0425   62AD FD CB 37 DE 		set	3, (iy + 37h)
+0426   62B1 18 E3       		jr	loc_0_61AF
+0427   62B3             loc_0_61CC: 
+0428   62B3 FE 0B       		cp	0Bh                              ;нажали кнопку - Стрелка вверх
+0429   62B5 20 09       		jr	nz, loc_0_61D9                   ;нет, тогда на обработку другой кнопки
+0430   62B7 CD 1B 63    		call	MoonService_key_up
+0431   62BA FD CB 37 DE 		set	3, (iy + 37h)
+0432   62BE 18 D6       		jr	loc_0_61AF
+0433   62C0             loc_0_61D9: 
+0434   62C0 FD CB 30 BE 		res	7, (iy + 30h)
+0435   62C4 DD 71 12    		ld	(ix + 12h), c
+0436   62C7 DD 70 13    		ld	(ix + 13h), b
+0437   62CA F5          		push	af
+0438   62CB DD 7E 04    		ld	a, (ix + 4)
+0439   62CE CD 6A 63    		call	sub_0_6283
+0440   62D1 F1          		pop	af
+0441   62D2 C9          		ret	
+0442   62D3             ;-------------------------------------------------------------------
+0443   62D3             ; описание: Обработка событий меню
+0444   62D3             ; параметры: нет
+0445   62D3             ; возвращаемое  значение: нет
+0446   62D3             ;---------------------------------------------------------------------
+0447   62D3             MoonService_key_down: 
+0448   62D3 DD 6E 10    		ld	l, (ix + 10h)
+0449   62D6 DD 66 11    		ld	h, (ix + 11h)
+0450   62D9 7C          		ld	a, h
+0451   62DA B5          		or	l
+0452   62DB C8          		ret	z
+0453   62DC 37          		scf	
+0454   62DD ED 42       		sbc	hl, bc
+0455   62DF C8          		ret	z
+0456   62E0 03          		inc	bc
+0457   62E1 DD 7E 02    		ld	a, (ix + 2)
+0458   62E4 D6 03       		sub	3
+0459   62E6 DD BE 0F    		cp	(ix + 0Fh)
+0460   62E9 28 16       		jr	z, loc_0_621A
+0461   62EB DD 34 0F    		inc	(ix + 0Fh)
+0462   62EE DD 7E 04    		ld	a, (ix + 4)
+0463   62F1 CD 6A 63    		call	sub_0_6283
+0464   62F4 11 20 00    		ld	de, 20h	; ' '
+0465   62F7 19          		add	hl, de
+0466   62F8 22 6C 63    		ld	(loc_0_6284+1),	hl
+0467   62FB DD 7E 05    		ld	a, (ix + 5)
+0468   62FE C3 6A 63    		jp	sub_0_6283
+0469   6301             loc_0_621A: 
+0470   6301 DD 7E 00    		ld	a, (ix + 0)
+0471   6304 87          		add	a, a
+0472   6305 87          		add	a, a
+0473   6306 87          		add	a, a
+0474   6307 3C          		inc	a
+0475   6308 67          		ld	h, a
+0476   6309 DD 7E 01    		ld	a, (ix + 1)
+0477   630C DD 86 02    		add	a, (ix + 2)
+0478   630F D6 02       		sub	2
+0479   6311 87          		add	a, a
+0480   6312 87          		add	a, a
+0481   6313 87          		add	a, a
+0482   6314 6F          		ld	l, a
+0483   6315 22 E8 67    		ld	(VideoDRV_address_screen + 1),hl
+0484   6318 C3 2C 66    		jp	loc_0_7110
+0485   631B             ;-------------------------------------------------------------------
+0486   631B             ; описание: Стрелка вверx
+0487   631B             ; параметры: нет
+0488   631B             ; возвращаемое  значение: нет
+0489   631B             ;---------------------------------------------------------------------
+0490   631B             MoonService_key_up: 
+0491   631B 78          		ld	a, b
+0492   631C B1          		or	c
+0493   631D C8          		ret	z
+0494   631E 0B          		dec	bc
+0495   631F DD 7E 0F    		ld	a, (ix + 0Fh)
+0496   6322 A7          		and	a
+0497   6323 28 17       		jr	z, loc_0_6255
+0498   6325 DD 35 0F    		dec	(ix + 0Fh)
+0499   6328 DD 7E 04    		ld	a, (ix + 4)
+0500   632B CD 6A 63    		call	sub_0_6283
+0501   632E A7          		and	a
+0502   632F 11 20 00    		ld	de, 20h	; ' '
+0503   6332 ED 52       		sbc	hl, de
+0504   6334 22 6C 63    		ld	(loc_0_6284+1),	hl
+0505   6337 DD 7E 05    		ld	a, (ix + 5)
+0506   633A 18 2E       		jr	sub_0_6283
+0507   633C             
+0508   633C             loc_0_6255: 
+0509   633C DD 7E 00    		ld	a, (ix + 0)
+0510   633F 87          		add	a, a
+0511   6340 87          		add	a, a
+0512   6341 87          		add	a, a
+0513   6342 3C          		inc	a
+0514   6343 67          		ld	h, a
+0515   6344 DD 7E 01    		ld	a, (ix + 1)
+0516   6347 3C          		inc	a
+0517   6348 87          		add	a, a
+0518   6349 87          		add	a, a
+0519   634A 87          		add	a, a
+0520   634B 6F          		ld	l, a
+0521   634C 22 E8 67    		ld	(VideoDRV_address_screen + 1),hl
+0522   634F C3 54 66    		jp	loc_0_7138
+0523   6352             
+0524   6352             sub_0_626B: 
+0525   6352 D5          		push	de
+0526   6353 DD 66 00    		ld	h, (ix + 0)     		;позиция по X
+0527   6356 DD 6E 01    		ld	l, (ix + 1)                     ;позиция по Y
+0528   6359 DD 7E 0F    		ld	a, (ix + 0Fh)			;число пунктов меню
+0529   635C 85          		add	a, l
+0530   635D 6F          		ld	l, a
+0531   635E 2C          		inc	l
+0532   635F CD 30 67    		call	sub_0_7214
+0533   6362 EB          		ex	de, hl
+0534   6363 22 6C 63    		ld	(loc_0_6284 + 1),hl
+0535   6366 DD 7E 05    		ld	a, (ix + 5)
+0536   6369 D1          		pop	de
+0537   636A             sub_0_6283: 
+0538   636A C5          		push	bc
+0539   636B             loc_0_6284: 
+0540   636B 21 00 00    		ld	hl, 0
+0541   636E E5          		push	hl
+0542   636F DD 46 03    		ld	b, (ix + 3)
+0543   6372             loc_0_628B: 
+0544   6372 77          		ld	(hl), a
+0545   6373 23          		inc	hl
+0546   6374 10 FC       		djnz	loc_0_628B
+0547   6376 E1          		pop	hl
+0548   6377 C1          		pop	bc
+0549   6378 C9          		ret	
+0550   6379             ;-------------------------------------------------------------------
+0551   6379             ; описание: Проверка одного сегмента RAM
+0552   6379             ; параметры: B - номер банка
+0553   6379             ;	     C - номер сегмента по 16Кб
+0554   6379             ; возвращаемое  значение: Z = 1 исправен, Z = 0 неисправен
+0555   6379             ;---------------------------------------------------------------------
+0556   6379             MoonService_check_segment: 
+0557   6379 E5          		push	hl
+0558   637A D5          		push	de
+0559   637B C5          		push	bc
+0560   637C 11 11 02    		ld	de,0211h			;запись в RAM
+0561   637F CD 48 64    		call	MoonService_wave_out
+0562   6382             
+0563   6382 79          		ld	a,c
+0564   6383 87          		add	a,a
+0565   6384 87          		add	a,a
+0566   6385 0F          		rrca
+0567   6386 0F          		rrca
+0568   6387 0F          		rrca
+0569   6388 0F          		rrca
+0570   6389 6F          		ld	l,a
+0571   638A E6 0F       		and	0Fh
+0572   638C 67          		ld	h,a
+0573   638D 7D          		ld	a,l
+0574   638E E6 F0       		and	0F0h
+0575   6390 6F          		ld	l,a
+0576   6391             
+0577   6391 78          		ld	a,b
+0578   6392 1E 20       		ld	e,20h
+0579   6394 A7          		and	a
+0580   6395 28 02       		jr	z,MoonService_check_segment_0
+0581   6397 1E 28       		ld	e,28h
+0582   6399             
+0583   6399             MoonService_check_segment_0: 
+0584   6399 7B          		ld	a,e
+0585   639A B4          		or	h
+0586   639B 5F          		ld	e,a
+0587   639C 14          		inc	d
+0588   639D CD 48 64    		call	MoonService_wave_out
+0589   63A0             
+0590   63A0 5D          		ld	e,l
+0591   63A1 14          		inc	d
+0592   63A2 CD 48 64    		call	MoonService_wave_out
+0593   63A5 11 00 05    		ld	de,0500h
+0594   63A8 CD 48 64    		call	MoonService_wave_out
+0595   63AB 14          		inc	d
+0596   63AC             
+0597   63AC 21 00 40    		ld	hl,4000h
+0598   63AF 3A 62 77    		ld	a,(MoonService_check_byte)
+0599   63B2 5F          		ld	e,a
+0600   63B3             
+0601   63B3             MoonService_check_segment_1: 
+0602   63B3 CD 48 64    		call	MoonService_wave_out
+0603   63B6 CD 59 64    		call	MoonService_busy
+0604   63B9 1C          		inc	e
+0605   63BA             
+0606   63BA 2B          		dec	hl
+0607   63BB 7D          		ld	a,l
+0608   63BC B4          		or	h
+0609   63BD 20 F4       		jr	nz,MoonService_check_segment_1		
+0610   63BF C1          		pop	bc			
+0611   63C0             
+0612   63C0 C5          		push	bc
+0613   63C1 11 11 02    		ld	de,0211h			;чтение из RAM 
+0614   63C4 CD 48 64    		call	MoonService_wave_out
+0615   63C7             
+0616   63C7 79          		ld	a,c
+0617   63C8 87          		add	a,a
+0618   63C9 87          		add	a,a
+0619   63CA 0F          		rrca
+0620   63CB 0F          		rrca
+0621   63CC 0F          		rrca
+0622   63CD 0F          		rrca
+0623   63CE 6F          		ld	l,a
+0624   63CF E6 0F       		and	0Fh
+0625   63D1 67          		ld	h,a
+0626   63D2 7D          		ld	a,l
+0627   63D3 E6 F0       		and	0F0h
+0628   63D5 6F          		ld	l,a
+0629   63D6             
+0630   63D6 78          		ld	a,b
+0631   63D7 1E 20       		ld	e,20h
+0632   63D9 A7          		and	a
+0633   63DA 28 02       		jr	z,MoonService_check_segment_3
+0634   63DC 1E 28       		ld	e,28h
+0635   63DE             
+0636   63DE             MoonService_check_segment_3: 
+0637   63DE 7B          		ld	a,e
+0638   63DF B4          		or	h
+0639   63E0 5F          		ld	e,a
+0640   63E1 14          		inc	d
+0641   63E2 CD 48 64    		call	MoonService_wave_out
+0642   63E5             
+0643   63E5 5D          		ld	e,l
+0644   63E6 14          		inc	d
+0645   63E7 CD 48 64    		call	MoonService_wave_out
+0646   63EA 11 00 05    		ld	de,0500h
+0647   63ED CD 48 64    		call	MoonService_wave_out
+0648   63F0 14          		inc	d
+0649   63F1             
+0650   63F1 21 00 40    		ld	hl,4000h
+0651   63F4 3A 62 77    		ld	a,(MoonService_check_byte)
+0652   63F7 5F          		ld	e,a
+0653   63F8             
+0654   63F8             MoonService_check_segment_4: 
+0655   63F8 CD 51 64    		call	MoonService_wave_in
+0656   63FB BB          		cp	e
+0657   63FC 20 06       		jr	nz,MoonService_check_segment_5
+0658   63FE             
+0659   63FE 1C          		inc	e
+0660   63FF 2B          		dec	hl
+0661   6400 7D          		ld	a,l
+0662   6401 B4          		or	h
+0663   6402 20 F4       		jr	nz,MoonService_check_segment_4
+0664   6404             
+0665   6404             MoonService_check_segment_5: 
+0666   6404 11 10 02    		ld	de,0210h			;Отключаем доступ к RAM
+0667   6407 CD 48 64    		call	MoonService_wave_out
+0668   640A C1          		pop	bc					
+0669   640B D1          		pop	de
+0670   640C E1          		pop	hl
+0671   640D C9          		ret	
+0672   640E             ;-------------------------------------------------------------------
+0673   640E             ; описание: Инициализация карты ZXM-MoonSound
+0674   640E             ; параметры: нет
+0675   640E             ; возвращаемое  значение: A - 0 нет ошибок, иначе ошибка
+0676   640E             ;---------------------------------------------------------------------
+0677   640E             MoonService_init_card: 
+0678   640E             
+0679   640E DB C4       		in	a,(MOON_STAT)                       ;проверяем наличие карты
+0680   6410 FE FF       		cp	0FFh
+0681   6412 20 01       		jr	nz,MoonService_init_0
+0682   6414 C9          		ret	
+0683   6415             
+0684   6415             MoonService_init_0: 
+0685   6415 11 00 04    		ld	de, 0400h 
+0686   6418 CD 3F 64    		call	MoonService_fm2_out
+0687   641B 11 03 05    		ld	de, 0503h			; set 1 to NEW2, NEW
+0688   641E CD 3F 64    		call	MoonService_fm2_out
+0689   6421 11 00 BD    		ld	de, 0bd00h			; RHYTHM
+0690   6424 CD 36 64    		call	MoonService_fm1_out
+0691   6427 11 10 02    		ld	de, 0210h			; Set WaveTable header
+0692   642A CD 48 64    		call	MoonService_wave_out
+0693   642D             		
+0694   642D DB 7F       		in	a,(MOON_WDAT)			;получим ID девайса
+0695   642F E6 E0       		and	0E0h
+0696   6431 32 60 77    		ld	(MoonService_dev_id),a
+0697   6434 AF          		xor	a
+0698   6435 C9          		ret	
+0699   6436             ;-------------------------------------------------------------------
+0700   6436             ; описание: Запись в регистры fm1
+0701   6436             ; параметры: D = адрес регистра 
+0702   6436             ;	     E = данные
+0703   6436             ; возвращаемое  значение: нет
+0704   6436             ;-------------------------------------------------------------------
+0705   6436             MoonService_fm1_out: 
+0706   6436 7A          		ld	a, d
+0707   6437 D3 C4       		out	(MOON_REG1), a
+0708   6439             
+0709   6439 00          		nop
+0710   643A 00          		nop
+0711   643B             		
+0712   643B 7B          		ld	a, e
+0713   643C D3 C5       		out	(MOON_DAT1), a
+0714   643E C9          		ret
+0715   643F             ;-------------------------------------------------------------------
+0716   643F             ; описание: Запись в регистры fm2
+0717   643F             ; параметры: D = адрес регистра 
+0718   643F             ;	     E = данные
+0719   643F             ; возвращаемое  значение: нет
+0720   643F             ;-------------------------------------------------------------------
+0721   643F             MoonService_fm2_out: 
+0722   643F 7A          		ld	a,d
+0723   6440 D3 C6       		out	(MOON_REG2), a
+0724   6442             
+0725   6442 00          		nop
+0726   6443 00          		nop
+0727   6444             	
+0728   6444 7B          		ld	a,e
+0729   6445 D3 C7       		out	(MOON_DAT2), a
+0730   6447 C9          		ret
+0731   6448             ;-------------------------------------------------------------------
+0732   6448             ; описание: Запись в регистры Wave
+0733   6448             ; параметры: D = адрес регистра 
+0734   6448             ;	     E = данные
+0735   6448             ; возвращаемое  значение: нет
+0736   6448             ;-------------------------------------------------------------------
+0737   6448             MoonService_wave_out: 
+0738   6448 7A          		ld	a, d
+0739   6449 D3 7E       		out	(MOON_WREG),a
+0740   644B             		
+0741   644B 00          		nop
+0742   644C 00          		nop	
+0743   644D             
+0744   644D 7B          		ld	a, e
+0745   644E D3 7F       		out	(MOON_WDAT),a
+0746   6450 C9          		ret
+0747   6451             ;-------------------------------------------------------------------
+0748   6451             ; описание: Чтение из регистра Wave
+0749   6451             ; параметры: D = адрес регистра 
+0750   6451             ; возвращаемое  значение: А - данные
+0751   6451             ;-------------------------------------------------------------------
+0752   6451             MoonService_wave_in: 
+0753   6451 7A          		ld	a, d
+0754   6452 D3 7E       		out	(MOON_WREG),a
+0755   6454             
+0756   6454 D5          		push	de				
+0757   6455 D1          		pop	de				
+0758   6456             
+0759   6456 DB 7F       		in	a,(MOON_WDAT)
+0760   6458 C9          		ret
+0761   6459             ;-------------------------------------------------------------------
+0762   6459             ; описание: Ожидание готовности микросхемы
+0763   6459             ; параметры: нет
+0764   6459             ; возвращаемое  значение: нет
+0765   6459             ;-------------------------------------------------------------------
+0766   6459             MoonService_busy: 
+0767   6459 DB C4       		in	a,(MOON_STAT)
+0768   645B 1F          		rra
+0769   645C 38 FB       		jr	c,MoonService_busy		
+0770   645E C9          		ret
+0771   645F             ;-------------------------------------------------------------------
+0772   645F             ; описание: Ожидание нажатие клавиши
+0773   645F             ; параметры: нет
+0774   645F             ; возвращаемое  значение: нет
+0775   645F             ;---------------------------------------------------------------------
+0776   645F             MoonService_press_anykey: 
+0777   645F FB          		ei	
+0778   6460 76          		halt	
+0779   6461 F3          		di	
+0780   6462 FD CB 01 6E 		bit	5, (iy + 1)
+0781   6466 28 F7       		jr	z, MoonService_press_anykey
+0782   6468 FD 7E CE    		ld	a, (iy - 32h)
+0783   646B FD CB 01 AE 		res	5, (iy + 1)
+0784   646F C9          		ret	
+0785   6470             ;-------------------------------------------------------------------
+0786   6470             ; описание: Проверка нажатия любой клавиши
+0787   6470             ; параметры: нет
+0788   6470             ; возвращаемое  значение: нет
+0789   6470             ;---------------------------------------------------------------------
+0790   6470             MoonService_check_anykey: 
+0791   6470 FB          		ei	
+0792   6471 76          		halt	
+0793   6472 F3          		di	
+0794   6473 FD CB 01 6E 		bit	5, (iy + 1)
+0795   6477 C8          		ret	z
+0796   6478 FD CB 01 AE 		res	5, (iy + 1)
+0797   647C C9          		ret	
+0798   647D             ;-------------------------------------------------------------------
+0799   647D             ; описание: Создание в буфере памяти адресов экрана
+0800   647D             ; параметры: нет
+0801   647D             ; возвращаемое  значение: нет
+0802   647D             ;---------------------------------------------------------------------
+0803   647D             VideoDRV_create_scraddr: 
+0804   647D 06 18       		ld	b, 18h
+0805   647F 11 00 40    		ld	de, 4000h
+0806   6482 21 00 B8    		ld	hl, 0B800h
+0807   6485             loc_0_6F59: 
+0808   6485 0E 08       		ld	c, 8
+0809   6487             loc_0_6F5B: 
+0810   6487 73          		ld	(hl), e
+0811   6488 23          		inc	hl
+0812   6489 72          		ld	(hl), d
+0813   648A 23          		inc	hl
+0814   648B 14          		inc	d
+0815   648C 0D          		dec	c
+0816   648D 20 F8       		jr	nz, loc_0_6F5B
+0817   648F 3E 20       		ld	a, 20h ; ' '
+0818   6491 83          		add	a, e
+0819   6492 5F          		ld	e, a
+0820   6493 38 04       		jr	c, loc_0_6F6D
+0821   6495 7A          		ld	a, d
+0822   6496 D6 08       		sub	8
+0823   6498 57          		ld	d, a
+0824   6499             loc_0_6F6D: 
+0825   6499 10 EA       		djnz	loc_0_6F59
+0826   649B C9          		ret	
+0827   649C             ;-------------------------------------------------------------------
+0828   649C             ; описание: Очистка экрана и установка заданного цвета атрибута и бордера
+0829   649C             ; параметры: A - атрибут цвета
+0830   649C             ; возвращаемое  значение: нет
+0831   649C             ;---------------------------------------------------------------------
+0832   649C             VideoDRV_clear_screen: 
+0833   649C 21 00 40    		ld	hl, 4000h
+0834   649F 5D          		ld	e, l
+0835   64A0 54          		ld	d, h
+0836   64A1 75          		ld	(hl), l
+0837   64A2 1C          		inc	e
+0838   64A3 01 00 18    		ld	bc, 1800h
+0839   64A6 ED B0       		ldir	
+0840   64A8 32 8D 5C    		ld	(ATTR_P), a
+0841   64AB 32 48 5C    		ld	(BORDCR), a
+0842   64AE 21 00 58    		ld	hl, 5800h
+0843   64B1 54          		ld	d, h
+0844   64B2 5D          		ld	e, l
+0845   64B3 77          		ld	(hl), a
+0846   64B4 01 FF 02    		ld	bc, 2FFh
+0847   64B7 1C          		inc	e
+0848   64B8 ED B0       		ldir	
+0849   64BA 0F          		rrca	
+0850   64BB 0F          		rrca	
+0851   64BC 0F          		rrca	
+0852   64BD E6 07       		and	7
+0853   64BF D3 FE       		out	(0FEh),	a
+0854   64C1 C9          		ret	
+0855   64C2             
+0856   64C2             sub_0_6FA9: 
+0857   64C2 DD 7E 00    		ld	a, (ix + 0)
+0858   64C5 DD 23       		inc	ix
+0859   64C7 81          		add	a, c
+0860   64C8 6F          		ld	l, a
+0861   64C9 DD 66 00    		ld	h, (ix + 0)
+0862   64CC DD 23       		inc	ix
+0863   64CE 54          		ld	d, h
+0864   64CF 5D          		ld	e, l
+0865   64D0 1C          		inc	e
+0866   64D1 36 FF       		ld	(hl), 0FFh
+0867   64D3 C5          		push	bc
+0868   64D4 CD CC 66    		call	sub_0_71B0
+0869   64D7 C1          		pop	bc
+0870   64D8 10 E8       		djnz	sub_0_6FA9
+0871   64DA C9          		ret	
+0872   64DB             
+0873   64DB             sub_0_6FC2: 
+0874   64DB E5          		push	hl
+0875   64DC C5          		push	bc
+0876   64DD DD E5       		push	ix
+0877   64DF F5          		push	af
+0878   64E0 3E 22       		ld	a, 22h ; '"'
+0879   64E2 90          		sub	b
+0880   64E3 87          		add	a, a
+0881   64E4 32 CD 66    		ld	(sub_0_71B0+1),	a
+0882   64E7 C5          		push	bc
+0883   64E8 79          		ld	a, c
+0884   64E9 07          		rlca	
+0885   64EA 07          		rlca	
+0886   64EB 07          		rlca	
+0887   64EC 3D          		dec	a
+0888   64ED 3D          		dec	a
+0889   64EE 47          		ld	b, a
+0890   64EF DD 21 00 B8 		ld	ix, 0B800h
+0891   64F3 EB          		ex	de, hl
+0892   64F4 6A          		ld	l, d
+0893   64F5 26 00       		ld	h, 0
+0894   64F7 29          		add	hl, hl
+0895   64F8 29          		add	hl, hl
+0896   64F9 29          		add	hl, hl
+0897   64FA 29          		add	hl, hl
+0898   64FB EB          		ex	de, hl
+0899   64FC DD 19       		add	ix, de
+0900   64FE DD E5       		push	ix
+0901   6500 4D          		ld	c, l
+0902   6501             
+0903   6501             loc_0_6FE8: 
+0904   6501 DD 23       		inc	ix
+0905   6503 DD 23       		inc	ix
+0906   6505 DD 5E 00    		ld	e, (ix + 0)
+0907   6508 DD 56 01    		ld	d, (ix + 1)
+0908   650B 79          		ld	a, c
+0909   650C 83          		add	a, e
+0910   650D 5F          		ld	e, a
+0911   650E EB          		ex	de, hl
+0912   650F             
+0913   650F             loc_0_6FF6: 
+0914   650F 36 80       		ld	(hl), 80h ; 'А'
+0915   6511 23          		inc	hl
+0916   6512 36 00       		ld	(hl), 0
+0917   6514 54          		ld	d, h
+0918   6515 5D          		ld	e, l
+0919   6516 1C          		inc	e
+0920   6517 C5          		push	bc
+0921   6518 CD CC 66    		call	sub_0_71B0
+0922   651B C1          		pop	bc
+0923   651C             
+0924   651C             loc_0_7003: 
+0925   651C 36 01       		ld	(hl), 1
+0926   651E 10 E1       		djnz	loc_0_6FE8
+0927   6520 DD 5E 00    		ld	e, (ix + 0)
+0928   6523 DD 56 01    		ld	d, (ix + 1)
+0929   6526 14          		inc	d
+0930   6527 79          		ld	a, c
+0931   6528 83          		add	a, e
+0932   6529 5F          		ld	e, a
+0933   652A EB          		ex	de, hl
+0934   652B             
+0935   652B             loc_0_7012: 
+0936   652B 36 FF       		ld	(hl), 0FFh
+0937   652D 54          		ld	d, h
+0938   652E 5D          		ld	e, l
+0939   652F 1C          		inc	e
+0940   6530 C5          		push	bc
+0941   6531 CD CC 66    		call	sub_0_71B0
+0942   6534 ED A0       		ldi	
+0943   6536 C1          		pop	bc
+0944   6537 DD E1       		pop	ix
+0945   6539 DD 5E 00    		ld	e, (ix + 0)
+0946   653C DD 56 01    		ld	d, (ix + 1)
+0947   653F 79          		ld	a, c
+0948   6540 83          		add	a, e
+0949   6541 5F          		ld	e, a
+0950   6542 EB          		ex	de, hl
+0951   6543             
+0952   6543             loc_0_702A: 
+0953   6543 36 FF       		ld	(hl), 0FFh
+0954   6545 54          		ld	d, h
+0955   6546 5D          		ld	e, l
+0956   6547 1C          		inc	e
+0957   6548 C5          		push	bc
+0958   6549 CD CC 66    		call	sub_0_71B0
+0959   654C ED A0       		ldi	
+0960   654E C1          		pop	bc
+0961   654F DD 7E 00    		ld	a, (ix + 0)
+0962   6552 81          		add	a, c
+0963   6553 5F          		ld	e, a
+0964   6554 DD 7E 01    		ld	a, (ix + 1)
+0965   6557 1F          		rra	
+0966   6558 1F          		rra	
+0967   6559 1F          		rra	
+0968   655A E6 0F       		and	0Fh
+0969   655C F6 50       		or	50h ; 'P'
+0970   655E 57          		ld	d, a
+0971   655F EB          		ex	de, hl
+0972   6560 D1          		pop	de
+0973   6561 43          		ld	b, e
+0974   6562 F1          		pop	af
+0975   6563             
+0976   6563             loc_0_704A: 
+0977   6563 E5          		push	hl
+0978   6564 54          		ld	d, h
+0979   6565 5D          		ld	e, l
+0980   6566 1C          		inc	e
+0981   6567 77          		ld	(hl), a
+0982   6568 C5          		push	bc
+0983   6569 CD CC 66    		call	sub_0_71B0
+0984   656C ED A0       		ldi	
+0985   656E C1          		pop	bc
+0986   656F E1          		pop	hl
+0987   6570 11 20 00    		ld	de, 20h	; ' '
+0988   6573 19          		add	hl, de
+0989   6574 10 ED       		djnz	loc_0_704A
+0990   6576 DD E1       		pop	ix
+0991   6578 C1          		pop	bc
+0992   6579 E1          		pop	hl
+0993   657A C9          		ret	
+0994   657B             ;-------------------------------------------------------------------
+0995   657B             ; описание: Создание окна на экране
+0996   657B             ; параметры: IX - адрес параметров окна
+0997   657B             ; возвращаемое  значение: нет
+0998   657B             ;---------------------------------------------------------------------
+0999   657B             ;ОПИСАТЕЛЬ ОКНА (АДРЕС В IX)
+1000   657B             ;+00 X КООРДИНАТА
+1001   657B             ;+01 Y КООРДИНАТА
+1002   657B             ;+02 V ВЫСОТА
+1003   657B             ;+03 H ШИРИНА
+1004   657B             ;+04 C ЦВЕТ
+1005   657B             ;+05 C ЦВЕТ КУРСОРА
+1006   657B             ;+06 F ФЛАГОВЫЙ
+1007   657B             ;+07 N НОМЕР ПУНКТА В ОКНЕ
+1008   657B             ;  БИТ 7-0=БАЙТЫ 8-9 ТЕКУЩИЙ ПУНКТ МЕНЮ,
+1009   657B             ;        1=БАЙТЫ 8-9 АДРЕС ХРАНЕНИЯ
+1010   657B             ;+08 | ТЕКУЩИЙ
+1011   657B             ;+09 | ПУНКТ МЕНЮ
+1012   657B             ;+0A : КОЛИЧЕСТВО
+1013   657B             ;+0B : ПУНКТОВ МЕНЮ
+1014   657B             ;+0C | АДРЕС
+1015   657B             ;+0D | ТЕКСТА
+1016   657B             ;+0E : СПИСОК АДРЕСОВ
+1017   657B             ;+0F : ПОДПРОГРАММ
+1018   657B             ;+10 | АДРЕС СПИСКА АКТИВНЫХ
+1019   657B             ;+11 | ЗОН ДЛЯ МЫШИ
+1020   657B             ;+12 : АДРЕС СПИСКА
+1021   657B             ;+13 : ГОРЯЧИХ КЛАВИШ
+1022   657B             
+1023   657B             ;ФОРМАТ ФЛАГОВОГО БАЙТА ОКНА
+1024   657B             ;IX+6
+1025   657B             ;7-0-НЕТ, 1-ЕСТЬ НИЖНИЙ ЗАГОЛОВОК
+1026   657B             ;6-0-С РАМКОЙ,1-БЕЗ РАМКИ
+1027   657B             ;5-0-НЕТ, 1-ЕСТЬ ВЕРХНИЙ ЗАГОЛОВОК
+1028   657B             ;4-0-НЕТ, 1-ЕСТЬ ТЕКСТ
+1029   657B             ;3
+1030   657B             ;2-
+1031   657B             ;1-
+1032   657B             ;0-
+1033   657B             ;---------------------------------------------------------------------
+1034   657B             VideoDRV_create_window: 
+1035   657B DD CB 08 76 		bit	6,(ix + 8)			;проверим нужно рисовать рамку или нет
+1036   657F 21 01 80    		ld	hl, 8001h
+1037   6582 06 FF       		ld	b,0FFh
+1038   6584 28 04       		jr	z,loc_0_7071
+1039   6586 21 00 00    		ld	hl,0
+1040   6589 45          		ld	b,l
+1041   658A             loc_0_7071: 
+1042   658A 7C          		ld	a, h
+1043   658B 32 10 65    		ld	(loc_0_6FF6+1),	a
+1044   658E 7D          		ld	a, l
+1045   658F 32 1D 65    		ld	(loc_0_7003+1),	a
+1046   6592 78          		ld	a, b
+1047   6593 32 44 65    		ld	(loc_0_702A+1),	a
+1048   6596 32 2C 65    		ld	(loc_0_7012+1),	a
+1049   6599 DD 6E 00    		ld	l, (ix + 0)     		;позиция по X
+1050   659C DD 66 01    		ld	h, (ix + 1)                     ;позиция по Y
+1051   659F DD 4E 02    		ld	c, (ix + 2)                     ;высота
+1052   65A2 DD 46 03    		ld	b, (ix + 3)                     ;ширина
+1053   65A5 DD 7E 04    		ld	a, (ix + 4)                     ;цвет
+1054   65A8 32 59 68    		ld	(VideoDRV_colour_attr + 1),a
+1055   65AB CD DB 64    		call	sub_0_6FC2			;рисуем рамку
+1056   65AE             
+1057   65AE DD CB 08 6E 		bit	5, (ix + 8)                     ;проверяем наличие верхнего заголовка
+1058   65B2 28 21       		jr	z, loc_0_70B9                   ;нет его - пропускаем
+1059   65B4 21 CD 66    		ld	hl, sub_0_71B0+1
+1060   65B7 35          		dec	(hl)
+1061   65B8 35          		dec	(hl)
+1062   65B9 DD E5       		push	ix
+1063   65BB DD 4E 00    		ld	c, (ix + 0)                     ;позиция по X
+1064   65BE 06 08       		ld	b, 8
+1065   65C0 DD 6E 01    		ld	l, (ix + 1)                     ;позиция по Y
+1066   65C3 26 00       		ld	h, 0
+1067   65C5 DD 21 00 B8 		ld	ix, 0B800h
+1068   65C9 29          		add	hl, hl
+1069   65CA 29          		add	hl, hl
+1070   65CB 29          		add	hl, hl
+1071   65CC 29          		add	hl, hl
+1072   65CD EB          		ex	de, hl
+1073   65CE DD 19       		add	ix, de
+1074   65D0 CD C2 64    		call	sub_0_6FA9
+1075   65D3 DD E1       		pop	ix
+1076   65D5             loc_0_70B9: 
+1077   65D5 DD CB 08 7E 		bit	7, (ix + 8)			;проверяем наличие нижнего заголовка
+1078   65D9 28 21       		jr	z, loc_0_70E0                   ;нет его - пропускаем
+1079   65DB DD E5       		push	ix
+1080   65DD DD 4E 00    		ld	c, (ix + 0)                     ;позиция по X
+1081   65E0 06 08       		ld	b, 8
+1082   65E2 DD 7E 01    		ld	a, (ix + 1)                     ;позиция по Y
+1083   65E5 DD 86 02    		add	a, (ix + 2)                     ;высота
+1084   65E8 3D          		dec	a
+1085   65E9 6F          		ld	l, a
+1086   65EA 26 00       		ld	h, 0
+1087   65EC 29          		add	hl, hl
+1088   65ED 29          		add	hl, hl
+1089   65EE 29          		add	hl, hl
+1090   65EF 29          		add	hl, hl
+1091   65F0 DD 21 00 B8 		ld	ix, 0B800h
+1092   65F4 EB          		ex	de, hl
+1093   65F5 DD 19       		add	ix, de
+1094   65F7 CD C2 64    		call	sub_0_6FA9
+1095   65FA DD E1       		pop	ix
+1096   65FC             loc_0_70E0: 
+1097   65FC DD 7E 00    		ld	a, (ix + 0)                      ;позиция по X
+1098   65FF 87          		add	a, a
+1099   6600 87          		add	a, a
+1100   6601 87          		add	a, a
+1101   6602 3C          		inc	a
+1102   6603 57          		ld	d, a
+1103   6604 32 A8 67    		ld	(loc_0_72A6 + 1),a
+1104   6607 32 8A 67    		ld	(VideoDRV_centre_state_01 + 1),a
+1105   660A DD 7E 01    		ld	a, (ix + 1)      		;позиция по Y
+1106   660D 87          		add	a, a
+1107   660E 87          		add	a, a
+1108   660F 87          		add	a, a
+1109   6610 5F          		ld	e, a
+1110   6611 ED 53 E8 67 		ld	(VideoDRV_address_screen + 1),de
+1111   6615 DD 7E 03    		ld	a, (ix + 3)                     ;ширина
+1112   6618 87          		add	a, a
+1113   6619 87          		add	a, a
+1114   661A 87          		add	a, a
+1115   661B 32 84 67    		ld	(VideoDRV_centre_state_00 +1),a
+1116   661E             
+1117   661E DD CB 08 66 		bit	4, (ix + 8)			;проверим есть ли текст
+1118   6622 C0          		ret	nz                              ;если нет, то выходим
+1119   6623             
+1120   6623 DD 6E 0D    		ld	l, (ix + 0Dh)			;получим адрес текста 
+1121   6626 DD 66 0E    		ld	h, (ix + 0Eh)                   ;и
+1122   6629 C3 50 67    		jp	VideoDRV_print_string           ;веведем его в окно
+1123   662C             loc_0_7110: 
+1124   662C C5          		push	bc
+1125   662D DD E5       		push	ix
+1126   662F DD 6E 01    		ld	l, (ix + 1)                     ;позиция по Y
+1127   6632 2C          		inc	l
+1128   6633 CD 0F 67    		call	sub_0_71F3
+1129   6636             loc_0_711A: 
+1130   6636 DD 7E 10    		ld	a, (ix + 10h)
+1131   6639 81          		add	a, c
+1132   663A 6F          		ld	l, a
+1133   663B DD 66 11    		ld	h, (ix + 11h)
+1134   663E DD 7E 00    		ld	a, (ix + 0)
+1135   6641 81          		add	a, c
+1136   6642 5F          		ld	e, a
+1137   6643 DD 56 01    		ld	d, (ix + 1)                     ;позиция по Y
+1138   6646 CD 81 66    		call	sub_0_7165
+1139   6649 11 10 00    		ld	de, 10h
+1140   664C DD 19       		add	ix, de
+1141   664E 10 E6       		djnz	loc_0_711A
+1142   6650 DD E1       		pop	ix
+1143   6652 C1          		pop	bc
+1144   6653 C9          		ret	
+1145   6654             
+1146   6654             loc_0_7138: 
+1147   6654 C5          		push	bc
+1148   6655 DD E5       		push	ix
+1149   6657 DD 7E 02    		ld	a, (ix + 2)                      ;высота
+1150   665A DD 86 01    		add	a, (ix + 1)                      ;позиция по Y
+1151   665D D6 03       		sub	3
+1152   665F 6F          		ld	l, a
+1153   6660 CD 0F 67    		call	sub_0_71F3
+1154   6663             
+1155   6663             loc_0_7147: 
+1156   6663 DD 7E 00    		ld	a, (ix + 0)                      ;позиция по X
+1157   6666 81          		add	a, c
+1158   6667 6F          		ld	l, a
+1159   6668 DD 66 01    		ld	h, (ix + 1)                      ;позиция по Y
+1160   666B DD 7E 10    		ld	a, (ix + 10h)
+1161   666E 81          		add	a, c
+1162   666F 5F          		ld	e, a
+1163   6670 DD 56 11    		ld	d, (ix + 11h)
+1164   6673 CD 81 66    		call	sub_0_7165
+1165   6676 11 F0 FF    		ld	de, 0FFF0h
+1166   6679 DD 19       		add	ix, de
+1167   667B 10 E6       		djnz	loc_0_7147
+1168   667D DD E1       		pop	ix
+1169   667F C1          		pop	bc
+1170   6680 C9          		ret	
+1171   6681             sub_0_7165: 
+1172   6681 C5          		push	bc
+1173   6682 E5          		push	hl
+1174   6683 D5          		push	de
+1175   6684 CD CC 66    		call	sub_0_71B0
+1176   6687 D1          		pop	de
+1177   6688 E1          		pop	hl
+1178   6689 24          		inc	h
+1179   668A 14          		inc	d
+1180   668B E5          		push	hl
+1181   668C D5          		push	de
+1182   668D CD CC 66    		call	sub_0_71B0
+1183   6690 D1          		pop	de
+1184   6691 E1          		pop	hl
+1185   6692 24          		inc	h
+1186   6693 14          		inc	d
+1187   6694 E5          		push	hl
+1188   6695 D5          		push	de
+1189   6696 CD CC 66    		call	sub_0_71B0
+1190   6699 D1          		pop	de
+1191   669A E1          		pop	hl
+1192   669B 24          		inc	h
+1193   669C 14          		inc	d
+1194   669D E5          		push	hl
+1195   669E D5          		push	de
+1196   669F CD CC 66    		call	sub_0_71B0
+1197   66A2 D1          		pop	de
+1198   66A3 E1          		pop	hl
+1199   66A4 24          		inc	h
+1200   66A5 14          		inc	d
+1201   66A6 E5          		push	hl
+1202   66A7 D5          		push	de
+1203   66A8 CD CC 66    		call	sub_0_71B0
+1204   66AB D1          		pop	de
+1205   66AC E1          		pop	hl
+1206   66AD 24          		inc	h
+1207   66AE 14          		inc	d
+1208   66AF E5          		push	hl
+1209   66B0 D5          		push	de
+1210   66B1 CD CC 66    		call	sub_0_71B0
+1211   66B4 D1          		pop	de
+1212   66B5 E1          		pop	hl
+1213   66B6 24          		inc	h
+1214   66B7 14          		inc	d
+1215   66B8 E5          		push	hl
+1216   66B9 D5          		push	de
+1217   66BA CD CC 66    		call	sub_0_71B0
+1218   66BD D1          		pop	de
+1219   66BE E1          		pop	hl
+1220   66BF 24          		inc	h
+1221   66C0 14          		inc	d
+1222   66C1 E5          		push	hl
+1223   66C2 D5          		push	de
+1224   66C3 CD CC 66    		call	sub_0_71B0
+1225   66C6 D1          		pop	de
+1226   66C7 E1          		pop	hl
+1227   66C8 24          		inc	h
+1228   66C9 14          		inc	d
+1229   66CA C1          		pop	bc
+1230   66CB C9          		ret	
+1231   66CC             
+1232   66CC             sub_0_71B0: 
+1233   66CC 18 FE       		jr	sub_0_71B0
+1234   66CE ED A0       		ldi	
+1235   66D0 ED A0       		ldi	
+1236   66D2 ED A0       		ldi	
+1237   66D4 ED A0       		ldi	
+1238   66D6 ED A0       		ldi	
+1239   66D8 ED A0       		ldi	
+1240   66DA ED A0       		ldi	
+1241   66DC ED A0       		ldi	
+1242   66DE ED A0       		ldi	
+1243   66E0 ED A0       		ldi	
+1244   66E2 ED A0       		ldi	
+1245   66E4 ED A0       		ldi	
+1246   66E6 ED A0       		ldi	
+1247   66E8 ED A0       		ldi	
+1248   66EA ED A0       		ldi	
+1249   66EC ED A0       		ldi	
+1250   66EE ED A0       		ldi	
+1251   66F0 ED A0       		ldi	
+1252   66F2 ED A0       		ldi	
+1253   66F4 ED A0       		ldi	
+1254   66F6 ED A0       		ldi	
+1255   66F8 ED A0       		ldi	
+1256   66FA ED A0       		ldi	
+1257   66FC ED A0       		ldi	
+1258   66FE ED A0       		ldi	
+1259   6700 ED A0       		ldi	
+1260   6702 ED A0       		ldi	
+1261   6704 ED A0       		ldi	
+1262   6706 ED A0       		ldi	
+1263   6708 ED A0       		ldi	
+1264   670A ED A0       		ldi	
+1265   670C ED A0       		ldi	
+1266   670E C9          		ret	
+1267   670F             
+1268   670F             sub_0_71F3: 
+1269   670F 3E 20       		ld	a, 20h ; ' '
+1270   6711 DD 96 03    		sub	(ix + 3)                         ;ширина
+1271   6714 87          		add	a, a
+1272   6715 32 CD 66    		ld	(sub_0_71B0+1),	a
+1273   6718 DD 4E 00    		ld	c, (ix + 0)                      ;позиция по X
+1274   671B DD 46 02    		ld	b, (ix + 2)                      ;высота
+1275   671E 05          		dec	b
+1276   671F 05          		dec	b
+1277   6720 05          		dec	b
+1278   6721 26 00       		ld	h, 0
+1279   6723 29          		add	hl, hl
+1280   6724 29          		add	hl, hl
+1281   6725 29          		add	hl, hl
+1282   6726 DD 21 00 B8 		ld	ix, 0B800h
+1283   672A EB          		ex	de, hl
+1284   672B DD 19       		add	ix, de
+1285   672D DD 19       		add	ix, de
+1286   672F C9          		ret	
+1287   6730             sub_0_7214: 
+1288   6730 32 4E 67    		ld	(loc_0_7231 + 1),a
+1289   6733 7D          		ld	a, l
+1290   6734 E6 18       		and	18h
+1291   6736 F6 40       		or	40h ; '@'
+1292   6738 08          		ex	af, af'
+1293   6739 7D          		ld	a, l
+1294   673A E6 07       		and	7
+1295   673C 0F          		rrca	
+1296   673D 0F          		rrca	
+1297   673E 0F          		rrca	
+1298   673F 84          		add	a, h
+1299   6740 6F          		ld	l, a
+1300   6741 08          		ex	af, af'
+1301   6742 67          		ld	h, a
+1302   6743 5D          		ld	e, l
+1303   6744 7C          		ld	a, h
+1304   6745 0F          		rrca	
+1305   6746 0F          		rrca	
+1306   6747 0F          		rrca	
+1307   6748 E6 03       		and	3
+1308   674A F6 58       		or	58h ; 'X'
+1309   674C 57          		ld	d, a
+1310   674D             loc_0_7231: 
+1311   674D 3E 00       		ld	a, 0
+1312   674F C9          		ret	
+1313   6750             ;-------------------------------------------------------------------
+1314   6750             ; описание: Печать на экран строку символов
+1315   6750             ; параметры: HL - адрес строки символов
+1316   6750             ; возвращаемое  значение: нет
+1317   6750             ;---------------------------------------------------------------------
+1318   6750             VideoDRV_print_string: 
+1319   6750 7E          		ld	a, (hl)
+1320   6751 23          		inc	hl
+1321   6752 A7          		and	a
+1322   6753 C8          		ret	z
+1323   6754 CD 6C 67    		call	VideoDRV_print_char
+1324   6757 18 F7       		jr	VideoDRV_print_string
+1325   6759             ;-------------------------------------------------------------------
+1326   6759             ; описание: Печать на экран символа в HEX виде
+1327   6759             ; параметры: A - выводимый символ
+1328   6759             ; возвращаемое  значение: нет
+1329   6759             ;---------------------------------------------------------------------
+1330   6759             VideoDRV_print_hex: 
+1331   6759 F5          		push	af
+1332   675A 0F          		rrca	
+1333   675B 0F          		rrca	
+1334   675C 0F          		rrca	
+1335   675D 0F          		rrca	
+1336   675E CD 62 67    		call	VideoDRV_print_hex_0
+1337   6761 F1          		pop	af
+1338   6762             VideoDRV_print_hex_0: 
+1339   6762 E6 0F       		and	0Fh
+1340   6764 FE 0A       		cp	0Ah
+1341   6766 38 02       		jr	c,VideoDRV_print_hex_1
+1342   6768 C6 07       		add	a,7
+1343   676A             VideoDRV_print_hex_1: 
+1344   676A C6 30       		add	a,30h
+1345   676C             ;-------------------------------------------------------------------
+1346   676C             ; описание: Печать на экран символ
+1347   676C             ; параметры: A - выводимый символ
+1348   676C             ; возвращаемое  значение: нет
+1349   676C             ;---------------------------------------------------------------------
+1350   676C             VideoDRV_print_char: 
+1351   676C FE 20       		cp	20h ; ' '
+1352   676E 30 6A       		jr	nc, VideoDRV_print_symbol
+1353   6770 FE 03       		cp	3			
+1354   6772 20 1C       		jr	nz, VideoDRV_function_09
+1355   6774             ;-------------------------------------------------------------------
+1356   6774             ; описание: Функция 03h - ЦЕНТРОВКА СТРОКИ В ОКНЕ
+1357   6774             ;---------------------------------------------------------------------
+1358   6774 06 00       		ld	b,0             	
+1359   6776 E5          		push	hl
+1360   6777             
+1361   6777             VideoDRV_centre_loop: 
+1362   6777 7E          		ld	a, (hl)
+1363   6778 FE 20       		cp	20h ; ' '
+1364   677A 38 07       		jr	c, VideoDRV_centre_state_00
+1365   677C 3E 06       		ld	a, 6
+1366   677E 80          		add	a, b                        
+1367   677F 47          		ld	b, a
+1368   6780 23          		inc	hl
+1369   6781 18 F4       		jr	VideoDRV_centre_loop
+1370   6783             
+1371   6783             VideoDRV_centre_state_00: 
+1372   6783 3E 00       		ld	a, 0
+1373   6785 90          		sub	b
+1374   6786 CB 3F       		srl	a
+1375   6788 3D          		dec	a
+1376   6789             
+1377   6789             VideoDRV_centre_state_01: 
+1378   6789 C6 00       		add	a, 0
+1379   678B 32 E9 67    		ld	(VideoDRV_address_screen + 2),	a
+1380   678E E1          		pop	hl
+1381   678F C9          		ret	
+1382   6790             ;-------------------------------------------------------------------
+1383   6790             ; описание: Функция 09h - ТАБУЛЯЦИЯ НА N ПОЗИЦИЙ
+1384   6790             ;---------------------------------------------------------------------
+1385   6790             VideoDRV_function_09: 
+1386   6790 FE 09       		cp	9
+1387   6792 20 0F       		jr	nz, VideoDRV_function_0D
+1388   6794 7E          		ld	a, (hl) 		
+1389   6795 23          		inc	hl
+1390   6796 47          		ld	b, a
+1391   6797 87          		add	a, a
+1392   6798 80          		add	a, b
+1393   6799 87          		add	a, a
+1394   679A 47          		ld	b, a
+1395   679B 3A E9 67    		ld	a, (VideoDRV_address_screen + 2)
+1396   679E 80          		add	a, b
+1397   679F 32 E9 67    		ld	(VideoDRV_address_screen + 2),a
+1398   67A2 C9          		ret	
+1399   67A3             ;-------------------------------------------------------------------
+1400   67A3             ; описание: Функция 0Dh - ПЕРЕВОД СТРОКИ 
+1401   67A3             ;---------------------------------------------------------------------
+1402   67A3             VideoDRV_function_0D: 
+1403   67A3 FE 0D       		cp	0Dh
+1404   67A5 20 0E       		jr	nz,VideoDRV_function_14
+1405   67A7             loc_0_72A6: 
+1406   67A7 3E 00       		ld	a, 0			
+1407   67A9 32 E9 67    		ld	(VideoDRV_address_screen + 2),	a
+1408   67AC 3A E8 67    		ld	a, (VideoDRV_address_screen + 1)
+1409   67AF C6 08       		add	a, 8
+1410   67B1 32 E8 67    		ld	(VideoDRV_address_screen + 1),	a
+1411   67B4 C9          		ret	
+1412   67B5             ;-------------------------------------------------------------------
+1413   67B5             ; описание: Функция 14h - ВКЛ/ВЫКЛ ИНВЕРСИИ ПЕЧАТИ
+1414   67B5             ;---------------------------------------------------------------------
+1415   67B5             VideoDRV_function_14: 
+1416   67B5 FE 14       		cp	14h
+1417   67B7 20 0B       		jr	nz, VideoDRV_function_16
+1418   67B9 7E          		ld	a, (hl)			
+1419   67BA 23          		inc	hl
+1420   67BB A7          		and	a
+1421   67BC 28 02       		jr	z, VideoDRV_change_inverse
+1422   67BE 3E FC       		ld	a, 0FCh
+1423   67C0             
+1424   67C0             VideoDRV_change_inverse: 
+1425   67C0 32 23 68    		ld	(VideoDRV_inverse_state + 1),a
+1426   67C3 C9          		ret	
+1427   67C4             ;-------------------------------------------------------------------
+1428   67C4             ; описание: Функция 16h - ПЕЧАТЬ В УКАЗАННОЙ ПОЗИЦИИ
+1429   67C4             ;---------------------------------------------------------------------
+1430   67C4             VideoDRV_function_16: 
+1431   67C4 FE 16       		cp	16h
+1432   67C6 20 09       		jr	nz,VideoDRV_function_17
+1433   67C8 4E          		ld	c, (hl)			
+1434   67C9 23          		inc	hl
+1435   67CA 46          		ld	b, (hl)
+1436   67CB 23          		inc	hl
+1437   67CC ED 43 E8 67 		ld	(VideoDRV_address_screen + 1),bc
+1438   67D0 C9          		ret	
+1439   67D1             ;-------------------------------------------------------------------
+1440   67D1             ; описание: Функция 17h - Установка атрибута 
+1441   67D1             ;---------------------------------------------------------------------
+1442   67D1             VideoDRV_function_17: 
+1443   67D1 FE 17       		cp 	17h
+1444   67D3 C0          		ret	nz
+1445   67D4 7E          		ld	a,(hl)
+1446   67D5 23          		inc	hl
+1447   67D6 32 59 68    		ld	(VideoDRV_colour_attr + 1),a
+1448   67D9 C9          		ret
+1449   67DA             ;-------------------------------------------------------------------
+1450   67DA             ; описание: Вывод символа
+1451   67DA             ;---------------------------------------------------------------------
+1452   67DA             VideoDRV_print_symbol: 
+1453   67DA E5          		push	hl
+1454   67DB D5          		push	de
+1455   67DC 11 5F 6F    		ld	de, EvaFont_address
+1456   67DF 6F          		ld	l, a
+1457   67E0 AF          		xor	a
+1458   67E1 67          		ld	h, a
+1459   67E2 29          		add	hl, hl
+1460   67E3 29          		add	hl, hl
+1461   67E4 29          		add	hl, hl
+1462   67E5 19          		add	hl, de
+1463   67E6 D9          		exx	
+1464   67E7             
+1465   67E7             VideoDRV_address_screen: 
+1466   67E7 21 00 00    		ld	hl, 0
+1467   67EA 57          		ld	d, a
+1468   67EB 7C          		ld	a, h
+1469   67EC E6 F8       		and	0F8h ; '°'
+1470   67EE 47          		ld	b, a
+1471   67EF 7C          		ld	a, h
+1472   67F0 E6 07       		and	7
+1473   67F2 4F          		ld	c, a
+1474   67F3 3E 06       		ld	a, 6
+1475   67F5 84          		add	a, h
+1476   67F6 67          		ld	h, a
+1477   67F7 22 E8 67    		ld	(VideoDRV_address_screen + 1),hl
+1478   67FA 5D          		ld	e, l
+1479   67FB 78          		ld	a, b
+1480   67FC 21 00 B8    		ld	hl,0B800h
+1481   67FF 42          		ld	b, d
+1482   6800 19          		add	hl, de
+1483   6801 19          		add	hl, de
+1484   6802 0F          		rrca	
+1485   6803 0F          		rrca	
+1486   6804 0F          		rrca	
+1487   6805 86          		add	a, (hl)
+1488   6806 23          		inc	hl
+1489   6807 5F          		ld	e, a
+1490   6808 56          		ld	d, (hl)
+1491   6809 3E 15       		ld	a, 15h
+1492   680B 91          		sub	c
+1493   680C 91          		sub	c
+1494   680D 91          		sub	c
+1495   680E 32 27 68    		ld	(loc_0_731B+1),	a
+1496   6811 21 5F 68    		ld	hl, VideoDRV_table_mask
+1497   6814 09          		add	hl, bc
+1498   6815 09          		add	hl, bc
+1499   6816 7E          		ld	a, (hl)
+1500   6817 23          		inc	hl
+1501   6818 66          		ld	h, (hl)
+1502   6819 6F          		ld	l, a
+1503   681A EB          		ex	de, hl
+1504   681B 3E 08       		ld	a, 8
+1505   681D             loc_0_7312: 
+1506   681D 08          		ex	af, af'
+1507   681E D9          		exx	
+1508   681F 7E          		ld	a, (hl)
+1509   6820 23          		inc	hl
+1510   6821 D9          		exx	
+1511   6822             
+1512   6822             VideoDRV_inverse_state: 
+1513   6822 EE 00       		xor	0
+1514   6824 4F          		ld	c, a
+1515   6825 AF          		xor	a
+1516   6826             loc_0_731B: 
+1517   6826 18 13       		jr	loc_0_732F+1
+1518   6828             
+1519   6828 CB 39       		srl	c
+1520   682A 1F          		rra	
+1521   682B CB 39       		srl	c
+1522   682D 1F          		rra	
+1523   682E CB 39       		srl	c
+1524   6830 1F          		rra	
+1525   6831 CB 39       		srl	c
+1526   6833 1F          		rra	
+1527   6834 CB 39       		srl	c
+1528   6836 1F          		rra	
+1529   6837 CB 39       		srl	c
+1530   6839 1F          		rra	
+1531   683A             
+1532   683A             loc_0_732F: 
+1533   683A CB 39       		srl	c
+1534   683C 1F          		rra	
+1535   683D 47          		ld	b, a
+1536   683E 7E          		ld	a, (hl)
+1537   683F A3          		and	e
+1538   6840 B1          		or	c
+1539   6841 77          		ld	(hl), a
+1540   6842 2C          		inc	l
+1541   6843 7E          		ld	a, (hl)
+1542   6844 A2          		and	d
+1543   6845 B0          		or	b
+1544   6846 77          		ld	(hl), a
+1545   6847 2D          		dec	l
+1546   6848 24          		inc	h
+1547   6849 08          		ex	af, af'
+1548   684A 3D          		dec	a
+1549   684B C2 1D 68    		jp	nz, loc_0_7312
+1550   684E 25          		dec	h
+1551   684F 7C          		ld 	a,h
+1552   6850 0F          		rrca
+1553   6851 0F          		rrca
+1554   6852 0F          		rrca
+1555   6853 E6 03       		and	3
+1556   6855 F6 58       		or 	58h
+1557   6857 67          		ld 	h,a
+1558   6858             
+1559   6858             VideoDRV_colour_attr: 
+1560   6858 3E 00       		ld	a,0
+1561   685A 77          		ld 	(hl),a
+1562   685B D9          		exx	
+1563   685C D1          		pop	de
+1564   685D E1          		pop	hl
+1565   685E C9          		ret	
+1566   685F             
+1567   685F             ;-------------------------------------------------------------------
+1568   685F             ; описание: Таблица масок
+1569   685F             ;---------------------------------------------------------------------
+1570   685F             VideoDRV_table_mask: 
+1571   685F 03          		db    	3 
+1572   6860 FF          		db 	0FFh
+1573   6861 81          		db  	81h
+1574   6862 FF          		db 	0FFh
+1575   6863 C0          		db 	0C0h
+1576   6864 FF          		db 	0FFh
+1577   6865 E0          		db 	0E0h
+1578   6866 7F          		db  	7Fh
+1579   6867 F0          		db 	0F0h
+1580   6868 3F          		db  	3Fh
+1581   6869 F8          		db 	0F8h
+1582   686A 1F          		db  	1Fh
+1583   686B FC          		db 	0FCh
+1584   686C 0F          		db  	0Fh
+1585   686D FE          		db 	0FEh
+1586   686E 07          		db    	7
+1587   686F             ;-------------------------------------------------------------------
+1588   686F             ; описание: Поиск по таблице соответствий нажатия клавиши и пункта меню
+1589   686F             ; параметры: нет
+1590   686F             ; возвращаемое  значение: нет
+1591   686F             ;---------------------------------------------------------------------
+1592   686F             MoonService_menu_action: 
+1593   686F E1          		pop	hl
+1594   6870 47          		ld	b, a
+1595   6871             loc_0_7449: 
+1596   6871 7E          		ld	a, (hl)
+1597   6872 23          		inc	hl
+1598   6873 A7          		and	a
+1599   6874 20 01       		jr	nz, loc_0_744F
+1600   6876 E9          		jp	(hl)
+1601   6877             loc_0_744F: 
+1602   6877 5E          		ld	e, (hl)
+1603   6878 23          		inc	hl
+1604   6879 56          		ld	d, (hl)
+1605   687A 23          		inc	hl
+1606   687B B8          		cp	b
+1607   687C 20 F3       		jr	nz, loc_0_7449
+1608   687E D5          		push	de
+1609   687F             loc_0_7457: 
+1610   687F 7E          		ld	a, (hl)
+1611   6880 23          		inc	hl
+1612   6881 A7          		and	a
+1613   6882 20 02       		jr	nz, loc_0_745E
+1614   6884 E3          		ex	(sp), hl
+1615   6885 E9          		jp	(hl)
+1616   6886             loc_0_745E: 
+1617   6886 23          		inc	hl
+1618   6887 23          		inc	hl
+1619   6888 18 F5       		jr	loc_0_7457
+1620   688A             ;-------------------------------------------------------------------
+1621   688A             ; описание: Сообщения о ошибках
+1622   688A             ;---------------------------------------------------------------------
+1623   688A             aErrorFileNotFo: 
+1624   688A             		db 	"ERROR: File not found"
+1624   688A 4552524F523A2046696C65206E6F7420666F756E64
+1625   689F 00          		db 	0
+1626   68A0             aErrorFatNotFou: 
+1627   68A0             		db 	"ERROR: FAT not found"
+1627   68A0 4552524F523A20464154206E6F7420666F756E64
+1628   68B4 00          		db 	0
+1629   68B5             aErrorSdCardNot: 
+1630   68B5             		db 	"ERROR: SD card not found"
+1630   68B5 4552524F523A2053442063617264206E6F7420666F756E64
+1631   68CD 00          		db 	0
+1632   68CE             aErrorCrcError: 	
+1633   68CE             		db 	"ERROR: CRC error"
+1633   68CE 4552524F523A20435243206572726F72
+1634   68DE 00          		db 	0
+1635   68DF             aErrorSndNotFound: 
+1636   68DF             		db 	"ERROR: Sound card not found!"
+1636   68DF 4552524F523A20536F756E642063617264206E6F7420666F756E6421
+1637   68FB 00          		db 	0
+1638   68FC             aErrorRamNotFound: 
+1639   68FC             		db 	"ERROR: No SRAM memory!"
+1639   68FC 4552524F523A204E6F205352414D206D656D6F727921
+1640   6912 00          		db 	0
+1641   6913             ;-------------------------------------------------------------------
+1642   6913             ; описание: Информационные сообщения  
+1643   6913             ;---------------------------------------------------------------------
+1644   6913             MoonService_id_unk: 
+1645   6913             		db 	"Unknown",0
+1645   6913 556E6B6E6F776E00
+1646   691B             MoonService_id_ym278: 
+1647   691B             		db 	"YMF278",0
+1647   691B 594D4632373800
+1648   6922             MoonService_mem_none: 
+1649   6922 4E6F6E6500  		db 	"None",0
+1650   6927             MoonService_mem_512: 
+1651   6927             		db 	"512Kb",0
+1651   6927 3531324B6200
+1652   692D             MoonService_mem_1024: 
+1653   692D             		db 	"1024Kb",0
+1653   692D 313032344B6200
+1654   6934             MoonService_mem_2048: 
+1655   6934             		db 	"2048Kb",0
+1655   6934 323034384B6200
+1656   693B             MoonService_msg_Dev: 
+1657   693B             		db 	0Dh," Chip: ",0
+1657   693B 0D20436869703A2000
+1658   6944             MoonService_msg_RAM: 
+1659   6944             		db 	0Dh," RAM:  ",0
+1659   6944 0D2052414D3A202000
+1660   694D             MoonService_msg_ROM: 
+1661   694D             		db 	0Dh," ROM:  ",0
+1661   694D 0D20524F4D3A202000
+1662   6956             ;-------------------------------------------------------------------
+1663   6956             ; описание: Пустое окно для вывода сообщений
+1664   6956             ;---------------------------------------------------------------------
+1665   6956             MoonService_window_message: 
+1666   6956 05          		db    	5 ;
+1667   6957 08          		db    	8 ;  
+1668   6958 03          		db    	3 ;  
+1669   6959 17          		db  	17h ;  
+1670   695A 17          		db  	17h ;  
+1671   695B 00          		db    	0 ;  
+1672   695C 00          		db    	0 ;  
+1673   695D 00          		db    	0 ;  
+1674   695E 00          		db    	0 ;  
+1675   695F 00          		db    	0 ;  
+1676   6960 00          		db    	0 ;  
+1677   6961 00          		db    	0 ;  
+1678   6962 00          		db    	0 ;  
+1679   6963 6A 69       		dw 	unk_0_7528
+1680   6965 00          		db    	0 ;  
+1681   6966 00          		db    	0 ;  
+1682   6967 00          		db    	0 ;  
+1683   6968 00          		db    	0 ;  
+1684   6969 00          		db    	0 ;  
+1685   696A 0D          unk_0_7528: 	db  	0Dh
+1686   696B 20          		db  	20h ;  
+1687   696C 00          		db    	0 ;  
+1688   696D             ;-------------------------------------------------------------------
+1689   696D             ; описание: Окно меню
+1690   696D             ;---------------------------------------------------------------------
+1691   696D             MoonService_window_menu: 
+1692   696D 01          		db    	1		;+0 позиция по X 
+1693   696E 02          		db  	2               ;+1 позиция  по Y
+1694   696F 05          		db    	5               ;+2 высота
+1695   6970 0E          		db  	0Eh             ;+3 ширина
+1696   6971 0F          		db  	0Fh             ;+4 цвет
+1697   6972 1F          		db  	1Fh
+1698   6973 B6          		db 	0B6h
+1699   6974 76          		db  	76h
+1700   6975 20          		db  	20h 		;+08h - флаговый байт  
+1701   6976 00          		db    	0 ;  
+1702   6977 00          		db    	0 ;  
+1703   6978 00          		db    	0 ;  
+1704   6979 00          		db    	0 ;  
+1705   697A 81 69       		dw 	unk_0_76D2
+1706   697C 00          		db    	0 ;  
+1707   697D 03          		db    	3 ;              ;+0Fh -  число пунктов меню
+1708   697E 00          		db    	0 ;  
+1709   697F 00          		db    	0 ;  
+1710   6980 00          		db    	0 ;  
+1711   6981 14          unk_0_76D2: 	db  	14h 
+1712   6982 01          		db    	1	 ;  
+1713   6983 03          		db    	3 ;  
+1714   6984             		db 	"Select"
+1714   6984 53656C656374
+1715   698A 14          		db 	14h
+1716   698B 00          		db 	0
+1717   698C 0D          		db 	0Dh  
+1718   698D 03          		db    	3 ;  
+1719   698E             		db 	"Test RAM"
+1719   698E 546573742052414D
+1720   6996 0D          		db  	0Dh ;  
+1721   6997 03          		db    	3 ;  
+1722   6998             		db 	"Test ROM"
+1722   6998 5465737420524F4D
+1723   69A0 0D          		db  	0Dh ;  
+1724   69A1 03          		db    	3 ;  
+1725   69A2 45 78 69 74 		db 	"Exit"
+1726   69A6 00          		db 	0
+1727   69A7             ;-------------------------------------------------------------------
+1728   69A7             ; описание: Заголовк приложения 
+1729   69A7             ;---------------------------------------------------------------------
+1730   69A7             MoonService_window_name: 
+1731   69A7 00          		db    	0
+1732   69A8 00          		db    	0 ;  
+1733   69A9 18          		db  	18h ;  
+1734   69AA 20          		db  	20h ;  
+1735   69AB 29          		db  	29h ; )
+1736   69AC 1F          		db  	1Fh ;  
+1737   69AD 00          		db    	0 ;  
+1738   69AE 00          		db    	0 ;  
+1739   69AF 22          		db  	22h ; "
+1740   69B0 00          		db    	0 ;  
+1741   69B1 00          		db    	0 ;  
+1742   69B2 00          		db    	0 ;  
+1743   69B3 00          		db    	0 ;  
+1744   69B4 BB 69       		dw 	unk_0_7706
+1745   69B6 00          		db    	0 ;  
+1746   69B7 00          		db    	0 ;  
+1747   69B8 00          		db    	0 ;  
+1748   69B9 00          		db    	0 ;  
+1749   69BA 00          		db    	0 ;  
+1750   69BB 14          unk_0_7706: 	db  	14h 
+1751   69BC 01          		db    	1 ;  
+1752   69BD 03          		db    	3 ;  
+1753   69BE             		db 	"MoonService for *ZXM-MoonSound* v0.2"
+1753   69BE 4D6F6F6E5365727669636520666F72202A5A584D2D4D6F6F6E536F756E642A20
+1753   69DE 76302E32
+1754   69E2 14          		db  	14h ;  
+1755   69E3 00          		db    	0 ;  
+1756   69E4 00          		db    	0 ;  
+1757   69E5             ;-------------------------------------------------------------------
+1758   69E5             ; описание: Окно информации о карте
+1759   69E5             ;---------------------------------------------------------------------
+1760   69E5             MoonService_window_info: 
+1761   69E5 10          		db    	10h 
+1762   69E6 02          		db    	2 ;  
+1763   69E7 05          		db  	5 ;  
+1764   69E8 0E          		db  	0Eh ;  
+1765   69E9 0F          		db  	0Fh ;  
+1766   69EA 00          		db    	0 ;  
+1767   69EB 00          		db    	0 ;  
+1768   69EC 00          		db    	0 ;  
+1769   69ED 22          		db  	22h ; "
+1770   69EE 00          		db    	0 ;  
+1771   69EF 00          		db    	0 ;  
+1772   69F0 00          		db    	0 ;  
+1773   69F1 00          		db    	0 ;  
+1774   69F2 F9 69       		dw 	unk_0_7737
+1775   69F4 00          		db    	0 ;  
+1776   69F5 00          		db    	0 ;  
+1777   69F6 00          		db    	0 ;  
+1778   69F7 00          		db    	0 ;  
+1779   69F8 00          		db    	0 ;  
+1780   69F9 14          unk_0_7737: 	db  	14h
+1781   69FA 01          		db    	1 ;  
+1782   69FB 03          		db    	3 ;  
+1783   69FC             		db 	"Sound card Info"
+1783   69FC 536F756E64206361726420496E666F
+1784   6A0B 14          		db  	14h ;  
+1785   6A0C 00          		db    	0 ;  
+1786   6A0D 00          		db    	0 ;  
+1787   6A0E             ;-------------------------------------------------------------------
+1788   6A0E             ; описание: Окно справки
+1789   6A0E             ;---------------------------------------------------------------------
+1790   6A0E             MoonService_window_help: 
+1791   6A0E 00          		db    	0
+1792   6A0F 12          		db  	12h ;  
+1793   6A10 06          		db    	6 ;  
+1794   6A11 20          		db  	20h ;  
+1795   6A12 0F          		db  	0Fh ;  
+1796   6A13 00          		db    	0 ;  
+1797   6A14 00          		db    	0 ;  
+1798   6A15 00          		db    	0 ;  
+1799   6A16 00          		db    	0 ;  
+1800   6A17 00          		db    	0 ;  
+1801   6A18 00          		db    	0 ;  
+1802   6A19 00          		db    	0 ;  
+1803   6A1A 00          		db    	0 ;  
+1804   6A1B 22 6A       		dw 	unk_0_7771
+1805   6A1D 00          		db    	0 ;  
+1806   6A1E 00          		db    	0 ;  
+1807   6A1F 00          		db    	0 ;  
+1808   6A20 00          		db    	0	 ;  
+1809   6A21 00          		db    	0 ;  
+1810   6A22 0D          unk_0_7771: 	db  	0Dh
+1811   6A23 03          		db    	3 ;  
+1812   6A24             		db 	"Сервисная программа для проверки"
+1812   6A24 91A5E0A2A8E1ADA0EF20AFE0AEA3E0A0ACACA020A4ABEF20AFE0AEA2A5E0AAA8
+1813   6A44 0D          		db  	0Dh ;  
+1814   6A45 03          		db    	3 ;  
+1815   6A46             		db 	"функционирования звуковой карты"
+1815   6A46 E4E3ADAAE6A8AEADA8E0AEA2A0ADA8EF20A7A2E3AAAEA2AEA920AAA0E0E2EB
+1816   6A65 0D          		db  	0Dh ;  
+1817   6A66 03          		db    	3 ;  
+1818   6A67             		db 	"*ZXM-MoonSound*, Micklab, 2015...2016"
+1818   6A67 2A5A584D2D4D6F6F6E536F756E642A2C204D69636B6C61622C20323031352E2E
+1818   6A87 2E32303136
+1819   6A8C 00          		db 	0
+1820   6A8D             ;-------------------------------------------------------------------
+1821   6A8D             ; описание: Окно обновления
+1822   6A8D             ;---------------------------------------------------------------------
+1823   6A8D             MoonService_window_tram: 
+1824   6A8D 01          		db    	1 
+1825   6A8E 02          		db    	2 ;  
+1826   6A8F 0F          		db  	15 ;  
+1827   6A90 1E          		db  	30 ;  
+1828   6A91 0F          		db  	0Fh ;  
+1829   6A92 00          		db    	0 ;  
+1830   6A93 00          		db    	0 ;  
+1831   6A94 00          		db    	0 ;  
+1832   6A95 22          		db  	22h ; "
+1833   6A96 00          		db    	0 ;  
+1834   6A97 00          		db    	0 ;  
+1835   6A98 00          		db    	0 ;  
+1836   6A99 00          		db    	0 ;  
+1837   6A9A A1 6A       		dw 	MoonService_taddr_tram
+1838   6A9C 00          		db    	0 ;  
+1839   6A9D 00          		db    	0 ;  
+1840   6A9E 00          		db    	0 ;  
+1841   6A9F 00          		db    	0 ;  
+1842   6AA0 00          		db    	0 ;  
+1843   6AA1             MoonService_taddr_tram: 	
+1844   6AA1 14          		db	14h
+1845   6AA2 01          		db  	1
+1846   6AA3 03          		db    	3 ;  
+1847   6AA4             		db 	"Test Static RAM"
+1847   6AA4 54657374205374617469632052414D
+1848   6AB3 14          		db  	14h ;  
+1849   6AB4 00          		db    	0 ;  
+1850   6AB5 0D          		db  	0Dh ;  
+1851   6AB6 0D          		db  	0Dh ;  
+1852   6AB7 03          		db	3
+1853   6AB8             		db 	"Bank 0              Bank 1"
+1853   6AB8 42616E6B2030202020202020202020202020202042616E6B2031
+1854   6AD2             MoonService_text_tinfo: 
+1855   6AD2 167010170F  		db	16h,70h,10h,17h,0fh
+1856   6AD7 20 DC DC DC 		db	20h,0dch,0dch,0dch
+1857   6ADB             		db	" - 16кб сегмент исправен"
+1857   6ADB 202D203136AAA120E1A5A3ACA5ADE220A8E1AFE0A0A2A5AD
+1858   6AF3 167810170A  		db	16h,78h,10h,17h,0ah
+1859   6AF8             		db	20h,0dch,0dch,0dch,17h,0fh
+1859   6AF8 20DCDCDC170F
+1860   6AFE             		db	" - 16кб сегмент неисправен",0
+1860   6AFE 202D203136AAA120E1A5A3ACA5ADE220ADA5A8E1AFE0A0A2A5AD00
+1861   6B19             ;-------------------------------------------------------------------
+1862   6B19             ; описание: Окно справки  в режиме проверки RAM
+1863   6B19             ;---------------------------------------------------------------------
+1864   6B19             MoonService_window_hram: 
+1865   6B19 00          		db    	0
+1866   6B1A 12          		db  	12h ;  
+1867   6B1B 06          		db    	6 ;  
+1868   6B1C 20          		db  	20h ;  
+1869   6B1D 0F          		db  	0Fh ;  
+1870   6B1E 00          		db    	0 ;  
+1871   6B1F 00          		db    	0 ;  
+1872   6B20 00          		db    	0 ;  
+1873   6B21 00          		db    	0 ;  
+1874   6B22 00          		db    	0 ;  
+1875   6B23 00          		db    	0 ;  
+1876   6B24 00          		db    	0 ;  
+1877   6B25 00          		db    	0 ;  
+1878   6B26 2D 6B       		dw 	MoonService_taddr_hram
+1879   6B28 00          		db    	0 ;  
+1880   6B29 00          		db    	0 ;  
+1881   6B2A 00          		db    	0 ;  
+1882   6B2B 00          		db    	0	 ;  
+1883   6B2C 00          		db    	0 ;  
+1884   6B2D             MoonService_taddr_hram: 
+1885   6B2D 0D          		db  	0Dh
+1886   6B2E 03          		db    	3 ;  
+1887   6B2F             		db 	"Проверка работоспособности микросхем ОЗУ"
+1887   6B2F 8FE0AEA2A5E0AAA020E0A0A1AEE2AEE1AFAEE1AEA1ADAEE1E2A820ACA8AAE0AE
+1887   6B4F E1E5A5AC208E8793
+1888   6B57 0D          		db  	0Dh ;  
+1889   6B58 03          		db    	3 ;  
+1890   6B59             		db 	"Bank 0 соотвествует микросхеме DD4"
+1890   6B59 42616E6B203020E1AEAEE2A2A5E1E2A2E3A5E220ACA8AAE0AEE1E5A5ACA52044
+1890   6B79 4434
+1891   6B7B 0D          		db  	0Dh ;  
+1892   6B7C 03          		db    	3 ;  
+1893   6B7D             		db 	"Bank 1 соотвествует микросхеме DD5"
+1893   6B7D 42616E6B203120E1AEAEE2A2A5E1E2A2E3A5E220ACA8AAE0AEE1E5A5ACA52044
+1893   6B9D 4435
+1894   6B9F 0D          		db  	0Dh ;  
+1895   6BA0 03          		db    	3 ;  
+1896   6BA1             		db 	"Нажатие на любую клавишу - выход из теста"
+1896   6BA1 8DA0A6A0E2A8A520ADA020ABEEA1E3EE20AAABA0A2A8E8E3202D20A2EBE5AEA4
+1896   6BC1 20A8A720E2A5E1E2A0
+1897   6BCA 00          		db 	0
+1898   6BCB             
+1899   6BCB             		.include "rom_test.asm"	
+0001+  6BCB             
+0002+  6BCB             ;-------------------------------------------------------------------
+0003+  6BCB             ; описание: Процесс тестирования ПЗУ
+0004+  6BCB             ; параметры: нет
+0005+  6BCB             ; возвращаемое  значение: нет
+0006+  6BCB             ;---------------------------------------------------------------------
+0007+  6BCB             MoonService_test_rom: 
+0008+  6BCB DD 21 C7 6E 		ld	ix, MoonService_window_hrom     ;окно справки
+0009+  6BCF CD 7B 65    		call	VideoDRV_create_window
+0010+  6BD2             
+0011+  6BD2 DD 21 61 6E 		ld	ix, MoonService_window_trom     ;создадим окно теста
+0012+  6BD6 CD 7B 65    		call	VideoDRV_create_window
+0013+  6BD9             MoonService_test_rom_00: 
+0014+  6BD9             
+0015+  6BD9 21 28 42    		ld	hl,4228h
+0016+  6BDC 0E 00       		ld	c,0				;B - номер банка, С - номер сегмента
+0017+  6BDE 16 08       		ld	d,8				;число сегментов-столбцов
+0018+  6BE0             MoonService_test_rom_0: 
+0019+  6BE0 E5          		push	hl
+0020+  6BE1 22 48 6F    		ld	(MoonService_text_tpos1 + 1),hl
+0021+  6BE4             
+0022+  6BE4 CD 69 6C    		call	MoonService_check_romseg	;проверка одного сегмента
+0023+  6BE7 3E 0F       		ld	a,0fh                           ;сегмент исправен
+0024+  6BE9 28 02       		jr      z,MoonService_test_rom_01
+0025+  6BEB 3E 0A       		ld	a,0ah				;сегмент неисправен
+0026+  6BED             MoonService_test_rom_01: 
+0027+  6BED 32 4B 6F    		ld	(MoonService_text_tcol1 + 1), a
+0028+  6BF0 0C          		inc	c				;увеличим номер сегмента
+0029+  6BF1             
+0030+  6BF1 C5          		push	bc
+0031+  6BF2 21 47 6F    		ld	hl,MoonService_text_tpos1
+0032+  6BF5 CD 50 67    		call	VideoDRV_print_string
+0033+  6BF8 C1          		pop	bc
+0034+  6BF9             
+0035+  6BF9 1E 0F       		ld	e,15				;число сегментов в строке
+0036+  6BFB             MoonService_test_rom_1: 
+0037+  6BFB CD 69 6C    		call	MoonService_check_romseg	;проверка одного сегмента
+0038+  6BFE 3E 0F       		ld	a,0fh                           ;сегмент исправен
+0039+  6C00 28 02       		jr      z,MoonService_test_rom_11
+0040+  6C02 3E 0A       		ld	a,0ah				;сегмент неисправен
+0041+  6C04             MoonService_test_rom_11: 
+0042+  6C04 32 4B 6F    		ld	(MoonService_text_tcol1 + 1),a
+0043+  6C07             
+0044+  6C07             			
+0045+  6C07 3A 49 6F    		ld	a,(MoonService_text_tpos1 + 2)
+0046+  6C0A C6 08       		add	a, 8
+0047+  6C0C 32 49 6F    		ld	(MoonService_text_tpos1 + 2),a
+0048+  6C0F 0C          		inc	c				;увеличим номер сегмента
+0049+  6C10             
+0050+  6C10 C5          		push	bc
+0051+  6C11 21 47 6F    		ld	hl,MoonService_text_tpos1
+0052+  6C14 CD 50 67    		call	VideoDRV_print_string
+0053+  6C17 C1          		pop	bc
+0054+  6C18             
+0055+  6C18 CD 70 64    		call	MoonService_check_anykey
+0056+  6C1B C2 65 6C    		jp	nz,MoonService_test_rom_5
+0057+  6C1E             		
+0058+  6C1E 1D          		dec	e
+0059+  6C1F 20 DA       		jr	nz,MoonService_test_rom_1
+0060+  6C21             
+0061+  6C21 E1          		pop	hl
+0062+  6C22 7D          		ld	a,l
+0063+  6C23 C6 08       		add	a,8
+0064+  6C25 6F          		ld	l,a
+0065+  6C26 15          		dec	d
+0066+  6C27 20 B7       		jr	nz,MoonService_test_rom_0
+0067+  6C29             
+0068+  6C29             MoonService_test_rom_12: 
+0069+  6C29             
+0070+  6C29 21 00 40    		ld	hl,4000h			;пауза между тестами
+0071+  6C2C             
+0072+  6C2C             MoonService_test_rom_33: 		
+0073+  6C2C 2B          		dec	hl
+0074+  6C2D 7D          		ld	a,l
+0075+  6C2E B4          		or	h
+0076+  6C2F 20 FB       		jr	nz,MoonService_test_rom_33
+0077+  6C31             		
+0078+  6C31 3E 0F       		ld	a,0fh
+0079+  6C33 32 5D 6F    		ld	(MoonService_text_col + 1),a
+0080+  6C36 21 5C 6F    		ld	hl,MoonService_text_col
+0081+  6C39 CD 50 67    		call	VideoDRV_print_string
+0082+  6C3C             	
+0083+  6C3C 21 28 10    		ld	hl,1028h
+0084+  6C3F 16 08       		ld	d,8
+0085+  6C41             MoonService_test_rom_4: 		
+0086+  6C41 22 59 6F    		ld	(MoonService_text_pos + 1),hl
+0087+  6C44 21 58 6F    		ld	hl,MoonService_text_pos
+0088+  6C47 CD 50 67    		call	VideoDRV_print_string
+0089+  6C4A 1E 24       		ld	e,24h
+0090+  6C4C             MoonService_test_rom_41: 
+0091+  6C4C 3E 20                       ld	a,20h
+0092+  6C4E CD 6C 67    		call	VideoDRV_print_char
+0093+  6C51 1D          		dec	e
+0094+  6C52 20 F8       		jr	nz,MoonService_test_rom_41	
+0095+  6C54             
+0096+  6C54 2A 59 6F    		ld	hl,(MoonService_text_pos + 1)
+0097+  6C57 7D          		ld	a,l
+0098+  6C58 C6 08       		add	a,8
+0099+  6C5A 6F          		ld	l,a
+0100+  6C5B 15          		dec	d
+0101+  6C5C 20 E3       		jr	nz,MoonService_test_rom_4
+0102+  6C5E             
+0103+  6C5E 3A 62 77    		ld	a,(MoonService_check_byte)
+0104+  6C61 3C          		inc	a
+0105+  6C62 C3 D9 6B    		jp	MoonService_test_rom_00
+0106+  6C65             		
+0107+  6C65             MoonService_test_rom_5: 
+0108+  6C65 E1          		pop	hl
+0109+  6C66 C3 00 60    		jp	MoonService_Start
+0110+  6C69             ;-------------------------------------------------------------------
+0111+  6C69             ; описание: Проверка одного сегмента RAM
+0112+  6C69             ; параметры: C - номер сегмента по 16Кб
+0113+  6C69             ; возвращаемое  значение: Z = 1 исправен, Z = 0 неисправен
+0114+  6C69             ;---------------------------------------------------------------------
+0115+  6C69             MoonService_check_romseg: 
+0116+  6C69 E5          		push	hl
+0117+  6C6A D5          		push	de
+0118+  6C6B C5          		push	bc
+0119+  6C6C 11 11 02    		ld	de,0211h			;чтение из ROM
+0120+  6C6F CD 48 64    		call	MoonService_wave_out
+0121+  6C72             
+0122+  6C72 79          		ld	a,c
+0123+  6C73 87          		add	a,a
+0124+  6C74 87          		add	a,a
+0125+  6C75 06 10       		ld	b,10h
+0126+  6C77 38 02       		jr	c, MoonService_check_romseg_0
+0127+  6C79 06 00       		ld	b,0
+0128+  6C7B             MoonService_check_romseg_0: 
+0129+  6C7B 0F          		rrca
+0130+  6C7C 0F          		rrca
+0131+  6C7D 0F          		rrca
+0132+  6C7E 0F          		rrca
+0133+  6C7F 6F          		ld	l,a
+0134+  6C80 E6 0F       		and	0Fh
+0135+  6C82 B0          		or	b
+0136+  6C83 67          		ld	h,a
+0137+  6C84 7D          		ld	a,l
+0138+  6C85 E6 F0       		and	0F0h
+0139+  6C87 6F          		ld	l,a
+0140+  6C88 3E 00       		ld	a,0
+0141+  6C8A B4          		or	h
+0142+  6C8B 5F          		ld	e,a
+0143+  6C8C 14          		inc	d
+0144+  6C8D CD 48 64    		call	MoonService_wave_out
+0145+  6C90             
+0146+  6C90 5D          		ld	e,l
+0147+  6C91 14          		inc	d
+0148+  6C92 CD 48 64    		call	MoonService_wave_out
+0149+  6C95 11 00 05    		ld	de,0500h
+0150+  6C98 CD 48 64    		call	MoonService_wave_out
+0151+  6C9B 14          		inc	d
+0152+  6C9C             
+0153+  6C9C 01 00 40    		ld	bc,16384
+0154+  6C9F 21 00 C0    		ld	hl,0C000h
+0155+  6CA2             
+0156+  6CA2             MoonService_check_romseg_4: 
+0157+  6CA2 CD 51 64    		call	MoonService_wave_in
+0158+  6CA5 77          		ld	(hl),a
+0159+  6CA6 1C          		inc	e
+0160+  6CA7 23          		inc	hl
+0161+  6CA8 0B          		dec	bc
+0162+  6CA9 78          		ld	a,b
+0163+  6CAA B1          		or	c
+0164+  6CAB 20 F5       		jr	nz,MoonService_check_romseg_4
+0165+  6CAD             
+0166+  6CAD 11 10 02    		ld	de,0210h			;Отключаем доступ к ROM
+0167+  6CB0 CD 48 64    		call	MoonService_wave_out
+0168+  6CB3 CD C5 6C    		call	MoonService_check_crc		;подсчитаем кс сегмента
+0169+  6CB6 C1          		pop	bc					
+0170+  6CB7             		
+0171+  6CB7 21 E1 6D    		ld	hl,MoonService_crc_table
+0172+  6CBA 79          		ld	a,c
+0173+  6CBB 85          		add	a,l
+0174+  6CBC 30 01       		jr 	nc,MoonService_check_romseg_5
+0175+  6CBE 24          		inc	h
+0176+  6CBF             
+0177+  6CBF             MoonService_check_romseg_5: 
+0178+  6CBF 6F          		ld	l,a
+0179+  6CC0 7E          		ld	a,(hl)				;возьмем контстанту из таблицы
+0180+  6CC1 BB          		cp	e		                ;сравним ее с подсчитанной
+0181+  6CC2 D1          		pop	de
+0182+  6CC3 E1          		pop	hl
+0183+  6CC4 C9          		ret	
+0184+  6CC5             ;-------------------------------------------------------------------
+0185+  6CC5             ; описание: Печать на экран строку символов
+0186+  6CC5             ; параметры: нет
+0187+  6CC5             ; возвращаемое  значение: байт CRC
+0188+  6CC5             ;---------------------------------------------------------------------
+0189+  6CC5             MoonService_check_crc: 
+0190+  6CC5 21 00 C0    		ld	hl,0C000h			;адрес буфера страницы 16
+0191+  6CC8 01 00 40    		ld	bc, 16384
+0192+  6CCB 1E 00       		ld	e,0				;байт CRC
+0193+  6CCD             MoonService_check_crc_0: 
+0194+  6CCD 7E          		ld	a,(hl)
+0195+  6CCE AB          		xor	e
+0196+  6CCF E5          		push	hl
+0197+  6CD0 21 E1 6C    		ld      hl,MoonService_crc8_table
+0198+  6CD3 85          		add	a,l
+0199+  6CD4 30 01       		jr	nc,MoonService_check_crc_1
+0200+  6CD6 24          		inc	h
+0201+  6CD7             MoonService_check_crc_1: 
+0202+  6CD7 6F                          ld	l,a
+0203+  6CD8 5E          		ld	e,(hl)
+0204+  6CD9 E1          		pop	hl
+0205+  6CDA 23          		inc	hl	
+0206+  6CDB 0B          		dec	bc
+0207+  6CDC 78          		ld	a,b
+0208+  6CDD B1          		or	c
+0209+  6CDE 20 ED       		jr	nz,MoonService_check_crc_0
+0210+  6CE0 C9          		ret
+0211+  6CE1             ;-------------------------------------------------------------------
+0212+  6CE1             ; описание: Таблица констант контрольной суммы
+0213+  6CE1             ;---------------------------------------------------------------------
+0214+  6CE1             MoonService_crc8_table: 
+0215+  6CE1             		db	00h,0E5h,2Fh,0CAh,5Eh,0BBh,71h,94h
+0215+  6CE1 00E52FCA5EBB7194
+0216+  6CE9             		db	0BCh,59h,93h,76h,0E2h,07h,0CDh,28h
+0216+  6CE9 BC599376E207CD28
+0217+  6CF1             		db	9Dh,78h,0B2h,57h,0C3h,26h,0ECh,09h
+0217+  6CF1 9D78B257C326EC09
+0218+  6CF9             		db	21h,0C4h,0Eh,0EBh,7Fh,9Ah,50h,0B5h
+0218+  6CF9 21C40EEB7F9A50B5
+0219+  6D01             		db	0DFh,3Ah,0F0h,15h,81h,64h,0AEh,4Bh
+0219+  6D01 DF3AF0158164AE4B
+0220+  6D09             		db	63h,86h,4Ch,0A9h,3Dh,0D8h,12h,0F7h
+0220+  6D09 63864CA93DD812F7
+0221+  6D11             		db	42h,0A7h,6Dh,88h,1Ch,0F9h,33h,0D6h
+0221+  6D11 42A76D881CF933D6
+0222+  6D19             		db	0FEh,1Bh,0D1h,34h,0A0h,45h,8Fh,6Ah
+0222+  6D19 FE1BD134A0458F6A
+0223+  6D21             		db	5Bh,0BEh,74h,91h,05h,0E0h,2Ah,0CFh
+0223+  6D21 5BBE749105E02ACF
+0224+  6D29             		db	0E7h,02h,0C8h,2Dh,0B9h,5Ch,96h,73h
+0224+  6D29 E702C82DB95C9673
+0225+  6D31             		db	0C6h,23h,0E9h,0Ch,98h,7Dh,0B7h,52h
+0225+  6D31 C623E90C987DB752
+0226+  6D39             		db	7Ah,9Fh,55h,0B0h,24h,0C1h,0Bh,0EEh
+0226+  6D39 7A9F55B024C10BEE
+0227+  6D41             		db	84h,61h,0ABh,4Eh,0DAh,3Fh,0F5h,10h
+0227+  6D41 8461AB4EDA3FF510
+0228+  6D49             		db	38h,0DDh,17h,0F2h,66h,83h,49h,0ACh
+0228+  6D49 38DD17F2668349AC
+0229+  6D51             		db	19h,0FCh,36h,0D3h,47h,0A2h,68h,8Dh
+0229+  6D51 19FC36D347A2688D
+0230+  6D59             		db	0A5h,40h,8Ah,6Fh,0FBh,1Eh,0D4h,31h
+0230+  6D59 A5408A6FFB1ED431
+0231+  6D61             		db	0B6h,53h,99h,7Ch,0E8h,0Dh,0C7h,22h
+0231+  6D61 B653997CE80DC722
+0232+  6D69             		db	0Ah,0EFh,25h,0C0h,54h,0B1h,7Bh,9Eh
+0232+  6D69 0AEF25C054B17B9E
+0233+  6D71             		db	2Bh,0CEh,04h,0E1h,75h,90h,5Ah,0BFh
+0233+  6D71 2BCE04E175905ABF
+0234+  6D79             		db	97h,72h,0B8h,5Dh,0C9h,2Ch,0E6h,03h
+0234+  6D79 9772B85DC92CE603
+0235+  6D81             		db	69h,8Ch,46h,0A3h,37h,0D2h,18h,0FDh
+0235+  6D81 698C46A337D218FD
+0236+  6D89             		db	0D5h,30h,0FAh,1Fh,8Bh,6Eh,0A4h,41h
+0236+  6D89 D530FA1F8B6EA441
+0237+  6D91             		db	0F4h,11h,0DBh,3Eh,0AAh,4Fh,85h,60h
+0237+  6D91 F411DB3EAA4F8560
+0238+  6D99             		db	48h,0ADh,67h,82h,16h,0F3h,39h,0DCh
+0238+  6D99 48AD678216F339DC
+0239+  6DA1             		db	0EDh,08h,0C2h,27h,0B3h,56h,9Ch,79h
+0239+  6DA1 ED08C227B3569C79
+0240+  6DA9             		db	51h,0B4h,7Eh,9Bh,0Fh,0EAh,20h,0C5h
+0240+  6DA9 51B47E9B0FEA20C5
+0241+  6DB1             		db	70h,95h,5Fh,0BAh,2Eh,0CBh,01h,0E4h
+0241+  6DB1 70955FBA2ECB01E4
+0242+  6DB9             		db	0CCh,29h,0E3h,06h,92h,77h,0BDh,58h
+0242+  6DB9 CC29E3069277BD58
+0243+  6DC1             		db	32h,0D7h,1Dh,0F8h,6Ch,89h,43h,0A6h
+0243+  6DC1 32D71DF86C8943A6
+0244+  6DC9             		db	8Eh,6Bh,0A1h,44h,0D0h,35h,0FFh,1Ah
+0244+  6DC9 8E6BA144D035FF1A
+0245+  6DD1             		db	0AFh,4Ah,80h,65h,0F1h,14h,0DEh,3Bh
+0245+  6DD1 AF4A8065F114DE3B
+0246+  6DD9             		db	13h,0F6h,3Ch,0D9h,4Dh,0A8h,62h,87h
+0246+  6DD9 13F63CD94DA86287
+0247+  6DE1             ;-------------------------------------------------------------------
+0248+  6DE1             ; описание: Таблица констант контрольной суммы ПЗУ сэмплов
+0249+  6DE1             ;---------------------------------------------------------------------
+0250+  6DE1             MoonService_crc_table: 
+0251+  6DE1             		db	0E0h,0DAh,07h,0CFh,7Bh,48h,5Dh,0D9h
+0251+  6DE1 E0DA07CF7B485DD9
+0252+  6DE9             		db	93h,0BDh,31h,0Ch,70h,4Ch,0B2h,10h
+0252+  6DE9 93BD310C704CB210
+0253+  6DF1             		db	0F0h,2Bh,57h,11h,1Dh,0DDh,36h,99h
+0253+  6DF1 F02B57111DDD3699
+0254+  6DF9             		db	0F3h,83h,0D2h,0FCh,10h,83h,62h,3Fh
+0254+  6DF9 F383D2FC1083623F
+0255+  6E01             		db	34h,0CAh,0C6h,14h,3Ch,57h,65h,0BEh
+0255+  6E01 34CAC6143C5765BE
+0256+  6E09             		db	1Fh,0F1h,0D4h,0F4h,8Ch,0FEh,71h,74h
+0256+  6E09 1FF1D4F48CFE7174
+0257+  6E11             		db	0C2h,0B2h,22h,35h,89h,5Eh,08h,8Eh
+0257+  6E11 C2B22235895E088E
+0258+  6E19             		db	8Ch,97h,0B8h,14h,0EAh,0C8h,6Ah,06h
+0258+  6E19 8C97B814EAC86A06
+0259+  6E21             		db	0F4h,93h,6Bh,0E9h,0E2h,8Ch,3Dh,92h
+0259+  6E21 F4936BE9E28C3D92
+0260+  6E29             		db	0FEh,8Ch,0AFh,0EEh,20h,95h,0A0h,97h
+0260+  6E29 FE8CAFEE2095A097
+0261+  6E31             		db	54h,87h,0E7h,8Fh,04h,2Ah,0B2h,0DBh
+0261+  6E31 5487E78F042AB2DB
+0262+  6E39             		db	1Eh,0F9h,0AAh,0CAh,79h,0FDh,13h,4Ah
+0262+  6E39 1EF9AACA79FD134A
+0263+  6E41             		db	0B1h,0C0h,27h,63h,10h,0B8h,0F0h,43h
+0263+  6E41 B1C0276310B8F043
+0264+  6E49             		db	0E0h,15h,0B3h,0D6h,0E3h,7Bh,3Fh,0DAh
+0264+  6E49 E015B3D6E37B3FDA
+0265+  6E51             		db	0DFh,0EDh,2Bh,16h,0CAh,56h,85h,75h
+0265+  6E51 DFED2B16CA568575
+0266+  6E59             		db	0C3h,0F6h,0E3h,0DBh,0B0h,70h,39h,9Fh
+0266+  6E59 C3F6E3DBB070399F
+0267+  6E61             
+0268+  6E61             ;-------------------------------------------------------------------
+0269+  6E61             ; описание: Окно обновления
+0270+  6E61             ;---------------------------------------------------------------------
+0271+  6E61             MoonService_window_trom: 
+0272+  6E61 01          		db    	1 
+0273+  6E62 02          		db    	2 ;  
+0274+  6E63 0F          		db  	15 ;  
+0275+  6E64 1E          		db  	30 ;  
+0276+  6E65 0F          		db  	0Fh ;  
+0277+  6E66 00          		db    	0 ;  
+0278+  6E67 00          		db    	0 ;  
+0279+  6E68 00          		db    	0 ;  
+0280+  6E69 22          		db  	22h ; "
+0281+  6E6A 00          		db    	0 ;  
+0282+  6E6B 00          		db    	0 ;  
+0283+  6E6C 00          		db    	0 ;  
+0284+  6E6D 00          		db    	0 ;  
+0285+  6E6E 75 6E       		dw 	MoonService_taddr_trom
+0286+  6E70 00          		db    	0 ;  
+0287+  6E71 00          		db    	0 ;  
+0288+  6E72 00          		db    	0 ;  
+0289+  6E73 00          		db    	0 ;  
+0290+  6E74 00          		db    	0 ;  
+0291+  6E75             MoonService_taddr_trom: 	
+0292+  6E75 14          		db	14h
+0293+  6E76 01          		db  	1
+0294+  6E77 03          		db    	3 ;  
+0295+  6E78             		db 	"Test ROM"
+0295+  6E78 5465737420524F4D
+0296+  6E80 14          		db  	14h ;  
+0297+  6E81 00          		db    	0 ;  
+0298+  6E82 0D          		db  	0Dh ;  
+0299+  6E83 03          		db	3
+0300+  6E84 16702C170F  		db	16h,70h,2Ch,17h,0fh
+0301+  6E89 20 DC       		db	20h,0dch
+0302+  6E8B             		db	" - 16кб сегмент исправен"
+0302+  6E8B 202D203136AAA120E1A5A3ACA5ADE220A8E1AFE0A0A2A5AD
+0303+  6EA3 16782C170A  		db	16h,78h,2Ch,17h,0ah
+0304+  6EA8 20 DC 17 0F 		db	20h,0dch,17h,0fh
+0305+  6EAC             		db	" - 16кб сегмент неисправен",0
+0305+  6EAC 202D203136AAA120E1A5A3ACA5ADE220ADA5A8E1AFE0A0A2A5AD00
+0306+  6EC7             ;-------------------------------------------------------------------
+0307+  6EC7             ; описание: Окно справки  в режиме проверки ROM
+0308+  6EC7             ;---------------------------------------------------------------------
+0309+  6EC7             MoonService_window_hrom: 
+0310+  6EC7 00          		db    	0
+0311+  6EC8 12          		db  	12h ;  
+0312+  6EC9 06          		db    	6 ;  
+0313+  6ECA 20          		db  	20h ;  
+0314+  6ECB 0F          		db  	0Fh ;  
+0315+  6ECC 00          		db    	0 ;  
+0316+  6ECD 00          		db    	0 ;  
+0317+  6ECE 00          		db    	0 ;  
+0318+  6ECF 00          		db    	0 ;  
+0319+  6ED0 00          		db    	0 ;  
+0320+  6ED1 00          		db    	0 ;  
+0321+  6ED2 00          		db    	0 ;  
+0322+  6ED3 00          		db    	0 ;  
+0323+  6ED4 DB 6E       		dw 	MoonService_taddr_hrom
+0324+  6ED6 00          		db    	0 ;  
+0325+  6ED7 00          		db    	0 ;  
+0326+  6ED8 00          		db    	0 ;  
+0327+  6ED9 00          		db    	0	 ;  
+0328+  6EDA 00          		db    	0 ;  
+0329+  6EDB             MoonService_taddr_hrom: 
+0330+  6EDB 0D          		db  	0Dh
+0331+  6EDC 03          		db    	3 ;  
+0332+  6EDD             		db 	"Проверка контрольной суммы "
+0332+  6EDD 8FE0AEA2A5E0AAA020AAAEADE2E0AEABECADAEA920E1E3ACACEB20
+0333+  6EF8 0D          		db  	0Dh ;  
+0334+  6EF9 03          		db    	3 ;  
+0335+  6EFA             		db 	"информации в ПЗУ (микросхема DD3)"
+0335+  6EFA A8ADE4AEE0ACA0E6A8A820A2208F87932028ACA8AAE0AEE1E5A5ACA020444433
+0335+  6F1A 29
+0336+  6F1B 0D          		db  	0Dh ;  
+0337+  6F1C 03          		db    	3 ;  
+0338+  6F1D             		db 	"Нажатие на любую клавишу - выход из теста"
+0338+  6F1D 8DA0A6A0E2A8A520ADA020ABEEA1E3EE20AAABA0A2A8E8E3202D20A2EBE5AEA4
+0338+  6F3D 20A8A720E2A5E1E2A0
+0339+  6F46 00          		db 	0
+0340+  6F47             ;-------------------------------------------------------------------
+0341+  6F47             ; описание: Текстовые переменные
+0342+  6F47             ;---------------------------------------------------------------------
+0343+  6F47             MoonService_text_tpos1: 
+0344+  6F47 16 00 00    		db	16h,0,0
+0345+  6F4A             MoonService_text_tcol1: 
+0346+  6F4A 17 00       		db	17h,0
+0347+  6F4C             MoonService_text_tseg1: 
+0348+  6F4C DF 00       		db	0dfh,0
+0349+  6F4E             
+1900   6F4E             ;-------------------------------------------------------------------
+1901   6F4E             ; описание: Текстовые переменные
+1902   6F4E             ;---------------------------------------------------------------------
+1903   6F4E             MoonService_text_tpos: 
+1904   6F4E 16 00 00    		db	16h,0,0
+1905   6F51             MoonService_text_tcol: 
+1906   6F51 17 00       		db	17h,0
+1907   6F53             MoonService_text_tseg: 
+1908   6F53 20DFDFDF00  		db	20h,0dfh,0dfh,0dfh,0
+1909   6F58             
+1910   6F58             MoonService_text_pos: 
+1911   6F58 16 00 00 00 		db	16h,0,0,0
+1912   6F5C             MoonService_text_col: 
+1913   6F5C 17 00 00    		db	17h,0,0
+1914   6F5F             
+1915   6F5F             		.include "evafont.inc"
+0001+  6F5F             ;-------------------------------------------------------------------
+0002+  6F5F             ; юяшёрэшх: ╘юэЄ
+0003+  6F5F             ;---------------------------------------------------------------------
+0004+  6F5F             EvaFont_address: 
+0005+  6F5F             		db   	0,78h,84h,9Fh,0A1h,0C2h
+0005+  6F5F 0078849FA1C2
+0006+  6F65             		db 	0FCh,  0,38h,44h,6Ch,44h
+0006+  6F65 FC0038446C44
+0007+  6F6B             		db 	7Ch,54h,44h,38h,38h,7Ch
+0007+  6F6B 7C544438387C
+0008+  6F71             		db 	54h,7Ch,44h,6Ch,7Ch,38h
+0008+  6F71 547C446C7C38
+0009+  6F77             		db   	0,28h,6Ch,7Ch,7Ch,38h
+0009+  6F77 00286C7C7C38
+0010+  6F7D             		db 	10h,  0,  0,10h,38h,7Ch
+0010+  6F7D 10000010387C
+0011+  6F83             		db 	7Ch,38h,10h,  0,  0,38h
+0011+  6F83 7C3810000038
+0012+  6F89             		db 	10h,54h,7Ch,54h,10h,38h
+0012+  6F89 10547C541038
+0013+  6F8F             		db   	0,10h,38h,7Ch,7Ch,7Ch
+0013+  6F8F 0010387C7C7C
+0014+  6F95             		db 	10h,38h,  0,  0,30h,78h
+0014+  6F95 103800003078
+0015+  6F9B             		db 	78h,30h,  0,  0,0FCh,0FCh
+0015+  6F9B 78300000FCFC
+0016+  6FA1 CC8484CCFC  		db 	0CCh,84h,84h,0CCh,0FCh
+0017+  6FA6             		db 	0FCh,  0,  0,30h,48h,48h
+0017+  6FA6 FC0000304848
+0018+  6FAC 300000FCFC  		db 	30h,  0,  0,0FCh,0FCh
+0019+  6FB1 CCB4B4CCFC  		db 	0CCh,0B4h,0B4h,0CCh,0FCh
+0020+  6FB6             		db 	0FCh,1Ch,0Ch,14h,30h,48h
+0020+  6FB6 FC1C0C143048
+0021+  6FBC             		db 	48h,30h,  0,  0,38h,44h
+0021+  6FBC 483000003844
+0022+  6FC2             		db 	44h,38h,10h,38h,10h,3Ch
+0022+  6FC2 44381038103C
+0023+  6FC8             		db 	24h,3Ch,20h,20h,60h,0E0h
+0023+  6FC8 243C202060E0
+0024+  6FCE             		db 	60h,7Ch,44h,7Ch,44h,44h
+0024+  6FCE 607C447C4444
+0025+  6FD4 4CCCC01054  		db 	4Ch,0CCh,0C0h,10h,54h
+0026+  6FD9             		db 	38h,6Ch,6Ch,38h,54h,10h
+0026+  6FD9 386C6C385410
+0027+  6FDF             		db   	0,40h,60h,70h,78h,70h
+0027+  6FDF 004060707870
+0028+  6FE5             		db 	60h,40h,  0,  8,18h,38h
+0028+  6FE5 604000081838
+0029+  6FEB             		db 	78h,38h,18h,  8,10h,38h
+0029+  6FEB 783818081038
+0030+  6FF1             		db 	7Ch,10h,10h,7Ch,38h,10h
+0030+  6FF1 7C10107C3810
+0031+  6FF7             		db   	0,28h,28h,28h,28h,  0
+0031+  6FF7 002828282800
+0032+  6FFD             		db 	28h,  0,  0,3Ch,54h,54h
+0032+  6FFD 2800003C5454
+0033+  7003             		db 	54h,34h,14h,14h,  0,38h
+0033+  7003 543414140038
+0034+  7009             		db 	40h,30h,48h,30h,  8,70h
+0034+  7009 403048300870
+0035+  700F             		db   	0,  0,  0,  0,  0,78h
+0035+  700F 000000000078
+0036+  7015             		db 	78h,  0,10h,38h,7Ch,10h
+0036+  7015 780010387C10
+0037+  701B             		db 	7Ch,38h,10h,7Ch,  0,10h
+0037+  701B 7C38107C0010
+0038+  7021             		db 	38h,7Ch,10h,10h,10h,  0
+0038+  7021 387C10101000
+0039+  7027             		db   	0,  0,10h,10h,10h,7Ch
+0039+  7027 00001010107C
+0040+  702D             		db 	38h,10h,  0,  0,10h,18h
+0040+  702D 381000001018
+0041+  7033             		db 	7Ch,18h,10h,  0,  0,  0
+0041+  7033 7C1810000000
+0042+  7039             		db 	10h,30h,7Ch,30h,10h,  0
+0042+  7039 10307C301000
+0043+  703F             		db   	0,  0,  0,40h,40h,40h
+0043+  703F 000000404040
+0044+  7045             		db 	7Ch,  0,  0,  0,48h,0CCh
+0044+  7045 7C00000048CC
+0045+  704B FCCC480000  		db 	0FCh,0CCh,48h,  0,	0
+0046+  7050             		db   	0,10h,38h,7Ch,7Ch,  0
+0046+  7050 0010387C7C00
+0047+  7056             		db   	0,  0,  0,7Ch,7Ch,38h
+0047+  7056 0000007C7C38
+0048+  705C             		db 	10h,  0,  0,  0,  0,  0
+0048+  705C 100000000000
+0049+  7062             		db   	0,  0,  0,  0,  0,  0
+0049+  7062 000000000000
+0050+  7068             		db 	10h,10h,10h,10h,  0,10h
+0050+  7068 101010100010
+0051+  706E             		db   	0,  0,28h,28h,  0,  0
+0051+  706E 000028280000
+0052+  7074             		db   	0,  0,  0,  0,28h,7Ch
+0052+  7074 00000000287C
+0053+  707A             		db 	28h,28h,7Ch,28h,  0,  0
+0053+  707A 28287C280000
+0054+  7080             		db 	10h,7Ch,50h,7Ch,14h,7Ch
+0054+  7080 107C507C147C
+0055+  7086 1000C4C810  		db 	10h,  0,0C4h,0C8h,10h
+0056+  708B             		db 	20h,4Ch,8Ch,  0,  0,10h
+0056+  708B 204C8C000010
+0057+  7091             		db 	28h,10h,2Ch,48h,34h,  0
+0057+  7091 28102C483400
+0058+  7097             		db   	0,10h,20h,  0,  0,  0
+0058+  7097 001020000000
+0059+  709D             		db   	0,  0,  0,  8,10h,10h
+0059+  709D 000000081010
+0060+  70A3             		db 	10h,10h,  8,  0,  0,10h
+0060+  70A3 101008000010
+0061+  70A9             		db   	8,  8,  8,  8,10h,  0
+0061+  70A9 080808081000
+0062+  70AF             		db   	0,  0,28h,10h,7Ch,10h
+0062+  70AF 000028107C10
+0063+  70B5             		db 	28h,  0,  0,  0,10h,10h
+0063+  70B5 280000001010
+0064+  70BB             		db 	7Ch,10h,10h,  0,  0,  0
+0064+  70BB 7C1010000000
+0065+  70C1             		db   	0,  0,  0,10h,10h,20h
+0065+  70C1 000000101020
+0066+  70C7             		db   	0,  0,  0,  0,7Ch,  0
+0066+  70C7 000000007C00
+0067+  70CD             		db   	0,  0,  0,  0,  0,  0
+0067+  70CD 000000000000
+0068+  70D3             		db   	0,30h,30h,  0,  0,  4
+0068+  70D3 003030000004
+0069+  70D9             		db   	8,10h,20h,40h,80h,  0
+0069+  70D9 081020408000
+0070+  70DF             		db   	0,38h,4Ch,54h,54h,64h
+0070+  70DF 00384C545464
+0071+  70E5             		db 	38h,  0,  0,10h,30h,10h
+0071+  70E5 380000103010
+0072+  70EB             		db 	10h,10h,38h,  0,  0,38h
+0072+  70EB 101038000038
+0073+  70F1             		db 	44h,  4,38h,40h,7Ch,  0
+0073+  70F1 440438407C00
+0074+  70F7             		db   	0,7Ch,  4,38h,  4,44h
+0074+  70F7 007C04380444
+0075+  70FD             		db 	38h,  0,  0,  8,18h,28h
+0075+  70FD 380000081828
+0076+  7103             		db 	48h,7Ch,  8,  0,  0,7Ch
+0076+  7103 487C0800007C
+0077+  7109             		db 	40h,78h,  4,44h,38h,  0
+0077+  7109 407804443800
+0078+  710F             		db   	0,38h,40h,78h,44h,44h
+0078+  710F 003840784444
+0079+  7115             		db 	38h,  0,  0,7Ch,  4,  8
+0079+  7115 3800007C0408
+0080+  711B             		db 	10h,10h,10h,  0,  0,38h
+0080+  711B 101010000038
+0081+  7121             		db 	44h,38h,44h,44h,38h,  0
+0081+  7121 443844443800
+0082+  7127             		db   	0,38h,44h,44h,3Ch,  4
+0082+  7127 003844443C04
+0083+  712D             		db 	38h,  0,  0,  0,  0,10h
+0083+  712D 380000000010
+0084+  7133             		db   	0,  0,10h,  0,  0,  0
+0084+  7133 000010000000
+0085+  7139             		db 	10h,  0,  0,10h,10h,20h
+0085+  7139 100000101020
+0086+  713F             		db   	0,  0,  8,10h,20h,10h
+0086+  713F 000008102010
+0087+  7145             		db   	8,  0,  0,  0,  0,7Ch
+0087+  7145 08000000007C
+0088+  714B             		db   	0,7Ch,  0,  0,  0,  0
+0088+  714B 007C00000000
+0089+  7151             		db 	20h,10h,  8,10h,20h,  0
+0089+  7151 201008102000
+0090+  7157             		db   	0,38h,44h,  8,10h,  0
+0090+  7157 003844081000
+0091+  715D             		db 	10h,  0,  0,38h,44h,5Ch
+0091+  715D 10000038445C
+0092+  7163             		db 	5Ch,40h,38h,  0,  0,38h
+0092+  7163 5C4038000038
+0093+  7169             		db 	44h,44h,7Ch,44h,44h,  0
+0093+  7169 44447C444400
+0094+  716F             		db   	0,78h,44h,78h,44h,44h
+0094+  716F 007844784444
+0095+  7175             		db 	78h,  0,  0,38h,44h,40h
+0095+  7175 780000384440
+0096+  717B             		db 	40h,44h,38h,  0,  0,78h
+0096+  717B 404438000078
+0097+  7181             		db 	44h,44h,44h,44h,78h,  0
+0097+  7181 444444447800
+0098+  7187             		db   	0,7Ch,40h,78h,40h,40h
+0098+  7187 007C40784040
+0099+  718D             		db 	7Ch,  0,  0,7Ch,40h,78h
+0099+  718D 7C00007C4078
+0100+  7193             		db 	40h,40h,40h,  0,  0,38h
+0100+  7193 404040000038
+0101+  7199             		db 	44h,40h,5Ch,44h,38h,  0
+0101+  7199 44405C443800
+0102+  719F             		db   	0,44h,44h,7Ch,44h,44h
+0102+  719F 0044447C4444
+0103+  71A5             		db 	44h,  0,  0,38h,10h,10h
+0103+  71A5 440000381010
+0104+  71AB             		db 	10h,10h,38h,  0,  0,  4
+0104+  71AB 101038000004
+0105+  71B1             		db   	4,  4,44h,44h,38h,  0
+0105+  71B1 040444443800
+0106+  71B7             		db   	0,44h,48h,70h,48h,44h
+0106+  71B7 004448704844
+0107+  71BD             		db 	44h,  0,  0,40h,40h,40h
+0107+  71BD 440000404040
+0108+  71C3             		db 	40h,44h,7Ch,  0,  0,44h
+0108+  71C3 40447C000044
+0109+  71C9             		db 	6Ch,54h,54h,44h,44h,  0
+0109+  71C9 6C5454444400
+0110+  71CF             		db   	0,44h,64h,54h,54h,4Ch
+0110+  71CF 00446454544C
+0111+  71D5             		db 	44h,  0,  0,38h,44h,44h
+0111+  71D5 440000384444
+0112+  71DB             		db 	44h,44h,38h,  0,  0,78h
+0112+  71DB 444438000078
+0113+  71E1             		db 	44h,44h,78h,40h,40h,  0
+0113+  71E1 444478404000
+0114+  71E7             		db   	0,38h,44h,44h,54h,48h
+0114+  71E7 003844445448
+0115+  71ED             		db 	34h,  0,  0,78h,44h,44h
+0115+  71ED 340000784444
+0116+  71F3             		db 	78h,48h,44h,  0,  0,38h
+0116+  71F3 784844000038
+0117+  71F9             		db 	40h,38h,  4,44h,38h,  0
+0117+  71F9 403804443800
+0118+  71FF             		db   	0,7Ch,10h,10h,10h,10h
+0118+  71FF 007C10101010
+0119+  7205             		db 	10h,  0,  0,44h,44h,44h
+0119+  7205 100000444444
+0120+  720B             		db	44h,44h,38h,  0,  0,44h
+0120+  720B 444438000044
+0121+  7211             		db 	44h,44h,44h,28h,10h,  0
+0121+  7211 444444281000
+0122+  7217             		db   	0,44h,44h,44h,54h,54h
+0122+  7217 004444445454
+0123+  721D             		db 	28h,  0,  0,44h,28h,10h
+0123+  721D 280000442810
+0124+  7223             		db 	10h,28h,44h,  0,  0,44h
+0124+  7223 102844000044
+0125+  7229             		db 	44h,28h,10h,10h,10h,  0
+0125+  7229 442810101000
+0126+  722F             		db   	0,7Ch,  4,18h,30h,40h
+0126+  722F 007C04183040
+0127+  7235             		db 	7Ch,  0,  0,38h,20h,20h
+0127+  7235 7C0000382020
+0128+  723B             		db 	20h,20h,38h,  0,  0,80h
+0128+  723B 202038000080
+0129+  7241             		db 	40h,20h,10h,  8,  4,  0
+0129+  7241 402010080400
+0130+  7247             		db   	0,38h,  8,  8,  8,  8
+0130+  7247 003808080808
+0131+  724D             		db 	38h,  0,  0,10h,28h,44h
+0131+  724D 380000102844
+0132+  7253             		db   	0,  0,  0,  0,  0,  0
+0132+  7253 000000000000
+0133+  7259             		db   	0,  0,  0,  0,  0,0FCh
+0133+  7259 0000000000FC
+0134+  725F             		db   	0,18h,24h,70h,20h,20h
+0134+  725F 001824702020
+0135+  7265             		db 	7Ch,  0,  0,  0,38h,  4
+0135+  7265 7C0000003804
+0136+  726B             		db 	3Ch,44h,3Ch,  0,  0,40h
+0136+  726B 3C443C000040
+0137+  7271             		db 	40h,78h,44h,44h,78h,  0
+0137+  7271 407844447800
+0138+  7277             		db   	0,  0,38h,44h,40h,40h
+0138+  7277 000038444040
+0139+  727D             		db 	3Ch,  0,  0,  4,  4,3Ch
+0139+  727D 3C000004043C
+0140+  7283             		db 	44h,44h,3Ch,  0,  0,  0
+0140+  7283 44443C000000
+0141+  7289             		db 	38h,44h,78h,40h,3Ch,  0
+0141+  7289 384478403C00
+0142+  728F             		db   	0,10h,28h,20h,70h,20h
+0142+  728F 001028207020
+0143+  7295             		db 	20h,  0,  0,  0,3Ch,44h
+0143+  7295 200000003C44
+0144+  729B             		db 	44h,3Ch,  4,38h,  0,40h
+0144+  729B 443C04380040
+0145+  72A1             		db 	40h,78h,44h,44h,44h,  0
+0145+  72A1 407844444400
+0146+  72A7             		db   	0,10h,  0,30h,10h,10h
+0146+  72A7 001000301010
+0147+  72AD             		db 	38h,  0,  0,  8,  0,  8
+0147+  72AD 380000080008
+0148+  72B3             		db   	8,  8,48h,30h,  0,40h
+0148+  72B3 080848300040
+0149+  72B9             		db 	48h,50h,60h,50h,48h,  0
+0149+  72B9 485060504800
+0150+  72BF             		db   	0,20h,20h,20h,20h,28h
+0150+  72BF 002020202028
+0151+  72C5             		db 	10h,  0,  0,  0,68h,54h
+0151+  72C5 100000006854
+0152+  72CB             		db 	54h,54h,54h,  0,  0,  0
+0152+  72CB 545454000000
+0153+  72D1             		db 	58h,64h,44h,44h,44h,  0
+0153+  72D1 586444444400
+0154+  72D7             		db   	0,  0,38h,44h,44h,44h
+0154+  72D7 000038444444
+0155+  72DD             		db 	38h,  0,  0,  0,78h,44h
+0155+  72DD 380000007844
+0156+  72E3             		db 	44h,78h,40h,40h,  0,  0
+0156+  72E3 447840400000
+0157+  72E9             		db 	3Ch,44h,44h,3Ch,  4,  4
+0157+  72E9 3C44443C0404
+0158+  72EF             		db   	0,  0,58h,64h,40h,40h
+0158+  72EF 000058644040
+0159+  72F5             		db 	40h,  0,  0,  0,38h,40h
+0159+  72F5 400000003840
+0160+  72FB             		db 	38h,  4,78h,  0,  0,20h
+0160+  72FB 380478000020
+0161+  7301             		db 	70h,20h,20h,28h,10h,  0
+0161+  7301 702020281000
+0162+  7307             		db   	0,  0,44h,44h,44h,44h
+0162+  7307 000044444444
+0163+  730D             		db 	38h,  0,  0,  0,44h,44h
+0163+  730D 380000004444
+0164+  7313             		db 	28h,28h,10h,  0,  0,  0
+0164+  7313 282810000000
+0165+  7319             		db 	44h,44h,54h,54h,28h,  0
+0165+  7319 444454542800
+0166+  731F             		db   	0,  0,44h,28h,10h,28h
+0166+  731F 000044281028
+0167+  7325             		db 	44h,  0,  0,  0,44h,44h
+0167+  7325 440000004444
+0168+  732B             		db 	44h,3Ch,  4,38h,  0,  0
+0168+  732B 443C04380000
+0169+  7331             		db 	7Ch,  8,10h,20h,7Ch,  0
+0169+  7331 7C0810207C00
+0170+  7337             		db   	0,  8,10h,10h,60h,10h
+0170+  7337 000810106010
+0171+  733D             		db 	10h,  8,10h,10h,10h,10h
+0171+  733D 100810101010
+0172+  7343             		db 	10h,10h,10h,10h,  0,20h
+0172+  7343 101010100020
+0173+  7349             		db 	10h,10h,0Ch,10h,10h,20h
+0173+  7349 10100C101020
+0174+  734F             		db   	0,28h,50h,  0,  0,  0
+0174+  734F 002850000000
+0175+  7355             		db   	0,  0,78h,84h,0B4h,0A4h
+0175+  7355 00007884B4A4
+0176+  735B A4B4847800  		db 	0A4h,0B4h,84h,78h,	0
+0177+  7360             		db 	1Ch,24h,44h,7Ch,44h,44h
+0177+  7360 1C24447C4444
+0178+  7366             		db   	0,  0,78h,40h,78h,44h
+0178+  7366 000078407844
+0179+  736C             		db 	44h,78h,  0,  0,78h,44h
+0179+  736C 447800007844
+0180+  7372             		db 	78h,44h,44h,78h,  0,  0
+0180+  7372 784444780000
+0181+  7378             		db 	7Ch,40h,40h,40h,40h,40h
+0181+  7378 7C4040404040
+0182+  737E             		db   	0,  0,38h,48h,48h,48h
+0182+  737E 000038484848
+0183+  7384             		db 	48h,0FCh,84h,  0,7Ch,40h
+0183+  7384 48FC84007C40
+0184+  738A             		db 	78h,40h,40h,7Ch,  0,  0
+0184+  738A 7840407C0000
+0185+  7390             		db 	54h,54h,38h,54h,54h,54h
+0185+  7390 545438545454
+0186+  7396             		db   	0,  0,38h,44h,18h,  4
+0186+  7396 000038441804
+0187+  739C             		db 	44h,38h,  0,  0,44h,44h
+0187+  739C 443800004444
+0188+  73A2             		db 	4Ch,54h,64h,44h,  0,  8
+0188+  73A2 4C5464440008
+0189+  73A8             		db 	54h,44h,4Ch,54h,64h,44h
+0189+  73A8 54444C546444
+0190+  73AE             		db   	0,  0,44h,48h,70h,48h
+0190+  73AE 000044487048
+0191+  73B4             		db 	44h,44h,  0,  0,1Ch,24h
+0191+  73B4 444400001C24
+0192+  73BA             		db 	24h,24h,24h,44h,  0,  0
+0192+  73BA 242424440000
+0193+  73C0             		db 	44h,6Ch,54h,54h,44h,44h
+0193+  73C0 446C54544444
+0194+  73C6             		db   	0,  0,44h,44h,7Ch,44h
+0194+  73C6 000044447C44
+0195+  73CC             		db 	44h,44h,  0,  0,38h,44h
+0195+  73CC 444400003844
+0196+  73D2             		db 	44h,44h,44h,38h,  0,  0
+0196+  73D2 444444380000
+0197+  73D8             		db 	7Ch,44h,44h,44h,44h,44h
+0197+  73D8 7C4444444444
+0198+  73DE             		db   	0,  0,78h,44h,44h,78h
+0198+  73DE 000078444478
+0199+  73E4             		db 	40h,40h,  0,  0,38h,44h
+0199+  73E4 404000003844
+0200+  73EA             		db 	40h,40h,44h,38h,  0,  0
+0200+  73EA 404044380000
+0201+  73F0             		db 	7Ch,10h,10h,10h,10h,10h
+0201+  73F0 7C1010101010
+0202+  73F6             		db   	0,  0,44h,44h,44h,3Ch
+0202+  73F6 00004444443C
+0203+  73FC             		db   	4,38h,  0,  0,38h,54h
+0203+  73FC 043800003854
+0204+  7402             		db 	54h,54h,38h,10h,  0,  0
+0204+  7402 545438100000
+0205+  7408             		db 	44h,28h,10h,28h,44h,44h
+0205+  7408 442810284444
+0206+  740E             		db   	0,  0,48h,48h,48h,48h
+0206+  740E 000048484848
+0207+  7414             		db 	48h,7Ch,  4,  0,44h,44h
+0207+  7414 487C04004444
+0208+  741A             		db 	44h,3Ch,  4,  4,  0,  0
+0208+  741A 443C04040000
+0209+  7420             		db 	54h,54h,54h,54h,54h,7Ch
+0209+  7420 54545454547C
+0210+  7426             		db   	0,  0,54h,54h,54h,54h
+0210+  7426 000054545454
+0211+  742C             		db 	54h,7Ch,  4,  0,60h,20h
+0211+  742C 547C04006020
+0212+  7432             		db 	38h,24h,24h,38h,  0,  0
+0212+  7432 382424380000
+0213+  7438             		db 	44h,44h,74h,4Ch,4Ch,74h
+0213+  7438 4444744C4C74
+0214+  743E             		db   	0,  0,40h,40h,70h,48h
+0214+  743E 000040407048
+0215+  7444             		db 	48h,70h,  0,  0,38h,44h
+0215+  7444 487000003844
+0216+  744A             		db 	1Ch,  4,44h,38h,  0,  0
+0216+  744A 1C0444380000
+0217+  7450             		db 	48h,54h,74h,54h,54h,48h
+0217+  7450 485474545448
+0218+  7456             		db   	0,  0,3Ch,44h,44h,3Ch
+0218+  7456 00003C44443C
+0219+  745C             		db 	24h,44h,  0,  0,  0,3Ch
+0219+  745C 24440000003C
+0220+  7462             		db 	44h,44h,4Ch,34h,  0,  4
+0220+  7462 44444C340004
+0221+  7468             		db 	38h,40h,78h,44h,44h,38h
+0221+  7468 384078444438
+0222+  746E             		db   	0,  0,  0,78h,44h,78h
+0222+  746E 000000784478
+0223+  7474             		db 	44h,78h,  0,  0,  0,38h
+0223+  7474 447800000038
+0224+  747A             		db   	4,38h,40h,3Ch,  0,40h
+0224+  747A 0438403C0040
+0225+  7480             		db 	38h,  4,3Ch,44h,44h,38h
+0225+  7480 38043C444438
+0226+  7486             		db   	0,  0,  0,38h,44h,78h
+0226+  7486 000000384478
+0227+  748C             		db 	40h,3Ch,  0,  0,  0,54h
+0227+  748C 403C00000054
+0228+  7492             		db 	54h,38h,54h,54h,  0,  0
+0228+  7492 543854540000
+0229+  7498             		db   	0,38h,44h,18h,44h,38h
+0229+  7498 003844184438
+0230+  749E             		db   	0,  0,  0,44h,44h,44h
+0230+  749E 000000444444
+0231+  74A4             		db 	4Ch,34h,  0,  8,10h,44h
+0231+  74A4 4C3400081044
+0232+  74AA             		db 	44h,44h,4Ch,34h,  0,  0
+0232+  74AA 44444C340000
+0233+  74B0             		db   	0,44h,48h,70h,48h,44h
+0233+  74B0 004448704844
+0234+  74B6             		db   	0,  0,  0,1Ch,24h,24h
+0234+  74B6 0000001C2424
+0235+  74BC             		db 	24h,44h,  0,  0,  0,44h
+0235+  74BC 244400000044
+0236+  74C2             		db 	6Ch,54h,44h,44h,  0,  0
+0236+  74C2 6C5444440000
+0237+  74C8             		db   	0,44h,44h,7Ch,44h,44h
+0237+  74C8 0044447C4444
+0238+  74CE             		db   	0,  0,  0,38h,44h,44h
+0238+  74CE 000000384444
+0239+  74D4             		db 	44h,38h,  0,  0,  0,7Ch
+0239+  74D4 44380000007C
+0240+  74DA             		db 	44h,44h,44h,44h,  0,0A8h
+0240+  74DA 4444444400A8
+0241+  74E0             		db   	0,54h,  0,0A8h,  0,54h
+0241+  74E0 005400A80054
+0242+  74E6 00A854A854  		db   	0,0A8h,54h,0A8h,54h
+0243+  74EB A854A854A8  		db 	0A8h,54h,0A8h,54h,0A8h
+0244+  74F0 FC54FCA8FC  		db 	0FCh,54h,0FCh,0A8h,0FCh
+0245+  74F5             		db 	54h,0FCh,30h,30h,30h,30h
+0245+  74F5 54FC30303030
+0246+  74FB             		db 	30h,30h,30h,30h,30h,30h
+0246+  74FB 303030303030
+0247+  7501             		db 	30h,30h,0F0h,30h,30h,30h
+0247+  7501 3030F0303030
+0248+  7507             		db 	30h,30h,30h,0F0h,30h,0F0h
+0248+  7507 303030F030F0
+0249+  750D             		db 	30h,30h,28h,28h,28h,28h
+0249+  750D 303028282828
+0250+  7513             		db 	0E8h,28h,28h,28h,  0,  0
+0250+  7513 E82828280000
+0251+  7519             		db   	0,  0,0F8h,28h,28h,28h
+0251+  7519 0000F8282828
+0252+  751F             		db   	0,  0,  0,0F0h,30h,0F0h
+0252+  751F 000000F030F0
+0253+  7525             		db 	30h,30h,28h,28h,28h,0E8h
+0253+  7525 3030282828E8
+0254+  752B             		db   	8,0E8h,28h,28h,28h,28h
+0254+  752B 08E828282828
+0255+  7531             		db 	28h,28h,28h,28h,28h,28h
+0255+  7531 282828282828
+0256+  7537             		db   	0,  0,  0,0F8h,  8,0E8h
+0256+  7537 000000F808E8
+0257+  753D             		db 	28h,28h,28h,28h,28h,0E8h
+0257+  753D 2828282828E8
+0258+  7543             		db   	8,0F8h,  0,  0,28h,28h
+0258+  7543 08F800002828
+0259+  7549             		db 	28h,28h,0F8h,  0,  0,  0
+0259+  7549 2828F8000000
+0260+  754F             		db 	30h,30h,30h,0F0h,30h,0F0h
+0260+  754F 303030F030F0
+0261+  7555             		db   	0,  0,  0,  0,  0,  0
+0261+  7555 000000000000
+0262+  755B             		db 	0F0h,30h,30h,30h,30h,30h
+0262+  755B F03030303030
+0263+  7561             		db 	30h,30h,3Ch,  0,  0,  0
+0263+  7561 30303C000000
+0264+  7567             		db 	30h,30h,30h,30h,0FCh,  0
+0264+  7567 30303030FC00
+0265+  756D             		db   	0,  0,  0,  0,  0,  0
+0265+  756D 000000000000
+0266+  7573             		db 	0FCh,30h,30h,30h,30h,30h
+0266+  7573 FC3030303030
+0267+  7579             		db 	30h,30h,3Ch,30h,30h,30h
+0267+  7579 30303C303030
+0268+  757F             		db   	0,  0,  0,  0,0FCh,  0
+0268+  757F 00000000FC00
+0269+  7585             		db   	0,  0,30h,30h,30h,30h
+0269+  7585 000030303030
+0270+  758B             		db 	0FCh,30h,30h,30h,30h,30h
+0270+  758B FC3030303030
+0271+  7591             		db 	30h,3Ch,30h,3Ch,30h,30h
+0271+  7591 303C303C3030
+0272+  7597             		db 	28h,28h,28h,28h,2Ch,28h
+0272+  7597 282828282C28
+0273+  759D             		db 	28h,28h,28h,28h,28h,2Ch
+0273+  759D 28282828282C
+0274+  75A3             		db 	20h,3Ch,  0,  0,  0,  0
+0274+  75A3 203C00000000
+0275+  75A9             		db  	 0,3Ch,20h,2Ch,28h,28h
+0275+  75A9 003C202C2828
+0276+  75AF             		db 	28h,28h,28h,0ECh,  0,0FCh
+0276+  75AF 282828EC00FC
+0277+  75B5             		db   	0,  0,  0,  0,  0,0FCh
+0277+  75B5 0000000000FC
+0278+  75BB             		db   	0,0ECh,28h,28h,28h,28h
+0278+  75BB 00EC28282828
+0279+  75C1             		db 	28h,2Ch,20h,2Ch,28h,28h
+0279+  75C1 282C202C2828
+0280+  75C7             		db   	0,  0,  0,0FCh,  0,0FCh
+0280+  75C7 000000FC00FC
+0281+  75CD             		db   	0,  0,28h,28h,28h,0ECh
+0281+  75CD 0000282828EC
+0282+  75D3             		db   	0,0ECh,28h,28h,30h,30h
+0282+  75D3 00EC28283030
+0283+  75D9 30FC00FC00  		db 	30h,0FCh,  0,0FCh,	0
+0284+  75DE             		db   	0,28h,28h,28h,28h,0FCh
+0284+  75DE 0028282828FC
+0285+  75E4             		db   	0,  0,  0,  0,  0,  0
+0285+  75E4 000000000000
+0286+  75EA FC00FC3030  		db 	0FCh,  0,0FCh,30h,30h
+0287+  75EF             		db   	0,  0,  0,  0,0FCh,28h
+0287+  75EF 00000000FC28
+0288+  75F5             		db 	28h,28h,28h,28h,28h,28h
+0288+  75F5 282828282828
+0289+  75FB             		db 	3Ch,  0,  0,  0,30h,30h
+0289+  75FB 3C0000003030
+0290+  7601             		db 	30h,3Ch,30h,3Ch,  0,  0
+0290+  7601 303C303C0000
+0291+  7607             		db   	0,  0,  0,3Ch,30h,3Ch
+0291+  7607 0000003C303C
+0292+  760D             		db 	30h,30h,  0,  0,  0,  0
+0292+  760D 303000000000
+0293+  7613             		db 	3Ch,28h,28h,28h,28h,28h
+0293+  7613 3C2828282828
+0294+  7619             		db 	28h,28h,0ECh,28h,28h,28h
+0294+  7619 2828EC282828
+0295+  761F             		db 	30h,30h,30h,0FCh,30h,0FCh
+0295+  761F 303030FC30FC
+0296+  7625             		db 	30h,30h,30h,30h,30h,30h
+0296+  7625 303030303030
+0297+  762B             		db 	0F0h,  0,  0,  0,  0,  0
+0297+  762B F00000000000
+0298+  7631             		db   	0,  0,3Ch,30h,30h,30h
+0298+  7631 00003C303030
+0299+  7637 FCFCFCFCFC  		db 	0FCh,0FCh,0FCh,0FCh,0FCh
+0300+  763C FCFCFC0000  		db 	0FCh,0FCh,0FCh,  0,	 0
+0301+  7641 0000FCFCFC  		db   	0,  0,0FCh,0FCh,0FCh
+0302+  7646 FCE0E0E0E0  		db 	0FCh,0E0h,0E0h,0E0h,0E0h
+0303+  764B E0E0E0E01C  		db 	0E0h,0E0h,0E0h,0E0h,1Ch
+0304+  7650             		db 	1Ch,1Ch,1Ch,1Ch,1Ch,1Ch
+0304+  7650 1C1C1C1C1C1C
+0305+  7656 1CFCFCFCFC  		db 	1Ch,0FCh,0FCh,0FCh,0FCh
+0306+  765B             		db   	0,  0,  0,  0,  0,  0
+0306+  765B 000000000000
+0307+  7661             		db 	78h,44h,44h,78h,40h,40h
+0307+  7661 784444784040
+0308+  7667             		db   	0,  0,38h,44h,40h,40h
+0308+  7667 000038444040
+0309+  766D             		db 	3Ch,  0,  0,  0,7Ch,10h
+0309+  766D 3C0000007C10
+0310+  7673             		db 	10h,10h,10h,  0,  0,  0
+0310+  7673 101010000000
+0311+  7679             		db 	44h,44h,3Ch,  4,38h,  0
+0311+  7679 44443C043800
+0312+  767F             		db   	0,  0,38h,54h,54h,38h
+0312+  767F 000038545438
+0313+  7685             		db 	10h,  0,  0,  0,44h,28h
+0313+  7685 100000004428
+0314+  768B             		db 	10h,28h,44h,  0,  0,  0
+0314+  768B 102844000000
+0315+  7691             		db 	48h,48h,48h,48h,34h,  4
+0315+  7691 484848483404
+0316+  7697             		db   	0,  0,44h,44h,3Ch,  4
+0316+  7697 000044443C04
+0317+  769D             		db   	4,  0,  0,  0,54h,54h
+0317+  769D 040000005454
+0318+  76A3             		db 	54h,54h,7Ch,  0,  0,  0
+0318+  76A3 54547C000000
+0319+  76A9             		db 	54h,54h,54h,54h,7Ch,  4
+0319+  76A9 545454547C04
+0320+  76AF             		db   	0,  0,60h,38h,24h,24h
+0320+  76AF 000060382424
+0321+  76B5             		db 	38h,  0,  0,  0,44h,74h
+0321+  76B5 380000004474
+0322+  76BB             		db 	4Ch,4Ch,74h,  0,  0,  0
+0322+  76BB 4C4C74000000
+0323+  76C1             		db 	40h,70h,48h,48h,70h,  0
+0323+  76C1 407048487000
+0324+  76C7             		db   	0,  0,78h,  4,3Ch,  4
+0324+  76C7 000078043C04
+0325+  76CD             		db 	78h,  0,  0,  0,48h,54h
+0325+  76CD 780000004854
+0326+  76D3             		db 	74h,54h,48h,  0,  0,  0
+0326+  76D3 745448000000
+0327+  76D9             		db 	3Ch,44h,3Ch,24h,44h,  0
+0327+  76D9 3C443C244400
+0328+  76DF             		db 	28h,7Ch,40h,78h,40h,40h
+0328+  76DF 287C40784040
+0329+  76E5             		db 	7Ch,  0,28h,  0,38h,44h
+0329+  76E5 7C0028003844
+0330+  76EB             		db 	78h,40h,3Ch,  0,  0,20h
+0330+  76EB 78403C000020
+0331+  76F1             		db 	10h,  8,10h,24h,  8,10h
+0331+  76F1 100810240810
+0332+  76F7             		db   	0,  8,10h,20h,10h,48h
+0332+  76F7 000810201048
+0333+  76FD             		db 	20h,10h,30h,48h,40h,40h
+0333+  76FD 201030484040
+0334+  7703             		db 	40h,40h,40h,  0,  8,  8
+0334+  7703 404040000808
+0335+  7709             		db   	8,  8,  8,48h,30h,  0
+0335+  7709 080808483000
+0336+  770F             		db   	0,  0,10h,  0,7Ch,  0
+0336+  770F 000010007C00
+0337+  7715             		db 	10h,  0,  0,  0,34h,48h
+0337+  7715 100000003448
+0338+  771B             		db   	0,24h,58h,  0,  0,30h
+0338+  771B 002458000030
+0339+  7721             		db 	48h,48h,30h,  0,  0,  0
+0339+  7721 484830000000
+0340+  7727             		db   	0,  0,  0,38h,38h,  0
+0340+  7727 000000383800
+0341+  772D             		db   	0,  0,  0,  0,  0,  0
+0341+  772D 000000000000
+0342+  7733             		db   	0,  0,38h,  0,  0,  4
+0342+  7733 000038000004
+0343+  7739             		db   	8,  8,50h,50h,20h,  0
+0343+  7739 080850502000
+0344+  773F             		db   	0,70h,48h,48h,48h,  0
+0344+  773F 007048484800
+0345+  7745             		db   	0,  0,30h,48h,10h,20h
+0345+  7745 000030481020
+0346+  774B             		db 	78h,  0,  0,  0,  0,  0
+0346+  774B 780000000000
+0347+  7751             		db   	0,38h,38h,38h,  0,  0
+0347+  7751 003838380000
+0348+  7757             		db   	0,78h,  4,  4,  8,50h
+0348+  7757 007804040850
+0349+  775D 60 70       		db 	60h,70h
+0350+  775F             
+1916   775F             unk_0_831B: 	
+1917   775F 00          		db    	0
+1918   7760             MoonService_dev_id: 
+1919   7760 00          		db	0
+1920   7761             MoonService_dev_mem: 
+1921   7761 00          		db	0
+1922   7762             MoonService_check_byte: 
+1923   7762 00          		db	0
+1924   7763             
+1925   7763             MoonService_End: 
+1926   7763             		.savebin "MoonService.bin",MoonService_Start, MoonService_End - MoonService_Start
+1927   7763             
+1928   7763             		.end
+1929   7763             

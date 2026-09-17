@@ -1,0 +1,250 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache" />
+<style type="text/css">
+body { font-family: Arial, sans-serif; background-color: #c0c0c0; margin: 0; padding: 0; }
+a { color:#8F002B; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.container { max-width: 1000px; margin: 0 auto; background-color: #ccccff; padding: 20px; }
+.header { background-color: #8f002b; text-align: center; }
+.header img { max-width: 100%; height: auto; }
+h1 { color: #8F002B; }
+.nav-box { border: 1px solid black; padding: 10px; float: left; margin: 10px 20px 10px 10px; background: #ddd; }
+.nav-box a { display: block; margin: 5px 0; }
+table.spec { width: 100%; border-collapse: collapse; margin: 20px 0; }
+table.spec td { border: 1px solid blue; padding: 8px; font-size: 14px; }
+.photo-table { margin: 20px auto; }
+.photo-table td { padding: 10px; text-align: center; vertical-align: top; }
+.photo-table img { width: 380px; height: 250px; object-fit: cover; border: 0; }
+.photo-table a { display: block; font-size: 12px; }
+.section { margin: 30px 0; clear: both; }
+.section h2 { color: #8F002B; border-bottom: 2px solid #8F002B; padding-bottom: 5px; }
+.back-top { float: right; font-size: 12px; }
+.demo-table { width: 100%; border-collapse: collapse; }
+.demo-table td { border: 1px solid #999; padding: 10px; vertical-align: top; text-align: center; width: 25%; }
+.demo-table img { width: 200px; height: 150px; object-fit: contain; border: 1px solid #666; }
+.footer { text-align: center; padding: 20px; font-size: 12px; color: #666; clear: both; }
+.clearfix { clear: both; }
+p { text-align: justify; line-height: 1.6; }
+</style>
+<title>Mick Laboratory - ZXM-MoonSound (English)</title>
+</head>
+<body>
+
+<div class="header">
+ <img title="Mick Laboratory" alt="Mick Laboratory" src="gre/logo.png">
+</div>
+
+<div class="container">
+
+<h1>ZXM-MoonSound</h1>
+
+<div class="nav-box">
+<a href="#spec">Specifications</a>
+<a href="#project">Project Files</a>
+<a href="#firmware">Firmware</a>
+<a href="#programming">Programming</a>
+<a href="#soft">Software</a>
+<a href="#thanks">Acknowledgments</a>
+</div>
+
+<p><strong>ZXM-MoonSound</strong> is a sound card designed for playing complex musical compositions on computers with ZX BUS/Nemo Bus, utilizing frequency modulation (FM) and wavetable synthesis. The card is built on the Yamaha YMF278 (OPL4) chip, which can operate up to 18 channels of two-operator FM synthesis and play up to 24 channels of 12- or 16-bit digital audio.</p>
+
+<p>This card is a replica of the <strong>Wozblaster</strong> sound card for <strong>MSX</strong> computers, presented by Argentine enthusiast Gustavo Iriarte (Ciro) at the end of 2012. In 2013, Evgeny Brychkov slightly modified it to fit into a standard <strong>Konami</strong> cartridge case. It should also be noted that <strong>Wozblaster</strong> was itself based on the <strong>MoonSound</strong> card developed by electronics engineer Henrik Gilvad, which was presented at the Tilburg computer fair in 1995.</p>
+
+<p>In 2015, after demonstrating the musical capabilities of the Wozblaster card on the <a href="http://zx.pk.ru/">zx.pk.ru forum</a>, which were quite impressive, the idea arose to try adapting it for our beloved <strong>ZX Spectrum</strong>. Preliminary analysis showed that a direct copy would not work due to some specific differences between the two platforms. Therefore, instead of the programmable logic chip (PAL) GAL16V8 used in the original, it was decided to use the more functional programmable logic chip (CPLD) EPM7032STC44, thereby eliminating structural differences. Additionally, for aesthetic reasons primarily—to make all chips surface-mount—it was decided to replace the 27C160 chip with an AM29F016. Programming the latter requires a cable that allows it to be programmed directly on the sound card board. The cable is wired according to the available programmer that can program the AM29F016. A small mixer for connecting external audio devices was also added to the card.</p>
+
+<div class="clearfix"></div>
+
+<div class="section">
+<h2>Revision 00 (2015)</h2>
+<table class="photo-table" align="center" cellspacing="1" cellpadding="0" border="0">
+<tr>
+<td><a href="file/zxm_moonsound/img/zxm_moonsound_00t.jpg"><img src="file/zxm_moonsound/img/zxm_moonsound_00t.jpg" alt="Rev 00 Top"></a><br><a href="file/zxm_moonsound/img/zxm_moonsound_00t.jpg">Click to enlarge</a></td>
+<td><a href="file/zxm_moonsound/img/zxm_moonsound_00b.jpg"><img src="file/zxm_moonsound/img/zxm_moonsound_00b.jpg" alt="Rev 00 Bottom"></a><br><a href="file/zxm_moonsound/img/zxm_moonsound_00b.jpg">Click to enlarge</a></td>
+</tr>
+</table>
+<p>A total of <strong>24 units</strong> of this sound card were produced.</p>
+</div>
+
+<div class="section">
+<h2>Revision 01 (2016)</h2>
+<p>In 2016, Vitaliy Mikhalkov (MV1971) organized the production of revision 01 boards. In this revision, the RCA connectors were changed, mounting holes for a bracket were added, and some through-hole electrolytic capacitors were replaced with their SMD equivalents. Additionally, an experiment was conducted to eliminate the initial click in the audio path—three new elements were added (two chips DD7, DD8 and one resistor R39). Unfortunately, the experiment was unsuccessful, so these three elements <strong>should not be installed</strong>. The programming connector for the flash ROM was also removed. Now the ROM is programmed directly on the board via the YMF278 chip. Boards of this revision have a <strong>red solder mask</strong>.</p>
+<table class="photo-table" align="center" cellspacing="1" cellpadding="0" border="0">
+<tr>
+<td><a href="file/zxm_moonsound/img/zxm_moonsound_01t.jpg"><img src="file/zxm_moonsound/img/zxm_moonsound_01t.jpg" alt="Rev 01 Top"></a><br><a href="file/zxm_moonsound/img/zxm_moonsound_01t.jpg">Click to enlarge</a></td>
+<td><a href="file/zxm_moonsound/img/zxm_moonsound_01b.jpg"><img src="file/zxm_moonsound/img/zxm_moonsound_01b.jpg" alt="Rev 01 Bottom"></a><br><a href="file/zxm_moonsound/img/zxm_moonsound_01b.jpg">Click to enlarge</a></td>
+</tr>
+</table>
+</div>
+
+<a name="spec"></a>
+<div class="section">
+<a class="back-top" href="#top">Back to top</a>
+<h2>Specifications</h2>
+<table class="spec">
+<tr><td><strong>OPL4</strong></td><td>Based on YMF278 chip</td></tr>
+<tr><td><strong>RAM</strong></td><td>1024 KB. Based on static memory modules (SRAM). Intended for loading user samples.</td></tr>
+<tr><td><strong>ROM</strong></td><td>2048 KB. Intended for storing fixed samples according to General MIDI standard.</td></tr>
+<tr><td><strong>Line OUT</strong></td><td>3.5mm Jack connector, 2 RCA (tulips), and 4-pin header for stereo audio output.</td></tr>
+<tr><td><strong>Circuit Features</strong></td><td>Uses CPLD EPM7032STC44 series to simplify circuit implementation.</td></tr>
+<tr><td><strong>Form Factor</strong></td><td>Slot-based, designed for ZX Bus/Nemo Bus. Note: boards have 62-pin slot connector, not 60-pin typical for ZX Bus/Nemo Bus.</td></tr>
+</table>
+</div>
+
+<a name="project"></a>
+<div class="section">
+<a class="back-top" href="#top">Back to top</a>
+<h2>Project Files</h2>
+<p><strong>Revision 00:</strong></p>
+<ol>
+<li>Electrical schematic (P-CAD 2002) - <a href="file/zxm_moonsound/zxm_moonsound_sch00.rar">download</a></li>
+<li>PCB layout (P-CAD 2002) - <a href="file/zxm_moonsound/zxm_moonsound_pcb00.rar">download</a></li>
+<li>Electrical/assembly schematic, BOM (PDF) - <a href="file/zxm_moonsound/zxm_moonsound_00.pdf">download</a></li>
+<li>DD3 programming mode instructions (PDF) - <a href="file/zxm_moonsound/zxm_moonsound_annex.pdf">download</a></li>
+</ol>
+<p><strong>Revision 01:</strong></p>
+<ol start="6">
+<li>Electrical schematic Rev 01 (P-CAD 2002) - <a href="file/zxm_moonsound/zxm_moonsound_sch01.rar">download</a></li>
+<li>PCB layout Rev 01 (P-CAD 2002) - <a href="file/zxm_moonsound/zxm_moonsound_pcb01.rar">download</a></li>
+<li>Electrical/assembly schematic Rev 01, BOM (PDF) - <a href="file/zxm_moonsound/zxm_moonsound_01.pdf">download</a></li>
+<li>Gerber files for manufacturing Rev 01 - <a href="file/zxm_moonsound/zxm_moonsound_gerber01.rar">download</a></li>
+<li>Rev 01 modifications description (PDF) - <a href="file/zxm_moonsound/zxm_moonsound_annex_rev01.pdf">download</a></li>
+</ol>
+<p><strong>Libraries:</strong></p>
+<ul>
+<li>P-CAD 2002 component libraries - <a href="file/zxm_moonsound/zxm_moonsound_lib.rar">download</a></li>
+</ul>
+</div>
+
+<a name="firmware"></a>
+<div class="section">
+<a class="back-top" href="#top">Back to top</a>
+<h2>Firmware</h2>
+<ol>
+<li>DD3 chip firmware (AM29F016D) - YRW801-M wavetable ROM - <a href="file/zxm_moonsound/yrw801m_1993.rar">download</a></li>
+<li>CPLD EPM7032STC44 firmware v01.00 - <a href="file/zxm_moonsound/zxm_moonsound_frm0100.rar">download</a></li>
+<li>CPLD source code v01.00 - <a href="file/zxm_moonsound/zxm_moonsound_src0100.rar">download</a></li>
+<li>CPLD firmware v01.00 for Rev 01 - <a href="file/zxm_moonsound/zxm_moonsound01_frm0100.rar">download</a></li>
+<li>CPLD source code v01.00 for Rev 01 - <a href="file/zxm_moonsound/zxm_moonsound01_src0100.rar">download</a></li>
+</ol>
+</div>
+
+<a name="programming"></a>
+<div class="section">
+<a class="back-top" href="#top">Back to top</a>
+<h2>Programming the Card</h2>
+<p>For first-time programming, ROM data must be loaded via the connector using an external programmer. For revision 01 boards, programming is done via the YMF278 chip using the MoonService utility.</p>
+</div>
+
+<a name="soft"></a>
+<div class="section">
+<a class="back-top" href="#top">Back to top</a>
+<h2>Software</h2>
+<h3>MoonService Utility</h3>
+<table class="demo-table">
+<tr>
+<td><img src="file/zxm_moonsound/soft/img/moonservice_01.png" alt="MoonService v01"><br>
+<strong>MoonService v01</strong><br>
+<a href="file/zxm_moonsound/soft/moonservice_v01src.rar">Source</a> |
+<a href="file/zxm_moonsound/soft/moonservice_v01.rar">Disk Image</a></td>
+<td><img src="file/zxm_moonsound/soft/img/moonservice_02.png" alt="MoonService v02"><br>
+<strong>MoonService v02</strong><br>
+<a href="file/zxm_moonsound/soft/moonservice_v02src.rar">Source</a> |
+<a href="file/zxm_moonsound/soft/moonservice_v02.rar">Disk Image</a></td>
+<td><img src="file/zxm_moonsound/soft/img/moonservice_03.png" alt="MoonService v03"><br>
+<strong>MoonService v03</strong><br>
+<a href="file/zxm_moonsound/soft/moonservice_v03src.rar">Source</a> |
+<a href="file/zxm_moonsound/soft/moonservice_v03.rar">Disk Image</a></td>
+<td><img src="file/zxm_moonsound/soft/img/moonservice_03a.png" alt="MoonService v03a"><br>
+<strong>MoonService v03a</strong><br>
+<a href="file/zxm_moonsound/soft/moonservice_v03asrc.rar">Source</a> |
+<a href="file/zxm_moonsound/soft/moonservice_v03a.rar">Disk Image</a></td>
+</tr>
+</table>
+
+<h3>Music Demos - MFM (FM Synthesis)</h3>
+<table class="demo-table">
+<tr>
+<td><img src="file/zxm_moonsound/soft/img/mfm_sample.png" alt="MFM Sample"><br><strong>MFM Sample</strong><br>
+<a href="file/zxm_moonsound/soft/mfm_samplesrc.rar">Source</a> | <a href="file/zxm_moonsound/soft/mfm_sample.rar">Disk</a></td>
+<td><img src="file/zxm_moonsound/soft/img/mfm_sample_2.png" alt="MFM Sample 2"><br><strong>MFM Sample 2</strong><br>
+<a href="file/zxm_moonsound/soft/mfm_sample_2src.rar">Source</a> | <a href="file/zxm_moonsound/soft/mfm_sample_2.rar">Disk</a></td>
+<td><img src="file/zxm_moonsound/soft/img/mfm_sample_3.png" alt="MFM Sample 3"><br><strong>MFM Sample 3</strong><br>
+<a href="file/zxm_moonsound/soft/mfm_sample_3src.rar">Source</a> | <a href="file/zxm_moonsound/soft/mfm_sample_3.rar">Disk</a></td>
+<td><img src="file/zxm_moonsound/soft/img/mfm_sample_4.png" alt="MFM Sample 4"><br><strong>MFM Sample 4</strong><br>
+<a href="file/zxm_moonsound/soft/mfm_sample_4src.rar">Source</a> | <a href="file/zxm_moonsound/soft/mfm_sample_4.rar">Disk</a></td>
+</tr>
+</table>
+
+<h3>Music Demos - MWM (Wavetable Synthesis)</h3>
+<table class="demo-table">
+<tr>
+<td><img src="file/zxm_moonsound/soft/img/moonsound.png" alt="MoonSound"><br><strong>MoonSound Demo</strong><br>
+<a href="file/zxm_moonsound/soft/moonsoundsrc.rar">Source</a> | <a href="file/zxm_moonsound/soft/moonsound.rar">Disk</a></td>
+<td><img src="file/zxm_moonsound/soft/img/moonsound_2.png" alt="MoonSound 2"><br><strong>MoonSound 2</strong><br>
+<a href="file/zxm_moonsound/soft/moonsound_2src.rar">Source</a> | <a href="file/zxm_moonsound/soft/moonsound_2.rar">Disk</a></td>
+<td><img src="file/zxm_moonsound/soft/img/moonsound_3.png" alt="MoonSound 3"><br><strong>MoonSound 3</strong><br>
+<a href="file/zxm_moonsound/soft/moonsound_3src.rar">Source</a> | <a href="file/zxm_moonsound/soft/moonsound_3.rar">Disk</a></td>
+<td><img src="file/zxm_moonsound/soft/img/moonsound_4.png" alt="MoonSound 4"><br><strong>MoonSound 4</strong><br>
+<a href="file/zxm_moonsound/soft/moonsound_4src.rar">Source</a> | <a href="file/zxm_moonsound/soft/moonsound_4.rar">Disk</a></td>
+</tr>
+<tr>
+<td><img src="file/zxm_moonsound/soft/img/moonsound_5.png" alt="MoonSound 5"><br><strong>MoonSound 5</strong><br>
+<a href="file/zxm_moonsound/soft/moonsound_5src.rar">Source</a> | <a href="file/zxm_moonsound/soft/moonsound_5.rar">Disk</a></td>
+<td><img src="file/zxm_moonsound/soft/img/moonsound_6.png" alt="MoonSound 6"><br><strong>MoonSound 6</strong><br>
+<a href="file/zxm_moonsound/soft/moonsound_6src.rar">Source</a> | <a href="file/zxm_moonsound/soft/moonsound_6.rar">Disk</a></td>
+<td><img src="file/zxm_moonsound/soft/img/moonsound_7.png" alt="MoonSound 7"><br><strong>MoonSound 7</strong><br>
+<a href="file/zxm_moonsound/soft/moonsound_7src.rar">Source</a> | <a href="file/zxm_moonsound/soft/moonsound_7.rar">Disk</a></td>
+<td><img src="file/zxm_moonsound/soft/img/moonsound_8.png" alt="MoonSound 8"><br><strong>MoonSound 8</strong><br>
+<a href="file/zxm_moonsound/soft/moonsound_8src.rar">Source</a> | <a href="file/zxm_moonsound/soft/moonsound_8.rar">Disk</a></td>
+</tr>
+<tr>
+<td><img src="file/zxm_moonsound/soft/img/moonsound_9.png" alt="MoonSound 9"><br><strong>MoonSound 9</strong><br>
+<a href="file/zxm_moonsound/soft/moonsound_9src.rar">Source</a> | <a href="file/zxm_moonsound/soft/moonsound_9.rar">Disk</a></td>
+<td><img src="file/zxm_moonsound/soft/img/moonsound_10.png" alt="MoonSound 10"><br><strong>MoonSound 10</strong><br>
+<a href="file/zxm_moonsound/soft/moonsound_10src.rar">Source</a> | <a href="file/zxm_moonsound/soft/moonsound_10.rar">Disk</a></td>
+<td><img src="file/zxm_moonsound/soft/img/moonsound_11.png" alt="MoonSound 11"><br><strong>MoonSound 11</strong><br>
+<a href="file/zxm_moonsound/soft/moonsound_11src.rar">Source</a> | <a href="file/zxm_moonsound/soft/moonsound_11.rar">Disk</a></td>
+<td><img src="file/zxm_moonsound/soft/img/moonsound_12.png" alt="MoonSound 12"><br><strong>MoonSound 12</strong><br>
+<a href="file/zxm_moonsound/soft/moonsound_12src.rar">Source</a> | <a href="file/zxm_moonsound/soft/moonsound_12.rar">Disk</a></td>
+</tr>
+<tr>
+<td><img src="file/zxm_moonsound/soft/img/moonsound_13.png" alt="MoonSound 13"><br><strong>MoonSound 13</strong><br>
+<a href="file/zxm_moonsound/soft/moonsound_13src.rar">Source</a> | <a href="file/zxm_moonsound/soft/moonsound_13.rar">Disk</a></td>
+<td><img src="file/zxm_moonsound/soft/img/moonsound_14.png" alt="MoonSound 14"><br><strong>MoonSound 14</strong><br>
+<a href="file/zxm_moonsound/soft/moonsound_14src.rar">Source</a> | <a href="file/zxm_moonsound/soft/moonsound_14.rar">Disk</a></td>
+<td><img src="file/zxm_moonsound/soft/img/moonmusic_1.png" alt="MoonMusic 1"><br><strong>MoonMusic 1</strong><br>
+<a href="file/zxm_moonsound/soft/moonmusic_1src.rar">Source</a> | <a href="file/zxm_moonsound/soft/moonmusic_1.rar">Disk</a></td>
+<td><img src="file/zxm_moonsound/soft/img/moonmusic_2.png" alt="MoonMusic 2"><br><strong>MoonMusic 2</strong><br>
+<a href="file/zxm_moonsound/soft/moonmusic_2src.rar">Source</a> | <a href="file/zxm_moonsound/soft/moonmusic_2.rar">Disk</a></td>
+</tr>
+</table>
+</div>
+
+<a name="thanks"></a>
+<div class="section">
+<a class="back-top" href="#top">Back to top</a>
+<h2>Acknowledgments</h2>
+<p>Thanks to all who contributed to this project:</p>
+<ul>
+<li><strong>Henrik Gilvad</strong> - Original MoonSound design (1995)</li>
+<li><strong>Gustavo Iriarte (Ciro)</strong> - Wozblaster for MSX (2012)</li>
+<li><strong>Evgeny Brychkov</strong> - Konami cartridge adaptation (2013)</li>
+<li><strong>Vitaliy Mikhalkov (MV1971)</strong> - Revision 01 production organization (2016)</li>
+<li><strong>MoonBlaster team</strong> - Music software and file formats</li>
+<li><strong>zx.pk.ru community</strong> - Testing and feedback</li>
+</ul>
+</div>
+
+<div class="footer">
+<p>© 2015-2016 Mick (Максов И.Н.) - Mick Laboratory</p>
+<p>Original page: <a href="http://micklab.ru/My%20Soundcard/ZXMMoonSound.htm">micklab.ru</a></p>
+<p>This is an archived mirror with English translation. All files preserved for historical purposes.</p>
+</div>
+
+</div>
+</body>
+</html>

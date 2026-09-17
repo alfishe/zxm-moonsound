@@ -1,0 +1,66 @@
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Windows
+*.lnk
+
+# Linux
+*~
+.directory
+
+# Editor/IDE
+*.swp
+*.swo
+*.swn
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.project
+.settings/
+*.code-workspace
+
+# Build artifacts
+*.o
+*.obj
+# *.exe  # Keep - sjasmplus assembler included in sources
+*.out
+# *.bin  # Keep - compiled demo binaries included in sources
+*.com
+*.sys
+
+# Z80 assembler outputs (keep .lst for reference)
+# *.lst
+
+# Disk images (keep originals)
+# *.trd
+# *.dsk
+# *.tap
+
+# Backup files
+*.bak
+*.backup
+*.orig
+*~
+
+# Temporary files
+*.tmp
+*.temp
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+.eggs/
+
+# Logs
+*.log

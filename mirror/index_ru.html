@@ -1,0 +1,717 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache" />
+<meta name="robots" content="index,follow" />
+
+<meta http-equiv="imagetoolbar" content="no" />
+<meta http-equiv="pragma" content="no-cache" />
+<meta http-equiv="expires" content="MON, 1 SEP 2003 12:00:00 GMT" />
+<link rel="stylesheet" href="../Micklab.css" type="text/css" />
+<style type="text/css">
+a {
+	color:#8F002B;
+	text-decoration:none;
+}
+a:visited {
+	text-decoration:none;
+}
+a:hover {
+	text-decoration:underline;
+}
+a img {
+	border:#000000 0px none;
+}
+/* Board photos */
+table[align="center"] img[title^="zxm_moonsound"] {
+	width: 380px;
+	height: 250px;
+	object-fit: cover;
+}
+/* Demo preview images */
+img[src*="/soft/img/"] {
+	width: 200px;
+	height: 150px;
+	object-fit: contain;
+	border: 1px solid #666;
+}
+</style>
+<title>Mick Laboratory - ZXM-MoonSound</title>
+<script type="text/javascript">
+//<![CDATA[
+	function MHGetRef(str)
+	{
+		if(document.all)
+			return document.all[str];
+		else
+			return document.getElementById(str);
+	}
+
+	function MHSwitchImage(strID, strFileName)
+	{
+		var obj = MHGetRef(strID);
+		if(obj == null || obj + "" == "undefined") return;
+		obj.src = strFileName;
+	}
+//]]>
+	</script>
+<script type="text/javascript">
+//<![CDATA[
+	function mvgGetRef(str)						{ return (document.all) ? document.all[str] : document.getElementById(str); }
+	function mvgSetClass(strId, strClass)		{ var obj = mvgGetRef(strId); if(obj != null && typeof(obj) != "undefined") obj.className = strClass; }
+	function mvgSwitchImage(strId, strFileName)	{ var obj = mvgGetRef(strId); if(obj != null && typeof(obj) != "undefined") obj.src = strFileName; }
+//]]>
+</script>
+</head>
+<body>
+
+<div style="BORDER-RIGHT: medium none;  BORDER-LEFT: medium none; TEXT-ALIGN: left" >
+ <table width="100%" height="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#c0c0c0">
+  <tr>
+   <td style="BORDER-RIGHT: 0px; PADDING-RIGHT: 0px; BORDER-TOP: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; BORDER-LEFT: 0px; WIDTH: 1px; PADDING-TOP: 0px; BORDER-BOTTOM: 0px; HEIGHT: 10px">
+   </td>
+ </table>
+</div>
+
+
+<table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#c0c0c0">
+ <tr>
+    <td valign="top">&nbsp;</td>
+    <td width="1000" height="100%" valign="top">
+
+<div style="TEXT-ALIGN: left">
+<div style="BACKGROUND-COLOR: #8f002b; TEXT-ALIGN: left">
+ <IMG title="Mick Laboratory" 
+      style="BORDER-TOP-STYLE: none; BORDER-BOTTOM: #000000 0px solid; BORDER-RIGHT-STYLE: none; BORDER-LEFT-STYLE: none" 
+      height =200 alt="Mick Laboratory" src="gre/logo.png" width=1000>
+</div>
+
+<div style="BORDER-RIGHT: medium none; BORDER-TOP: #ccccff 1px solid; BORDER-LEFT: medium none; BORDER-BOTTOM: #ccccff 2px solid; BACKGROUND-COLOR: #bdbdbd; TEXT-ALIGN: left">
+ <table cellpadding="0" cellspacing="0" border="0" style="BORDER-RIGHT: 0px; PADDING-RIGHT: 0px; BORDER-TOP: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; BORDER-LEFT: 0px; WIDTH: 100%; PADDING-TOP: 0px; BORDER-BOTTOM: 0px">
+  <tr>
+   <td style="BORDER-RIGHT: 0px; PADDING-RIGHT: 0px; BORDER-TOP: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; BORDER-LEFT: 0px; WIDTH: 1px; PADDING-TOP: 0px; BORDER-BOTTOM: 0px; HEIGHT: 10px">
+   </td>
+ </table>
+</div>
+
+<table style="BORDER-RIGHT: medium none; BORDER-TOP: medium none; BORDER-LEFT: medium none" cellspacing       ="0" cellpadding="0" 100%?; BORDER-BOTTOM: medium none; HEIGHT: 174px?>
+<tr>
+   <td style="VERTICAL-ALIGN: top; WIDTH: 200px" bgcolor="#ccccff">&nbsp;</td>
+   <td style="VERTICAL-ALIGN: top">
+   <table border="0" cellpadding="0" cellspacing="0" width="100%">
+	<tr style="BACKGROUND-POSITION: left top; BACKGROUND-IMAGE: url(gre/gre245.png); BACKGROUND-REPEAT: repeat-x">
+	<td style="WIDTH: 100%">
+           <IMG style="BORDER-RIGHT: medium none; BORDER-TOP: medium none; DISPLAY: block; BORDER-LEFT: medium none; BORDER-BOTTOM: medium none" height=1 alt="" src="../img/space.gif" width=1 >
+        </td>
+	<td>
+           <IMG style="BORDER-RIGHT: medium none; BORDER-TOP: medium none; DISPLAY: block; BORDER-LEFT: medium none; WIDTH: 100%; BORDER-BOTTOM: medium none; HEIGHT: 26px" height=26 alt="" src="gre/gre245.png" width=1 >
+        </td>
+	</tr>
+   </table>
+   </td>
+ </tr>
+<tr>
+<td style="VERTICAL-ALIGN: top" style="TEXT-ALIGN: left" bgcolor="#ccccff" >
+<A onmouseover="mvgSwitchImage('mvg1_4_img', 'gre/gre008.png');" onmouseout ="mvgSwitchImage('mvg1_4_img', 'gre/gre006.png');" href="#" ><IMG id=mvg1_4_img style="BORDER-RIGHT: medium none; BORDER-TOP: medium none; DISPLAY: block; BORDER-LEFT: medium none; BORDER-BOTTOM: medium none" height=31 alt=Звуковые карты src="gre/gre006.png" width=200 ></A>
+<A onmouseover="mvgSwitchImage('mvg1_4000_img', 'gre/gre4002.png');" onmouseout ="mvgSwitchImage('mvg1_4000_img', 'gre/gre4000.png');" href="ZXMSoundCard.htm" ><IMG id=mvg1_4000_img style="BORDER-RIGHT: medium none; BORDER-TOP: medium none; DISPLAY: block; BORDER-LEFT: medium none; BORDER-BOTTOM: medium none" height=31 alt=ZXM-SoundCard src="gre/gre4000.png" width=200 ></A>
+<A onmouseover="mvgSwitchImage('mvg1_4001_img', 'gre/gre4005.png');" onmouseout ="mvgSwitchImage('mvg1_4001_img', 'gre/gre4003.png');" href="ZXMGeneralSound.htm" ><IMG id=mvg1_4001_img style="BORDER-RIGHT: medium none; BORDER-TOP: medium none; DISPLAY: block; BORDER-LEFT: medium none; BORDER-BOTTOM: medium none" height=31 alt=ZXM-GeneralSound src="gre/gre4003.png" width=200 ></A>
+<IMG id=mvg1_4002_img style="BORDER-RIGHT: medium none; BORDER-TOP: medium none; DISPLAY: block; BORDER-LEFT: medium none; BORDER-BOTTOM: medium none" height=31 alt=ZXM-MoonSound src="gre/gre4007.png" width=200 >
+<A onmouseover="mvgSwitchImage('mvg1_00_img', 'gre/gre002.png');" onmouseout ="mvgSwitchImage('mvg1_00_img', 'gre/gre000.png');" href="#" ><IMG id=mvg1_00_img style="BORDER-RIGHT: medium none; BORDER-TOP: medium none; DISPLAY: block; BORDER-LEFT: medium none; BORDER-BOTTOM: medium none" height=31 alt=На главную src="gre/gre000.png" width=200 ></A>
+</td>
+
+<td style="padding: 10px 10px 10px 16px; vertical-align: top;" bgcolor="#ccccff"><a name="top"></a>
+<h1 class="h1">&nbsp;&nbsp;&nbsp;&nbsp;<FONT size=4>ZXM-MoonSound</FONT> </h1>
+<P>&nbsp;</P>
+<div style="BORDER-RIGHT: black 1px solid; PADDING-RIGHT: 6px; BORDER-TOP: black 1px solid; PADDING-LEFT: 6px; FLOAT: left; PADDING-BOTTOM: 6px; MARGIN: 4px 20px 4px 4px; BORDER-LEFT: black 1px solid; PADDING-TOP: 6px; BORDER-BOTTOM: black 1px solid"  >
+<FONT size=2>
+<A class=nav_link href="#spec">Краткая спецификация</A><br >
+<A class=nav_link href="#project">Проект</A><br >
+<A class=nav_link href="#firmware">Прошивки</A><br>
+<A class=nav_link href="#programming">Программирование карты</A><br>
+<A class=nav_link href="#soft">Софт</A><br >
+<A class=nav_link href="#thanks">Благодарности</A><br >
+
+</FONT></div>
+
+      <P align="justify"><FONT size=2><STRONG>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ZXM-MoonSound</STRONG>&nbsp; 
+      - звуковая карта предназначена для воспроизведения на компьютерах с шиной ZX BUS/Nemo Bus сложных музыкальных произведений,
+      использующих частотную модуляцию (FM) и табличный волновой синтез. Карта построена на основе микросхемы YMF278 (OPL4), которая может
+      оперировать до 18 каналами двухоператорного FM-синтезатора и воспроизводить до 24 каналов 12- или 16-разрядного цифрового звука.
+      Данная карта является репликой звуковой карты <STRONG>Wozblaster</STRONG> для компьютеров серии <STRONG>MSX</STRONG>, которую
+      в конце 2012 года представил аргентинский фан Gustavo Iriarte (Ciro). В 2013 году ее немного доработал Евгений Брычков для того чтобы она
+      она помещалась в стандартный корпус картриджей фирмы <STRONG>Konami</STRONG>. Стоит также отметить, что <STRONG>Wozblaster</STRONG> в
+      свою очередь был постоен на основе карты <STRONG>Moonsound</STRONG> которую разработал инженер-электронщик Henrik Gilvad и которая 
+      в 1995 году была представлена на  Тилбургской компьютерной выставке в 1995 году.
+      <P align="justify"><FONT size=2>&nbsp;&nbsp;&nbsp; Так в 2015 году, после показа на форуме <a href="http://zx.pk.ru/">http://zx.pk.ru/</a>
+      музыкальных возможностей карты <STRONG>Wozblaster</STRONG>, которые скажем сильно впечатлили, подумалось, а почему бы не попробовать адаптировать ее
+      на наш родной <STRONG>ZX Spectrum</STRONG>. Предварительный анализ показал, что скоприовать один к одному не получится из-за некоторых
+      специфических различий двух платформ. Поэтому вместо микросхемы программируемой логики (PAL) GAL16V8, которая была в оригинале решено применить
+      более функциональную микросхему программируемой логики (CPLD) EPM7032STC44.Тем самым нивилировать конструктивные различия. Кроме того чисто из 
+      эстетических соображений в первую очередь, чтобы все микросхемы были поверхностного монтажа, решено было заменить микросхему
+      27С160 на  AM29F016. Правда для программирования последней необходим кабель, который в свою очередь позволит запрограммировать ее непосредственно
+      на плате звуковой карты. Сам кабель распаивается согласно имеющегося в наличии программатора, который умеет программировать AM29F016.
+      Кроме того на карту добавлен небольшой микшер для подключения внешних звуковых устройств. Что из этого в итоге получилось можно увидеть ниже на фото.</FONT></P>
+      <P>&nbsp;</P>
+<div align="center">
+<table align="center" cellspacing="1" cellpadding="0" border="0">
+<tr>
+    <td align="middle"><A href="file/zxm_moonsound/img/zxm_moonsound_00t.jpg"><IMG title=zxm_moonsound_00t height=250 alt=zxm_moonsound_00tt src="file/zxm_moonsound/img/zxm_moonsound_00t.jpg" width=380 border=0 ></A><br >
+		       <A href="file/zxm_moonsound/img/zxm_moonsound_00t.jpg">Нажать для увеличения</A></td>
+    <td align="middle"><A href="file/zxm_moonsound/img/zxm_moonsound_00b.jpg"><IMG title=zxm_moonsound_00b height=250 alt=zxm_moonsound_00b src="file/zxm_moonsound/img/zxm_moonsound_00b.jpg" width=380 border=0 ></A><br >
+		       <A href="file/zxm_moonsound/img/zxm_moonsound_00b.jpg">Нажать для увеличения</A></td>
+</tr>
+</table>
+</div>
+    <P>&nbsp;</P>
+     <P align="justify"><FONT size=2>&nbsp;&nbsp;&nbsp;&nbsp; Всего было выпущено 24 экземпляра плат данной звуковой карты.</FONT></P>
+    <P>&nbsp;</P>
+	<P align="justify"><FONT size=2>&nbsp;&nbsp;&nbsp;&nbsp; В 2016 году Виталий Михальков (MV1971) организовал производство партии плат ревизии 01.
+	В этой ревизии были изменены RCA разъемы, добавились крепежные отверстия под монтажную планку и вместо некоторых выводных электролитических конденсаторов появились
+        их SMD аналоги. Кроме того был проведен эксперимент по избавлению первоночального щелчка в аудиотракте, были добавлены три новых элемента (две микросхемы DD7, DD8 и 
+ 	один резистор R39). Но увы, эскперимент оказался неудачным, а посему эти три элемента ставить не надо. На приведенном ниже фото
+        эти элементы установлены - не снимать же их теперь. Также был убран разъем для программирования флеш-ПЗУ. Теперь ПЗУ программируется
+        непосредственно на самой плате через микросхему YMF278.  Платы этой ревизии имеют красный цвет защитной маски.
+    <P>&nbsp;</P>
+<div align="center">
+<table align="center" cellspacing="1" cellpadding="0" border="0">
+<tr>
+    <td align="middle"><A href="file/zxm_moonsound/img/zxm_moonsound_01t.jpg"><IMG title=zxm_moonsound_01t height=250 alt=zxm_moonsound_01t src="file/zxm_moonsound/img/zxm_moonsound_01t.jpg" width=380 border=0 ></A><br >
+      		       <A href="file/zxm_moonsound/img/zxm_moonsound_01t.jpg">Нажать для увеличения</A></td>
+    <td align="middle"><A href="file/zxm_moonsound/img/zxm_moonsound_01b.jpg"><IMG title=zxm_moonsound_01b height=250 alt=zxm_moonsound_01b src="file/zxm_moonsound/img/zxm_moonsound_01b.jpg" width=380 border=0 ></A><br >
+		       <A href="file/zxm_moonsound/img/zxm_moonsound_01b.jpg">Нажать для увеличения</A></td>
+</tr>
+</table>
+</div>
+    <P>&nbsp;</P>
+
+
+      <p></p><div style="FLOAT: right"><A href="#top">Вверх</A></div><a name="spec"></a><strong><font size="3">Краткая спецификация:</font></strong> 
+      <p>&nbsp;</p>
+<TABLE WIDTH="100%" BORDER="1" BORDERCOLOR="blue">
+<TR><TD><P><FONT size=2> <STRONG>OPL4</STRONG></FONT> </P></TD>
+			<TD><P><FONT size=2>На микросхеме YMF278</FONT> </P></TD></TR>
+<TR><TD><P><FONT size=2><STRONG>ОЗУ</STRONG></FONT></P></TD>
+			<TD><P><FONT size=2>1024 Кб 
+		        Основана на использовании модулей памяти статической памяти (SRAM). Предназначена для загрузки пользовательских семплов</FONT></P></TD></TR>
+<TR><TD><P><FONT size=2><STRONG>ПЗУ</STRONG></FONT></P></TD>
+			<TD><P><FONT size=2>2048 Кб. Предназаначена для хранения фиксированных семплов по стандарту General MIDI  </FONT></P></TD></TR>
+<TR><TD><P><FONT size=2><STRONG>Выход Line OUT</STRONG></FONT></P></TD>
+			<TD><P><FONT size=2> 3,5 разъем типа Jack, 2 RCA (тюльпаны) и четырехконтактный разъем для выхода стерео звука.
+            		</FONT> </P></TD></TR>
+<TR><TD><P><FONT size=2><STRONG>Особенности схемотехники</STRONG></FONT></P></TD>
+			<TD><P><FONT size=2> Применение CPLD серии EPM7032STC44 для упрощения реализации схемы.
+                        </FONT> </P></TD></TR>
+<TR><TD><P><FONT size=2> <STRONG>Конструктив</STRONG></FONT> </P></TD>
+			<TD><P><FONT size=2> Слотовая, расчитана под шину <STRONG>ZX Bus/Nemo Bus</STRONG>. Примечание: платы имеют 62 контактный слотовый разъем, 
+			а не 60 контактный, характерный для шин <STRONG>ZX Bus/Nemo Bus</STRONG>. 
+            		</FONT> </P></TD></TR>
+</TABLE>
+      <P><FONT size=2></FONT>&nbsp;</P><FONT size=2>
+      <div style="FLOAT: right"><A href="#top">Вверх</A></div><a name="project"></a><strong><font size="3">Проект:</font></strong> 
+      <p>&nbsp;</p>
+      <P><FONT size=2>
+      1.&nbsp;Схема  электрическая принципиальная в формате PCAD2002 
+      -<a href="file/zxm_moonsound/zxm_moonsound_sch00.rar"> скачать</a><BR>
+      2.&nbsp;Печатная плата в формате PCAD2002 
+      -<a href="file/zxm_moonsound/zxm_moonsound_pcb00.rar"> скачать</a><BR> 
+      3.&nbsp;Электрическая и монтажная схемы, перечень 
+      элементов в формате pdf  -<a href="file/zxm_moonsound/zxm_moonsound_00.pdf"> скачать</a><BR>
+      4.&nbsp;Введение режима программирования микросхемы DD3 в формате pdf -<a href="file/zxm_moonsound/zxm_moonsound_annex.pdf"> скачать</a><BR>
+      6.&nbsp;Схема  электрическая принципиальная ревизии 01 в формате PCAD2002 
+      -<a href="file/zxm_moonsound/zxm_moonsound_sch01.rar"> скачать</a><BR>
+      7.&nbsp;Печатная плата ревизии 01 в формате PCAD2002 
+      -<a href="file/zxm_moonsound/zxm_moonsound_pcb01.rar"> скачать</a><BR> 
+      8.&nbsp;Электрическая и монтажная схемы ревизии 01, перечень 
+      элементов в формате pdf  -<a href="file/zxm_moonsound/zxm_moonsound_01.pdf"> скачать</a><BR>
+      9.&nbsp;Гербер файлы для производства ревизии 01
+      -<a href="file/zxm_moonsound/zxm_moonsound_gerber01.rar"> скачать</a><BR>
+      10.&nbsp;Описание доработок карты ревизии 01 в формате pdf -<a href="file/zxm_moonsound/zxm_moonsound_annex_rev01.pdf"> скачать</a><BR>
+      11.&nbsp;Библиотека элементов формате PCAD2002 
+      -<a href="file/zxm_moonsound/zxm_moonsound_lib.rar"> скачать</a><BR> 
+      </FONT></P>
+
+      <p>&nbsp;</p> 
+      <p>&nbsp;</p> 
+      <div style="FLOAT: right"><A href="#top">Вверх</A></div><a name="firmware"></a><strong><font size="3">Прошивки:</font></strong> 
+      <p>&nbsp;</p>
+      <P><FONT size=2>
+      1.&nbsp;Прошивка микросхемы DD3 (AM29F016D) -<a href="file/zxm_moonsound/yrw801m_1993.rar"> скачать</a><BR>
+      2.&nbsp;Прошивка CPLD EPM7032STC44  версия 01.00  -<a href="file/zxm_moonsound/zxm_moonsound_frm0100.rar"> скачать</a><BR>
+      3.&nbsp;Исходные тексты прошивки CPLD EPM7032STC44  версия 01.00 для MAX+plus II 
+         -<a href="file/zxm_moonsound/zxm_moonsound_src0100.rar"> скачать</a><BR>
+      4.&nbsp;Прошивка CPLD EPM7032STC44  версия 01.00  ревизии карты 01 -<a href="file/zxm_moonsound/zxm_moonsound01_frm0100.rar"> скачать</a><BR>
+      5.&nbsp;Исходные тексты прошивки CPLD EPM7032STC44  версия 01.00 ревизии карты 01 для MAX+plus II 
+         -<a href="file/zxm_moonsound/zxm_moonsound01_src0100.rar"> скачать</a><BR>
+      </FONT></P>
+      <p>&nbsp;</p>
+      <p>&nbsp;</p> 
+
+      <p></p><div style="FLOAT: right"><A href="#top">Вверх</A></div><a name="programming"></a><br><strong><font size="3">Программирование
+      карты:</font></strong> 
+
+      <p>&nbsp;</p> 
+      <p>&nbsp;</p> 
+      <p></p><div style="FLOAT: right"><A href="#top">Вверх</A></div><a name="soft"></a><strong><font size="3">Софт:</font></strong> 
+      <p><font size="2"></font>&nbsp;</p>
+      <p align="justify"><font size="2">&nbsp;&nbsp;&nbsp; Здесь представлены программы, использующие ресурсы звуковой карты.
+      На данный момент в поддержку звуковой карты, представлен следующий софт:</font></p>
+
+      <p>&nbsp;</p> 
+      <p>&nbsp;</p> 
+      <table width="100%" border="1" cellspacing="2" cellpadding="2" style  ="WIDTH: 100%; HEIGHT: 192px">
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/moonsound.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Демо программа Moonsound.</EM></STRONG></FONT></P>
+            <P><FONT size=2>Это первая программа музыкальная открытка написанная в поддержку данной звуковой карты.
+	    Она позволяет оценить потрясающие звуковые возможности звуковой микросхемы YMF278. Программа включает
+	    в себя четыре мелодии, написанные Naruto для компьютера <STRONG>MSX</STRONG>. Переключение мелодий происходит
+	    по клавишам A,B,C,D. В остальном все как обычно, тоесть простенько и со вкусом.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Музыка:</EM></STRONG> Naruto</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2015</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/moonsound_src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/moonsound.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/moonsound_2.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Демо программа Moonsound 2.</EM></STRONG></FONT></P>
+            <P><FONT size=2>Еще одна музыкальная открытка, написанная в поддержку данной звуковой карты.
+	    На сей раз музыка, написанная в редакторе MoonBlaster (платформа MSX), специально для микросхемы YMF278. 
+	    Программа включает в себя шесть мелодий с расширением MWM. Переключение мелодий происходит
+	    по клавишам A,B,C,D,E,F. В остальном все как обычно, тоесть простенько и со вкусом.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2015</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/moonsound_2src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/moonsound_2.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/moonsound_3.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Демо программа Moonsound 3.</EM></STRONG></FONT></P>
+            <P><FONT size=2>Очередная музыкальная открытка, написанная в поддержку данной звуковой карты.
+	    На сей раз музыка, написанная в редакторе MoonBlaster (платформа MSX), специально для микросхемы YMF278. 
+	    Программа включает в себя шесть мелодий с расширением MWM. Переключение мелодий происходит
+	    по клавишам A,B,C,D,E,F. Также стоит отметить, что картинку для открытки предоставил Andrew_curds, за что
+	    большущее человеческое спасибо. В остальном все как обычно, тоесть простенько и со вкусом.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор картинки:</EM></STRONG> Andrew_curds</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2015</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/moonsound_3src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/moonsound_3.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/moonsound_4.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Демо программа Moonsound 4.</EM></STRONG></FONT></P>
+            <P><FONT size=2>Продолжаем лепить музыкальные открытки в поддержку данной звуковой карты.
+	    Еще шесть мелодий мелодий с расширением MWM, написанных в редакторе MoonBlaster (платформа MSX), специально для микросхемы YMF278. 
+	    Переключение мелодий происходит по клавишам A,B,C,D,E,F. И в этот раз картинку для открытки предоставил Andrew_curds, за что
+	    большущее человеческое спасибо.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор картинки:</EM></STRONG> Andrew_curds</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2015</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/moonsound_4src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/moonsound_4.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/moonservice_01.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Сервисная программа MoonService v0.1</EM></STRONG></FONT></P>
+            <P><FONT size=2>Небольшая сервисная программа для первоначальной проверки функционирования карты <EM>ZXM-MoonSound</EM>.
+	    Набор функций практически никакой, только небольшой тест микросхем ОЗУ, которые предназначены для хранения любительских	
+	    наборов музыкальных инструментов. В принципе этого  на первое время вполне хватит. 
+	    В дальнейшим возможно появятся и другие функции.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2015</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/moonservice_v01src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/moonservice_v01.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/moonsound_5.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Демо программа Moonsound 5.</EM></STRONG></FONT></P>
+            <P><FONT size=2>Спустя полгода или больше разародился новым музыкальным сборником  в поддержку данной звуковой карты.
+	    В сборнике 14 мелодий с расширением MWM, в основном лирического содержания, написанных в редакторе MoonBlaster (платформа MSX), 
+	    специально для микросхемы YMF278. Все звучащие мелодии написаны музыкантом Qix, за что ему огромный респект. 
+	    Переключение мелодий проиходит по клавише Space. И в этот раз картинку для открытки предоставил Andrew_curds, за что
+	    большущее человеческое спасибо.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор картинки:</EM></STRONG> Andrew_curds</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор музыки:</EM></STRONG> Qix</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2016</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/moonsound_5src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/moonsound_5.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/moonsound_6.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Демо программа Moonsound 6.</EM></STRONG></FONT></P>
+            <P><FONT size=2>Еще один новый музыкальный сборник в поддержку данной звуковой карты.
+	    В сборнике 12 мелодий с расширением MWM, написанных в редакторе MoonBlaster (платформа MSX), 
+	    специально для микросхемы YMF278. Переключение мелодий происходит по клавише Space.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2016</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/moonsound_6src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/moonsound_6.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/mfm_sample.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Демо программа MFM Music sample.</EM></STRONG></FONT></P>
+            <P><FONT size=2>Небольшая музыкальная открытка в поддержку данной звуковой карты.
+	    В сборнике две мелодии с расширением MFM, написанных в редакторе MoonBlaster (платформа MSX), 
+	    специально для микросхемы YMF278. Переключение мелодий происходит по клавише Space.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2016</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/mfm_sample_src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/mfm_sample.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/moonsound_7.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Демо программа Moonsound 7.</EM></STRONG></FONT></P>
+            <P><FONT size=2>Очередной новый музыкальный сборник в поддержку данной звуковой карты.
+	    В сборнике 18 мелодий с расширением MWM, написанных в редакторе MoonBlaster (платформа MSX), 
+	    специально для микросхемы YMF278. Переключение мелодий происходит по клавише Space.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2016</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/moonsound_7src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/moonsound_7.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/mfm_sample_2.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Демо программа MFM Music sample 2.</EM></STRONG></FONT></P>
+            <P><FONT size=2>Из небольшой музыкальной открытки в прошлом выпуске на сей раз программа 
+	    переросла в настоящий сборник с 15 мелодиями. И все это в поддержку данной звуковой карты.
+	    В сборнике все мелодии с расширением MFM, написанных в редакторе MoonBlaster (платформа MSX), 
+	    специально для микросхемы YMF278. Переключение мелодий происходит по клавише Space.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2016</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/mfm_sample_2src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/mfm_sample_2.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/moonservice_02.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Сервисная программа MoonService v0.2</EM></STRONG></FONT></P>
+            <P><FONT size=2>Следующая версия сервисной программы для проверки функционирования карты <EM>ZXM-MoonSound</EM>.
+	    К существующему тесту микросхем ОЗУ добавился тест ПЗУ, который предназначен для проверки целостности	
+	    хранящейся информации. В процессе теста производится подсчет контрольной суммы по блокам размером 16кб и сравнению
+            с эталонной контрольной суммой. В дальнейшим возможно появятся и другие функции.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2016</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/moonservice_v02src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/moonservice_v02.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/moonservice_03.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Сервисная программа MoonService v0.3</EM></STRONG></FONT></P>
+            <P><FONT size=2>Новая версия сервисной программы для проверки функционирования карты <EM>ZXM-MoonSound</EM>.
+	    В новой версии добавлена возможность обновлении прошивки флеш ПЗУ. Важное замечание, для правильной работы новой функции
+            необходимо, чтобы в компьютере был интерфейс SD карты по стандарту Z-Сontroller. Иначе обновить прошивку вы не сможете.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2016</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/moonservice_v03src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/moonservice_v03.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/moonsound_8.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Демо программа Moonsound 8.</EM></STRONG></FONT></P>
+            <P><FONT size=2>Очередной новый музыкальный сборник в поддержку данной звуковой карты.
+	    В сборнике 13 мелодий с расширением MWM, написанных в редакторе MoonBlaster (платформа MSX), 
+	    специально для микросхемы YMF278. Переключение мелодий происходит по клавише Space.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2016</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/moonsound_8src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/moonsound_8.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/moonsound_9.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Демо программа Moonsound 9.</EM></STRONG></FONT></P>
+            <P><FONT size=2>Очередной новый музыкальный сборник в поддержку данной звуковой карты.
+	    В сборнике 19 мелодий с расширением MWM, написанных в редакторе MoonBlaster (платформа MSX), 
+	    специально для микросхемы YMF278. Переключение мелодий происходит по клавише Space.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2016</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/moonsound_9src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/moonsound_9.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/moonsound_10.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Демо программа Moonsound 10.</EM></STRONG></FONT></P>
+            <P><FONT size=2>Новый музыкальный сборник в поддержку данной звуковой карты.
+	    В сборнике 12 мелодий с расширением MWM, написанных в редакторе MoonBlaster (платформа MSX), 
+	    специально для микросхемы YMF278. Переключение мелодий происходит по клавише Space.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2016</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/moonsound_10src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/moonsound_10.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/moonmusic_1.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Демо программа Moon Music 1.</EM></STRONG></FONT></P>
+            <P><FONT size=2>Новый музыкальный сборник в поддержку данной звуковой карты. 
+	    В сборнике 12 мелодий с расширением MWM, написанных в редакторе MoonBlaster (платформа MSX), 
+	    специально для микросхемы YMF278. Переключение мелодий проиходит по клавише Space.
+	    Кроме того стоит отметить что музыка в этом сборнике 60Гц, так что на некоторых реалах возможно и не пойдет.
+	    На этот случай прикладывается эмуляторный (Unreal) вариант сборника.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор картинки:</EM></STRONG> r0bat</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор музыки:</EM></STRONG> Bart Roymans</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2016</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/moonmusic_1src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/moonmusic_1.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для эмулятора Unreal:
+            </EM></STRONG><a href="file/zxm_moonsound/soft/moonmusic_1unreal.rar"> скачать</a></FONT></P>
+	</td>	
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/mfm_sample_3.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Демо программа MFM Music sample 3.</EM></STRONG></FONT></P>
+            <P><FONT size=2>Продолжаем выпускать сборники. В новом сборнике 13 мелодий
+	    с расширением MFM, написанных в редакторе MoonBlaster (платформа MSX), специально для микросхемы YMF278.
+	    Кроме того в сборнике присутствует анимация, для которой необходим компьютер с памятью больше 128Кб и
+	    использующий 7 бит порта 7FFDh. Переключение мелодий происходит по клавише Space или автоматически по окончанию
+	    мелодии.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2016</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/mfm_sample_3src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/mfm_sample_3.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/moonsound_11.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Демо программа Moonsound 11.</EM></STRONG></FONT></P>
+            <P><FONT size=2>Новый музыкальный сборник в поддержку данной звуковой карты.
+	    В сборнике 30 коротеньких мелодий с расширением MWM, написанных в редакторе MoonBlaster (платформа MSX), 
+	    специально для микросхемы YMF278. Переключение мелодий происходит по клавише Space.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2016</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/moonsound_11src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/moonsound_11.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/moonsound_12.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Демо программа Moonsound 12.</EM></STRONG></FONT></P>
+            <P><FONT size=2>Новый музыкальный сборник в поддержку данной звуковой карты.
+	    В сборнике 7 приятных и объемистых мелодий с расширением MWM, написанных в редакторе MoonBlaster (платформа MSX), 
+	    специально для микросхемы YMF278.  По всей видимости музон, это каверы мелодий из игрушек. Переключение мелодий происходит по клавише Space.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2016</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/moonsound_12src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/moonsound_12.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/moonservice_03a.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Сервисная программа MoonService v0.3a</EM></STRONG></FONT></P>
+            <P><FONT size=2>Новая программа для проверки функционирования карты <EM>ZXM-MoonSound</EM>.
+	    Эта версия слегка доработанная версия v0.3. Функционал тот же самый, изменения коснулись процесса обновления  флеш ПЗУ.
+	    При проверки микросхемы MX29F016 оказалось что время стирания микросхемы чуть больше чем было при стирании микросхемы
+      	    AM29F016. В результате операция обновления не проходила. Важное замечание, для правильной работы новой функции
+            необходимо, чтобы в компьютере был интерфейс SD карты по стандарту Z-Сontroller. Иначе обновить прошивку вы не сможете.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2016</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/moonservice_v03asrc.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/moonservice_v03a.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/mfm_sample_4.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Демо программа MFM Music sample 4.</EM></STRONG></FONT></P>
+            <P><FONT size=2>Продолжаем выпускать сборники. В новом сборнике 8 мелодий
+	    с расширением MFM, написанных в редакторе MoonBlaster (платформа MSX), специально для микросхемы YMF278.
+	    Переключение мелодий происходит по клавише Space или автоматически по окончанию
+	    мелодии.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2016</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/mfm_sample_4src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/mfm_sample_4.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/moonmusic_2.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Демо программа Moon Music 2.</EM></STRONG></FONT></P>
+            <P><FONT size=2>Новый музыкальный сборник в поддержку данной звуковой карты. 
+	    В сборнике 14 мелодий с расширением MWM, написанных в редакторе MoonBlaster (платформа MSX), 
+	    специально для микросхемы YMF278. Переключение мелодий проиходит по клавише Space.
+	    Кроме того стоит отметить что музыка в этом сборнике 60Гц, так что на некоторых реалах возможно и не пойдет.
+	    На этот случай прикладывается эмуляторный (Unreal) вариант сборника.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Авторы:</EM></STRONG> Mick и AAA</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2016</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/moonmusic_2src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/moonmusic_2.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для эмулятора Unreal:
+            </EM></STRONG><a href="file/zxm_moonsound/soft/moonmusic_2unreal.rar"> скачать</a></FONT></P>
+	</td>	
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/moonsound_13.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Демо программа Moonsound 13.</EM></STRONG></FONT></P>
+            <P><FONT size=2>Новый музыкальный сборник в поддержку данной звуковой карты.
+	    В сборнике 19 в целом приятных мелодий с расширением MWM, написанных в редакторе MoonBlaster (платформа MSX), 
+	    специально для микросхемы YMF278. Переключение мелодий происходит по клавише Space.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Авторы:</EM></STRONG> Mick и AAA</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2016</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/moonsound_13src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/moonsound_13.rar"> скачать</a></FONT></P></td>
+       </tr>
+       <tr>
+         <td>&nbsp;<IMG src="file/zxm_moonsound/soft/img/moonsound_14.png"></td> 
+         <td>
+            <P><FONT size=2><STRONG><EM>Демо программа Moonsound 14.</EM></STRONG></FONT></P>
+            <P><FONT size=2>Новый музыкальный сборник в поддержку данной звуковой карты.
+	    В сборнике 12 весьма своебразных мелодий с расширением MWM, написанных в редакторе MoonBlaster (платформа MSX), 
+	    специально для микросхемы YMF278. Переключение мелодий происходит по клавише Space.</FONT></P>
+            <P><FONT size=2><STRONG><EM>Авторы:</EM></STRONG> Mick</FONT></P>
+            <P><FONT size=2><STRONG><EM>Автор музыки:</EM></STRONG> Near Dark</FONT></P>
+            <P><FONT size=2><STRONG><EM>Год выпуска:</EM></STRONG> 
+            2016</FONT></P>
+            <P><FONT size=2><STRONG><EM>Исходные коды:</EM></STRONG> 
+            <a href="file/zxm_moonsound/soft/moonsound_14src.rar"> скачать</a></FONT></P>
+            <P><FONT size=2><STRONG><EM>Файл для платформы ZX 
+            Spectrum:</EM></STRONG><a href="file/zxm_moonsound/soft/moonsound_14.rar"> скачать</a></FONT></P></td>
+       </tr>
+      </table>
+
+      <P>&nbsp;</P>
+      <P>&nbsp;</P>
+      <FONT size=2>
+      <div style="FLOAT: right"><A href="#top">Вверх</A></div><a name="thanks"></a><strong><FONT size ="3">Благодарности:</FONT></strong> 
+      <P>&nbsp;</P>
+
+      <P><FONT size=2>
+      <STRONG>Henrik Gilvad</STRONG> - за создание карты  <STRONG>Moonsound</STRONG> для платформы <STRONG>MSX</STRONG><BR>
+      <STRONG>Gustavo Iriarte (Ciro)</STRONG> - за создание карты  <STRONG>Wozblaster</STRONG> для платформы <STRONG>MSX</STRONG><BR>
+      <STRONG>Брычкову Евгению</STRONG> - за доработки карты <STRONG>Wozblaster</STRONG> для платформы <STRONG>MSX</STRONG>, а также констультационную помощь
+      при создании данной карты<BR>
+      <STRONG>Пугачеву Дмитрию (DJs3000)</STRONG> - за консультативную помощь при создании звуковой карты<BR>
+      </FONT></P>
+
+
+<P>&nbsp;</P>
+ </td>
+ </tr>
+ </table>
+ </div>
+
+<div style="BORDER-RIGHT: medium none;  BORDER-LEFT: medium none; TEXT-ALIGN: left" >
+ <table width="100%" height="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#c0c0c0">
+  <tr>
+   <td style="BORDER-RIGHT: 0px; PADDING-RIGHT: 0px; BORDER-TOP: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; BORDER-LEFT: 0px; WIDTH: 1px; PADDING-TOP: 0px; BORDER-BOTTOM: 0px; HEIGHT: 5px">
+   </td>
+ </table>
+</div>
+
+<div style="BORDER-RIGHT: medium none;  BORDER-LEFT: medium none; TEXT-ALIGN: left" >
+ <table width="100%" height="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#5f002B">
+  <tr>
+   <td style="BORDER-RIGHT: 0px; PADDING-RIGHT: 0px; BORDER-TOP: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; BORDER-LEFT: 0px; WIDTH: 1px; PADDING-TOP: 0px; BORDER-BOTTOM: 0px; HEIGHT: 40px">
+
+   <P align="center">
+   <FONT size=2 color="#c0c0ff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Mick Laboratory 2010 -
+   <script type="text/javascript">
+   document.write(new Date().getFullYear());
+   </script>
+   </FONT>
+   </P>
+
+   </td>
+ </table>
+</div>
+
+  <td valign="top">&nbsp;</td>
+  </tr>
+</table>
+
+<div style="BORDER-RIGHT: medium none;  BORDER-LEFT: medium none; TEXT-ALIGN: left" >
+ <table width="100%" height="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#c0c0c0">
+  <tr>
+   <td style="BORDER-RIGHT: 0px; PADDING-RIGHT: 0px; BORDER-TOP: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; BORDER-LEFT: 0px; WIDTH: 1px; PADDING-TOP: 0px; BORDER-BOTTOM: 0px; HEIGHT: 10px">
+   </td>
+ </table>
+</div>
+
+</body>
+</html>

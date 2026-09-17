@@ -1,0 +1,3834 @@
+0001   0000             ;--------------------------------------------------------------------
+0002   0000             ; éØ®·†≠®•: è‡Æ£‡†¨¨† Ø‡Æ®£‡Î¢†≠®Ô ‡†ß≠ÎÂ ß¢„™Æ¢ÎÂ ¨Æ§„´•© Amstrad CPC
+0003   0000             ; ØÆ§§•‡¶™† ¢ ¶•´•ß•: ZXM-MoonSound
+0004   0000             ; Ä¢‚Æ‡ ØÆ‡‚†: í†‡†·Æ¢ å.ç.(Mick),2014
+0005   0000             ;--------------------------------------------------------------------
+0006   0000             		DEVICE ZXSPECTRUM128
+0007   0000             
+0008   0000             		.org 	6000h
+0009   6000             
+0010   6000             ;-------------------------------------------------------------------
+0011   6000             ; ÆØ®·†≠®•: íÆÁ™† ¢ÂÆ§† ¢ Ø‡Æ£‡†¨¨„ ØÆ·´• Ø•‡•§†Á® „Ø‡†¢´•≠®Ô ®ß éë
+0012   6000             ;---------------------------------------------------------------------
+0013   6000             MoonSound_Start: 		
+0014   6000 AF          		xor	a               		;°Æ‡§•‡ ¢ Á•‡≠Î© Ê¢•‚
+0015   6001 D3 FE       		out	(0feh),a	
+0016   6003             
+0017   6003 21 00 40    		ld	hl,4000h
+0018   6006 11 01 40    		ld	de,4001h
+0019   6009 01 00 1B    		ld	bc,1b00h
+0020   600C 71          		ld	(hl),c
+0021   600D ED B0       		ldir
+0022   600F             		
+0023   600F 21 00 40    		ld	hl,4000h			;£‡„ß®¨ Ì™‡†≠
+0024   6012 ED 5B F4 5C 		ld	de,(5CF4h)
+0025   6016 01 05 1B    		ld	bc,1B05h
+0026   6019 CD 13 3D    		call	3d13h
+0027   601C             
+0028   601C CD 73 80    		call	Str_init_load
+0029   601F FB          		ei
+0030   6020             MoonSound_loading: 
+0031   6020 76          		halt
+0032   6021 06 00       		ld	b,0
+0033   6023             MoonSound_wait: 
+0034   6023 10 FE       		djnz	MoonSound_wait			
+0035   6025 CD 85 80    		call	Str_play
+0036   6028 38 02       		jr	c,MoonSound_load
+0037   602A 30 F4       		jr	nc,MoonSound_loading	
+0038   602C             MoonSound_load: 
+0039   602C F3          		di                                      ;≠† ¢·Ô™®© ØÆ¶†‡≠Î© ß†Ø‡•‚®¨ Ø‡•‡Î¢†≠®Ô
+0040   602D             
+0041   602D 3E 11       		ld	a,11h 
+0042   602F 01 FD 7F    		ld	bc,7ffdh
+0043   6032 ED 79       		out	(c),a
+0044   6034 21 00 C0    		ld	hl,0C000h			;£‡„ß®¨ ¨„ßÎ™„ O3D001.MDR - 16™°
+0045   6037 ED 5B F4 5C 		ld	de,(5CF4h)
+0046   603B 01 05 40    		ld	bc,4005h
+0047   603E CD 13 3D    		call	3d13h
+0048   6041             
+0049   6041 3E 13       		ld	a,13h 
+0050   6043 01 FD 7F    		ld	bc,7ffdh
+0051   6046 ED 79       		out	(c),a
+0052   6048 21 00 C0    		ld	hl,0C000h			;£‡„ß®¨ ¨„ßÎ™„ O3D002.MDR - 8™°.
+0053   604B ED 5B F4 5C 		ld	de,(5CF4h)
+0054   604F 01 05 20    		ld	bc,2005h
+0055   6052 CD 13 3D    		call	3d13h
+0056   6055             
+0057   6055 3E 14       		ld	a,14h 
+0058   6057 01 FD 7F    		ld	bc,7ffdh
+0059   605A ED 79       		out	(c),a
+0060   605C 21 00 C0    		ld	hl,0C000h			;£‡„ß®¨ ¨„ßÎ™„ O3D003.MDR - 8™°
+0061   605F ED 5B F4 5C 		ld	de,(5CF4h)
+0062   6063 01 05 20    		ld	bc,2005h
+0063   6066 CD 13 3D    		call	3d13h
+0064   6069             		
+0065   6069 3E 16       		ld	a,16h 
+0066   606B 01 FD 7F    		ld	bc,7ffdh
+0067   606E ED 79       		out	(c),a
+0068   6070 21 00 C0    		ld	hl,0C000h			;£‡„ß®¨ ¨„ßÎ™„ O3D004.MDR - 16™°
+0069   6073 ED 5B F4 5C 		ld	de,(5CF4h)
+0070   6077 01 05 40    		ld	bc,4005h
+0071   607A CD 13 3D    		call	3d13h
+0072   607D             
+0073   607D             
+0074   607D 31 FF 5F    		ld	sp,5fffh
+0075   6080 3E 11       		ld	a,11h 
+0076   6082 32 46 61    		ld	(MoonSound_page_memory),a
+0077   6085 01 FD 7F    		ld	bc,7ffdh
+0078   6088 ED 79       		out	(c),a
+0079   608A CD 66 80    		call	Str_init			;®≠®Ê®†´®ß†Ê®Ô °•£„È•© ·‚‡Æ™®
+0080   608D             
+0081   608D CD 67 61    		call	MoonDriver_Init
+0082   6090 3E 10       		ld	a,10h 
+0083   6092 01 FD 7F    		ld	bc,7ffdh
+0084   6095 ED 79       		out	(c),a
+0085   6097             
+0086   6097 21 00 FE    		ld	hl,0fe00h                       ;·Æß§†•¨ ‚†°´®Ê„ Ø‡•‡Î¢†≠®Ô §´Ô im 2
+0087   609A 11 01 FE    		ld	de,0fe01h
+0088   609D 01 00 01    		ld	bc,0100h
+0089   60A0 36 FD       		ld	(hl),0fdh
+0090   60A2 ED B0       		ldir
+0091   60A4 3E C3       		ld	a,0c3h                          ;„·‚†≠Æ¢®¨ ¢•™‚Æ‡ Ø‡•‡Î¢†≠®Ô
+0092   60A6 32 FD FD    		ld	(0fdfdh),a
+0093   60A9 21 48 61    		ld	hl,Interrupt_handle
+0094   60AC 22 FE FD    		ld	(0fdfeh),hl
+0095   60AF F3          		di
+0096   60B0 3E FE       		ld	a,0feh                          ;Æ™Æ≠Á†≠®• „·‚†≠Æ¢™® Ø‡•‡Î¢†≠®Ô
+0097   60B2 ED 47       		ld	i,a
+0098   60B4 ED 5E       		im	2
+0099   60B6 FB          		ei
+0100   60B7             MoonSound_key_clear: 		
+0101   60B7 AF          		xor	a
+0102   60B8 32 47 61                    ld	(MoonSound_key_press),a
+0103   60BB             MoonSound_loop: 		
+0104   60BB 76          		halt
+0105   60BC             
+0106   60BC 3E FD       		ld	a,0FDh
+0107   60BE DB FE       		in	a,(0FEh)
+0108   60C0 CB 47       		bit	0,a
+0109   60C2 20 07       		jr	nz,MoonSound_key_B
+0110   60C4 3E 01       		ld	a,1
+0111   60C6 32 47 61                    ld	(MoonSound_key_press),a
+0112   60C9 18 F0       		jr	MoonSound_loop
+0113   60CB             MoonSound_key_B: 
+0114   60CB 3E 7F       		ld	a,7Fh
+0115   60CD DB FE       		in	a,(0FEh)
+0116   60CF CB 67       		bit	4,a
+0117   60D1 20 07       		jr	nz,MoonSound_key_C
+0118   60D3 3E 02       		ld	a,2
+0119   60D5 32 47 61                    ld	(MoonSound_key_press),a
+0120   60D8 18 E1       		jr	MoonSound_loop
+0121   60DA             MoonSound_key_C: 
+0122   60DA 3E FE       		ld	a,0FEh
+0123   60DC DB FE       		in	a,(0FEh)
+0124   60DE CB 5F       		bit	3,a
+0125   60E0 20 07       		jr	nz,MoonSound_key_D
+0126   60E2 3E 03       		ld	a,3
+0127   60E4 32 47 61                    ld	(MoonSound_key_press),a
+0128   60E7 18 D2       		jr	MoonSound_loop
+0129   60E9             MoonSound_key_D: 
+0130   60E9 3E FD       		ld	a,0FDh
+0131   60EB DB FE       		in	a,(0FEh)
+0132   60ED CB 57       		bit	2,a
+0133   60EF 20 07       		jr	nz,MoonSound_key_Break
+0134   60F1 3E 04       		ld	a,4
+0135   60F3 32 47 61                    ld	(MoonSound_key_press),a
+0136   60F6 18 C3       		jr	MoonSound_loop
+0137   60F8             MoonSound_key_Break: 
+0138   60F8 3E 7F       		ld	a,7fh				;Æ¶®§†•¨ Ø‡Æ°•´ - Ø•‡•ÂÆ§ ™ ·´•§„ÓÈ•© ™Æ¨ØÆß®Ê®®
+0139   60FA DB FE       		in	a,(0feh)
+0140   60FC 1F          		rra	
+0141   60FD 38 07       		jr	c,MoonSound_key_next
+0142   60FF             
+0143   60FF 3E FE       		ld	a,0FEh
+0144   6101 DB FE       		in	a,(0FEh)
+0145   6103 1F          		rra	    
+0146   6104 30 31       		jr	nc,MoonSound_exit
+0147   6106             
+0148   6106             MoonSound_key_next: 
+0149   6106 3A 47 61    		ld	a,(MoonSound_key_press)
+0150   6109 A7          		and	a
+0151   610A 28 AF       		jr	z,MoonSound_loop
+0152   610C             
+0153   610C 3D          		dec	a
+0154   610D 6F          		ld	l,a
+0155   610E 26 00       		ld	h,0
+0156   6110 11 42 61    		ld	de,MoonSound_page_table
+0157   6113 19          		add	hl,de
+0158   6114 7E          		ld	a,(hl)				;≠Æ¨•‡ ·‚‡†≠®ÊÎ ≠Æ¢Æ© ¨„ßÎ™®
+0159   6115 6F          		ld	l,a
+0160   6116 3A 46 61    		ld	a,(MoonSound_page_memory)	;ß†£‡„ß®¨ ≠Æ¨•‡ ·‚‡†≠®ÊÎ Ø†¨Ô‚® ‚•™„È•© ¨„ßÎ™®
+0161   6119 BD          		cp	l
+0162   611A 28 9B       		jr	z,MoonSound_key_clear		;Ì‚† ¨•´Æ§®Ô „¶• ®£‡†•‚
+0163   611C             
+0164   611C F3          		di	
+0165   611D CD 6D 61    		call	MoonDriver_Keyoff
+0166   6120 7D          		ld	a,l
+0167   6121 32 46 61    		ld	(MoonSound_page_memory),a	;≠Æ¨•‡ ·‚‡†≠®ÊÎ Ø†¨Ô‚® ≠Æ¢Æ© ¨•´Æ§®®
+0168   6124 01 FD 7F    		ld	bc,7ffdh
+0169   6127 ED 79       		out	(c),a
+0170   6129 CD 67 61    		call	MoonDriver_Init			;®≠®Ê®†´®ß®‡„•¨ Ø‡Æ®£‡Î¢†‚•´Ï
+0171   612C             
+0172   612C 3E 10       		ld	a,10h				;¢Æß¢‡†È†•¨ ‚•™„È„Ó ·‚‡†≠®Ê„
+0173   612E 01 FD 7F    		ld	bc,7ffdh
+0174   6131 ED 79       		out	(c),a
+0175   6133 FB          		ei
+0176   6134 C3 B7 60    		jp      MoonSound_key_clear
+0177   6137             
+0178   6137             MoonSound_exit: 		
+0179   6137 F3          		di	
+0180   6138 CD 6D 61    		call	MoonDriver_Keyoff
+0181   613B 21 00 00    		ld	hl,0	
+0182   613E E5          		push	hl
+0183   613F C3 2F 3D          		jp  	3d2fh				;¢ÎÂÆ§ ¢ TR-DOS
+0184   6142             
+0185   6142             ;-------------------------------------------------------------------
+0186   6142             ; ÆØ®·†≠®•: í†°´®Ê† ·‚‡†≠®Ê
+0187   6142             ;---------------------------------------------------------------------
+0188   6142             MoonSound_page_table: 
+0189   6142 11 13 14 16 		db	11h,13h,14h,16h
+0190   6146             
+0191   6146             MoonSound_page_memory: 
+0192   6146 00          		db	0		
+0193   6147             MoonSound_key_press: 
+0194   6147 00          		db	0
+0195   6148             
+0196   6148             Interrupt_handle: 
+0197   6148 E5          		push	hl	
+0198   6149 C5          		push	bc	
+0199   614A D5          		push	de
+0200   614B F5          		push	af	
+0201   614C             
+0202   614C CD 85 80    		call	Str_play
+0203   614F             
+0204   614F 3A 46 61    		ld	a,(MoonSound_page_memory)	;ß†£‡„ß®¨ ≠Æ¨•‡ ·‚‡†≠®ÊÎ Ø†¨Ô‚® ‚•™„È•© ¨„ßÎ™®
+0205   6152 01 FD 7F    		ld	bc,7ffdh
+0206   6155 ED 79       		out	(c),a
+0207   6157 CD 6A 61    		call	MoonDriver_Play
+0208   615A 3E 10       		ld	a,10h
+0209   615C 01 FD 7F    		ld	bc,7ffdh
+0210   615F ED 79       		out	(c),a
+0211   6161             
+0212   6161 F1          		pop	af
+0213   6162 D1          		pop	de
+0214   6163 C1          		pop	bc
+0215   6164 E1          		pop	hl
+0216   6165 FB          		ei
+0217   6166 C9          		ret
+0218   6167             
+0219   6167             
+0220   6167             		.include  moon_driver.asm
+0001+  6167             ;********************************************
+0002+  6167             ; defines
+0003+  6167             ;********************************************
+0004+  6167             
+0005+  6167             MOON_BASE: 	equ	0C4h
+0006+  6167             MOON_REG1: 	equ	MOON_BASE
+0007+  6167             MOON_DAT1: 	equ	MOON_BASE+1
+0008+  6167             MOON_REG2: 	equ	MOON_BASE+2
+0009+  6167             MOON_DAT2: 	equ	MOON_BASE+3
+0010+  6167             MOON_STAT: 	equ	MOON_BASE
+0011+  6167             
+0012+  6167             MOON_WREG: 	equ	7Eh
+0013+  6167             MOON_WDAT: 	equ	MOON_WREG+1
+0014+  6167             
+0015+  6167             
+0016+  6167             USE_CH:  	equ	24+18
+0017+  6167             FM_BASECH: 	equ	24
+0018+  6167             
+0019+  6167             ;********************************************
+0020+  6167             ; MDR file format
+0021+  6167             ;********************************************
+0022+  6167             S_ADDR_CORRECT:  equ	0C000h - 8000h	
+0023+  6167             
+0024+  6167             S_DEVICE_FLAGS: 	equ	0C007h                  ;8007
+0025+  6167                                     
+0026+  6167             S_TRACK_TABLE: 	equ	0C010h                  ;8010
+0027+  6167             S_TRACK_BANK: 	equ	S_TRACK_TABLE + 2
+0028+  6167             S_LOOP_TABLE: 	equ	S_TRACK_TABLE + 4
+0029+  6167             S_LOOP_BANK: 	equ	S_TRACK_TABLE + 6
+0030+  6167             S_VENV_TABLE: 	equ	S_TRACK_TABLE + 8
+0031+  6167             S_VENV_LOOP: 	equ	S_TRACK_TABLE + 10
+0032+  6167             S_PENV_TABLE: 	equ	S_TRACK_TABLE + 12
+0033+  6167             S_PENV_LOOP: 	equ	S_TRACK_TABLE + 14
+0034+  6167             S_NENV_TABLE: 	equ	S_TRACK_TABLE + 16
+0035+  6167             S_NENV_LOOP: 	equ	S_TRACK_TABLE + 18
+0036+  6167             S_LFO_TABLE: 	equ	S_TRACK_TABLE + 20
+0037+  6167             S_INST_TABLE: 	equ	S_TRACK_TABLE + 22
+0038+  6167             S_OPL3_TABLE: 	equ	S_TRACK_TABLE + 24
+0039+  6167             ;-------------------------------------------------------------------
+0040+  6167             ; ÓÔËÒ‡ÌËÂ: »ÌËˆË‡ÎËÁ‡ˆËˇ ÔÓË„˚‚‡ÚÂÎˇ
+0041+  6167             ; Ô‡‡ÏÂÚ˚: ÌÂÚ
+0042+  6167             ; ‚ÓÁ‚‡˘‡ÂÏÓÂ  ÁÌ‡˜ÂÌËÂ: ÌÂÚ
+0043+  6167             ;---------------------------------------------------------------------
+0044+  6167             MoonDriver_Init: 
+0045+  6167 C3 70 61    	jp	moon_init_all
+0046+  616A             ;-------------------------------------------------------------------
+0047+  616A             ; ÓÔËÒ‡ÌËÂ: œÓË„˚‚‡ÌËÂ 
+0048+  616A             ; Ô‡‡ÏÂÚ˚: ÌÂÚ
+0049+  616A             ; ‚ÓÁ‚‡˘‡ÂÏÓÂ  ÁÌ‡˜ÂÌËÂ: ÌÂÚ
+0050+  616A             ;---------------------------------------------------------------------
+0051+  616A             MoonDriver_Play: 
+0052+  616A C3 A0 6A    	jp	moon_proc_tracks			;Execute 1frame (1/60)
+0053+  616D             ;-------------------------------------------------------------------
+0054+  616D             ; ÓÔËÒ‡ÌËÂ: ‚˚ÍÎ˛˜ÂÌËÂ ‚ÒÂı ÌÓÚ
+0055+  616D             ; Ô‡‡ÏÂÚ˚: ÌÂÚ
+0056+  616D             ; ‚ÓÁ‚‡˘‡ÂÏÓÂ  ÁÌ‡˜ÂÌËÂ: ÌÂÚ
+0057+  616D             ;---------------------------------------------------------------------
+0058+  616D             MoonDriver_Keyoff: 
+0059+  616D C3 7F 6A    	jp	moon_seq_all_keyoff			;All key-off
+0060+  6170             
+0061+  6170             ;-------------------------------------------------------------------
+0062+  6170             ; Initialises all driver things
+0063+  6170             ;-------------------------------------------------------------------
+0064+  6170             moon_init_all: 
+0065+  6170 CD 76 61    	call	moon_init				;ËÌËˆË‡ÎËÁ‡ˆËˇ Í‡Ú˚
+0066+  6173 C3 AF 69    	jp	moon_seq_init
+0067+  6176             ;-------------------------------------------------------------------
+0068+  6176             ; ÓÔËÒ‡ÌËÂ: »ÌËˆË‡ÎËÁ‡ˆËˇ Í‡Ú˚ ZXM-MoonSound
+0069+  6176             ; Ô‡‡ÏÂÚ˚: ÌÂÚ
+0070+  6176             ; ‚ÓÁ‚‡˘‡ÂÏÓÂ  ÁÌ‡˜ÂÌËÂ: ÌÂÚ
+0071+  6176             ;---------------------------------------------------------------------
+0072+  6176             moon_init: 
+0073+  6176             	; CONNECTION SEL
+0074+  6176 11 00 04    	ld	de, 0400h 
+0075+  6179 CD 11 72    	call	moon_fm2_out
+0076+  617C             	; set 1 to NEW2, NEW
+0077+  617C 11 03 05    	ld	de, 0503h
+0078+  617F CD 11 72    	call	moon_fm2_out
+0079+  6182             	; RHYTHM
+0080+  6182 11 00 BD    	ld	de, 0bd00h
+0081+  6185 CD 0A 72    	call	moon_fm1_out
+0082+  6188             	; Set WaveTable header
+0083+  6188 11 10 02    	ld	de, 0210h
+0084+  618B CD 18 72    	call	moon_wave_out
+0085+  618E C9          	ret
+0086+  618F             ;-------------------------------------------------------------------
+0087+  618F             ; ŒÔËÒ‡ÌËÂ: œÂÂÏÂÌÌ˚Â ÔÓË„˚‚‡ÚÂÎˇ
+0088+  618F             ;-------------------------------------------------------------------
+0089+  618F             seq_cur_ch: 
+0090+  618F 00          	db 	0
+0091+  6190             seq_use_ch: 
+0092+  6190 00          	db 	0
+0093+  6191             seq_start_fm: 
+0094+  6191 00          	db 	0
+0095+  6192             seq_cur_bank: 
+0096+  6192 00          	db 	0
+0097+  6193             seq_opsel: 
+0098+  6193 00          	db 	0
+0099+  6194             seq_reg_bd: 
+0100+  6194 00          	db 	0
+0101+  6195             seq_jump_flag: 
+0102+  6195 00          	db 	0
+0103+  6196             
+0104+  6196             seq_tmp_note: 
+0105+  6196 00          	db 	0
+0106+  6197             seq_tmp_ch: 
+0107+  6197 00          	db 	0
+0108+  6198             seq_tmp_oct:      
+0109+  6198 00          	db 	0
+0110+  6199             seq_tmp_fnum: 
+0111+  6199 00 00       	dw 	0
+0112+  619B             ;-------------------------------------------------------------------
+0113+  619B             ;Workarea for channels in the driver
+0114+  619B             ;-------------------------------------------------------------------
+0115+  619B             seq_work: 
+0116+  619B             seq_ch1_dsel: 
+0117+  619B 00          	db 	0
+0118+  619C             seq_ch1_opsel: 
+0119+  619C 00          	db 	0
+0120+  619D             seq_ch1_synth: 
+0121+  619D 00          	db 	0
+0122+  619E             seq_ch1_efx1: 
+0123+  619E 00          	db 	0
+0124+  619F             seq_ch1_cnt: 
+0125+  619F 00          	db 	0
+0126+  61A0             seq_ch1_loop: 
+0127+  61A0 00          	db 	0
+0128+  61A1             seq_ch1_bank: 
+0129+  61A1 00          	db 	0
+0130+  61A2             seq_ch1_addr: 
+0131+  61A2 00 00       	dw 	0
+0132+  61A4             seq_ch1_tadr: 
+0133+  61A4 00 00       	dw 	0
+0134+  61A6             seq_ch1_tone: 
+0135+  61A6 00 00       	dw 	0
+0136+  61A8             seq_ch1_key: 
+0137+  61A8 00          	db 	0
+0138+  61A9             seq_ch1_damp: 
+0139+  61A9 00          	db 	0
+0140+  61AA             seq_ch1_lfo: 
+0141+  61AA 00          	db 	0
+0142+  61AB             seq_ch1_lfo_vib: 
+0143+  61AB 00          	db 	0
+0144+  61AC             seq_ch1_ar_d1r: 
+0145+  61AC 00          	db 	0
+0146+  61AD             seq_ch1_dl_d2r: 
+0147+  61AD 00          	db 	0
+0148+  61AE             seq_ch1_rc_rr: 
+0149+  61AE 00          	db 	0
+0150+  61AF             seq_ch1_am: 
+0151+  61AF 00          	db 	0
+0152+  61B0             seq_ch1_note: 
+0153+  61B0 00          	db 	0
+0154+  61B1             seq_ch1_pitch: 
+0155+  61B1 00 00       	dw 	0
+0156+  61B3             seq_ch1_p_ofs: 
+0157+  61B3 00 00       	dw 	0
+0158+  61B5             seq_ch1_oct: 
+0159+  61B5 00          	db 	0
+0160+  61B6             seq_ch1_fnum: 
+0161+  61B6 00 00       	dw 	0
+0162+  61B8             seq_ch1_reverb: 
+0163+  61B8 00          	db 	0
+0164+  61B9             seq_ch1_vol: 
+0165+  61B9 00          	db 	0
+0166+  61BA             seq_ch1_pan: 
+0167+  61BA 00          	db 	0
+0168+  61BB             seq_ch1_detune: 
+0169+  61BB 00          	db 	0
+0170+  61BC             seq_ch1_venv: 
+0171+  61BC 00          	db 	0
+0172+  61BD             seq_ch1_nenv: 
+0173+  61BD 00          	db 	0
+0174+  61BE             seq_ch1_penv: 
+0175+  61BE 00          	db 	0
+0176+  61BF             seq_ch1_nenv_adr: 
+0177+  61BF 00 00       	dw 	0
+0178+  61C1             seq_ch1_penv_adr: 
+0179+  61C1 00 00       	dw 	0
+0180+  61C3             seq_ch1_venv_adr: 
+0181+  61C3 00 00       	dw 	0
+0182+  61C5             seq_work_end: 
+0183+  61C5             
+0184+  61C5             IDX_DSEL:      equ 	(seq_ch1_dsel    - seq_work) ; Device Select
+0185+  61C5             IDX_OPSEL:     equ 	(seq_ch1_opsel   - seq_work) ; Operator Select
+0186+  61C5             IDX_SYNTH:     equ 	(seq_ch1_synth   - seq_work) ; FeedBack,Synth and OpMode
+0187+  61C5             IDX_EFX1:      equ 	(seq_ch1_efx1    - seq_work) ; Effect flags
+0188+  61C5             IDX_CNT:       equ 	(seq_ch1_cnt     - seq_work) ; Counter
+0189+  61C5             IDX_LOOP:      equ 	(seq_ch1_loop    - seq_work) ; Loop
+0190+  61C5             IDX_BANK:      equ 	(seq_ch1_bank    - seq_work) ; Which bank
+0191+  61C5             IDX_ADDR:      equ 	(seq_ch1_addr    - seq_work) ; Address to data
+0192+  61C5             IDX_TADR:      equ 	(seq_ch1_tadr    - seq_work) ; Address of a Tone Table
+0193+  61C5             IDX_TONE:      equ 	(seq_ch1_tone    - seq_work) ; Tone number in OPL4
+0194+  61C5             IDX_KEY:       equ 	(seq_ch1_key     - seq_work) ; data in Key register
+0195+  61C5             IDX_DAMP:      equ 	(seq_ch1_damp    - seq_work) ; Damp switch
+0196+  61C5             IDX_LFO:       equ 	(seq_ch1_lfo     - seq_work) ; LFO switch
+0197+  61C5             IDX_LFO_VIB:   equ 	(seq_ch1_lfo_vib - seq_work) ; LFO and VIB
+0198+  61C5             IDX_AR_D1R:    equ 	(seq_ch1_ar_d1r  - seq_work) ; AR and D1R
+0199+  61C5             IDX_DL_D2R:    equ 	(seq_ch1_dl_d2r  - seq_work) ; DL and D2R 
+0200+  61C5             IDX_RC_RR:     equ 	(seq_ch1_rc_rr   - seq_work) ; RC and RR
+0201+  61C5             IDX_AM:        equ 	(seq_ch1_am      - seq_work) ; AM
+0202+  61C5             IDX_NOTE:      equ 	(seq_ch1_note    - seq_work) ; Note data
+0203+  61C5             IDX_PITCH:     equ 	(seq_ch1_pitch   - seq_work) ; Pitch data
+0204+  61C5             IDX_P_OFS:     equ 	(seq_ch1_p_ofs   - seq_work) ; Offset for pitch
+0205+  61C5             IDX_OCT:       equ 	(seq_ch1_oct     - seq_work) ; Octave in OPL4
+0206+  61C5             IDX_FNUM:      equ 	(seq_ch1_fnum    - seq_work) ; F-number in OPL4
+0207+  61C5             IDX_REVERB:    equ 	(seq_ch1_reverb  - seq_work) ; Pseudo reverb
+0208+  61C5             IDX_VOL:       equ 	(seq_ch1_vol     - seq_work) ; Volume in OPL4
+0209+  61C5             IDX_PAN:       equ 	(seq_ch1_pan     - seq_work) ; Pan in OPL4
+0210+  61C5             IDX_DETUNE:    equ 	(seq_ch1_detune  - seq_work) ; Detune
+0211+  61C5             IDX_VENV:      equ 	(seq_ch1_venv    - seq_work) ; Volume envelope in data
+0212+  61C5             IDX_NENV:      equ 	(seq_ch1_nenv    - seq_work) ; Vote envelope  in data
+0213+  61C5             IDX_PENV:      equ 	(seq_ch1_penv    - seq_work) ; Pitch envelope in data
+0214+  61C5             IDX_NENV_ADR:  equ 	(seq_ch1_nenv_adr - seq_work)
+0215+  61C5             IDX_PENV_ADR:  equ 	(seq_ch1_penv_adr - seq_work)
+0216+  61C5             IDX_VENV_ADR:  equ 	(seq_ch1_venv_adr - seq_work)
+0217+  61C5             
+0218+  61C5             IDX_VOLOP:     equ 	(seq_ch1_reverb  - seq_work) ; Volume Operator in connect
+0219+  61C5             IDX_OLDAT1:    equ 	(seq_ch1_ar_d1r  - seq_work) ; Volume Data for 1stOP
+0220+  61C5             
+0221+  61C5             ;-------------------------------------------------------------------
+0222+  61C5             ; Note : IDX_SYNTH OxxFFFSS
+0223+  61C5             ; O : 4OP mode
+0224+  61C5             ; F : FeedBack
+0225+  61C5             ; S : SynthType (bit0 for 1st&2nd bit1 for 3rd&4th)
+0226+  61C5             ;-------------------------------------------------------------------
+0227+  61C5             SEQ_WORKSIZE:  equ 	(seq_work_end - seq_work)
+0228+  61C5             
+0229+  61C5 00          	ds	(SEQ_WORKSIZE * (USE_CH-1))
+0230+  687F             
+0231+  687F             seq_data_end: 
+0232+  687F             
+0233+  687F             	db	"PianoTone"			; Piano OPL4
+0233+  687F 5069616E6F546F6E65
+0234+  6888             piano_tone: 
+0235+  6888 14 27       	db	14h,27h				; min -> max
+0236+  688A 2C 01       	dw	012ch				; tone
+0237+  688C 32 1D       	dw	7474				; pitch offset
+0238+  688E 20F2130800  	db 	20h,0f2h,13h,08h,00h ;regs
+0239+  6893             	
+0240+  6893             
+0241+  6893 28 2D       	db	28h,2dh
+0242+  6895 2D 01       	dw	012dh
+0243+  6897 A0 1A       	dw	6816
+0244+  6899 20F2140800  	db	20h,0f2h,14h,08h,00h 
+0245+  689E             
+0246+  689E 2E 33       	db	2eh,33h
+0247+  68A0 2E 01       	dw	012eh
+0248+  68A2 0B 17       	dw	5899
+0249+  68A4 20F2140800  	db	20h,0f2h,14h,08h,00h
+0250+  68A9             	
+0251+  68A9 34 39       	db	34h,39h
+0252+  68AB 2F 01       	dw	012fh
+0253+  68AD AA 14       	dw	5290
+0254+  68AF 20F2140800  	db	20h,0f2h,14h,08h,00h
+0255+  68B4             	
+0256+  68B4 3A 3F       	db	3ah,3fh
+0257+  68B6 30 01       	dw	0130h
+0258+  68B8 A4 10       	dw	4260
+0259+  68BA 20F2140800  	db	20h,0f2h,14h,08h,00h
+0260+  68BF             
+0261+  68BF 40 45       	db	40h,45h
+0262+  68C1 31 01       	dw	0131h
+0263+  68C3 29 0E       	dw	3625
+0264+  68C5 20F2140800  	db	20h,0f2h,14h,08h,00h
+0265+  68CA             
+0266+  68CA 46 4B       	db	46h,4bh
+0267+  68CC 32 01       	dw	0132h
+0268+  68CE 2C 0C       	dw	3116
+0269+  68D0 20F2140800  	db	20h,0f2h,14h,08h,00h
+0270+  68D5             
+0271+  68D5 4C 52       	db	4ch,52h
+0272+  68D7 33 01       	dw	0133h
+0273+  68D9 21 08       	dw	2081
+0274+  68DB 20F2141800  	db	20h,0f2h,14h,18h,00h
+0275+  68E0             
+0276+  68E0 53 58       	db	53h,58h
+0277+  68E2 34 01       	dw	0134h
+0278+  68E4 A4 05       	dw	1444
+0279+  68E6 20F3141800  	db  	20h,0f3h,14h,18h,00h
+0280+  68EB             
+0281+  68EB 59 6D       	db	59h,6dh
+0282+  68ED 35 01       	dw	0135h
+0283+  68EF 7B 07       	dw	1915
+0284+  68F1 20F4150800  	db  	20h,0f4h,15h,08h,00h
+0285+  68F6             
+0286+  68F6             	; terminator ( both min and max should be zero )
+0287+  68F6 00 00       	db	0,0
+0288+  68F8 00 00       	dw	0
+0289+  68FA 00 00       	dw	0
+0290+  68FC 0000000000  	db  	0,0,0,0,0
+0291+  6901             ;-------------------------------------------------------------------
+0292+  6901             ; F-Number table for OPL3
+0293+  6901             ;-------------------------------------------------------------------
+0294+  6901             fm_fnumtbl_old: 
+0295+  6901 5A 01       	dw	346 ; C
+0296+  6903 6F 01       	dw	367 ; C+
+0297+  6905 85 01       	dw	389 ; D
+0298+  6907 9C 01       	dw	412 ; D+
+0299+  6909 B4 01       	dw	436 ; E
+0300+  690B CE 01       	dw	462 ; F
+0301+  690D EA 01       	dw	490 ; F+
+0302+  690F 07 02       	dw	519 ; G
+0303+  6911 26 02       	dw	550 ; G+
+0304+  6913 46 02       	dw	582 ; A
+0305+  6915 69 02       	dw	617 ; A+
+0306+  6917 8E 02       	dw	654 ; B
+0307+  6919 B5 02       	dw	693 ; C
+0308+  691B             	
+0309+  691B             fm_fnumtbl: 
+0310+  691B 59 01       	dw	345 ; C 523.300000
+0311+  691D 6D 01       	dw	365 ; C+ 554.400000
+0312+  691F 83 01       	dw	387 ; D 587.300000
+0313+  6921 9A 01       	dw	410 ; D+ 622.300000
+0314+  6923 B3 01       	dw	435 ; E 659.300000
+0315+  6925 CC 01       	dw	460 ; F 698.500000
+0316+  6927 E8 01       	dw	488 ; F+ 740.000000
+0317+  6929 05 02       	dw	517 ; G 784.000000
+0318+  692B 23 02       	dw	547 ; G+ 830.600000
+0319+  692D 44 02       	dw	580 ; A 880.000000
+0320+  692F 66 02       	dw	614 ; A+ 932.300000
+0321+  6931 8B 02       	dw	651 ; B 987.800000
+0322+  6933 B2 02       	dw	690 ; C 1046.500000
+0323+  6935             ;-------------------------------------------------------------------
+0324+  6935             ; Tonedata for OPL3
+0325+  6935             ;-------------------------------------------------------------------
+0326+  6935             fm_testtone: 
+0327+  6935 00          	db	00h ; FBS
+0328+  6936 00          	db	00h ; FBS2
+0329+  6937 00          	db	00h ; BD
+0330+  6938             
+0331+  6938 01          	db	01h ; TREMOLO VIB SUS KSR MUL
+0332+  6939 00          	db	00h ; KSL OL
+0333+  693A 11          	db	11h ; AR DR
+0334+  693B 13          	db	13h ; SL RR
+0335+  693C 01          	db	01h ; WF
+0336+  693D             	           
+0337+  693D 04          	db	04h ;
+0338+  693E 00          	db	00h;
+0339+  693F 11          	db	11h ;
+0340+  6940 18          	db	18h ; 
+0341+  6941 00          	db	00h ; WF
+0342+  6942             
+0343+  6942 01          	db	01h
+0344+  6943 3F          	db	3fh
+0345+  6944 55          	db	55h
+0346+  6945 55          	db	55h
+0347+  6946 00          	db	00h
+0348+  6947             
+0349+  6947 01          	db	01h
+0350+  6948 3F          	db	3fh
+0351+  6949 55          	db	55h
+0352+  694A 55          	db	55h
+0353+  694B 00          	db	00h
+0354+  694C             
+0355+  694C             fm_op2reg_tbl: 
+0356+  694C 00          	db	00h ; 0
+0357+  694D 01          	db	01h
+0358+  694E 02          	db	02h ; 2
+0359+  694F 03          	db	03h
+0360+  6950 04          	db	04h ; 4
+0361+  6951 05          	db	05h
+0362+  6952 08          	db	08h ; 6
+0363+  6953 09          	db	09h
+0364+  6954 0A          	db	0Ah ; 8
+0365+  6955 0B          	db	0Bh
+0366+  6956 0C          	db	0Ch ; 10
+0367+  6957 0D          	db	0Dh
+0368+  6958 10          	db	10h ; 12
+0369+  6959 11          	db	11h
+0370+  695A 12          	db	12h ; 14
+0371+  695B 13          	db	13h
+0372+  695C 14          	db	14h ; 16
+0373+  695D 15          	db	15h ; 17
+0374+  695E             	           
+0375+  695E             
+0376+  695E             
+0377+  695E             fm_opbtbl: 
+0378+  695E 00          	db	00h ; CH0
+0379+  695F 01          	db	01h ; CH1
+0380+  6960 02          	db	02h ; CH2
+0381+  6961 06          	db	06h ; CH3
+0382+  6962 07          	db	07h ; CH4
+0383+  6963 08          	db	08h ; CH5
+0384+  6964 0C          	db	0ch ; CH6
+0385+  6965 0D          	db	0dh ; CH7
+0386+  6966 0E          	db	0eh ; CH8
+0387+  6967 12          	db	12h ; CH9
+0388+  6968 13          	db	13h ; CH10
+0389+  6969 14          	db	14h ; CH11
+0390+  696A 18          	db	18h ; CH12
+0391+  696B 19          	db	19h ; CH13
+0392+  696C 1A          	db	1ah ; CH14
+0393+  696D 1E          	db	1eh ; CH15
+0394+  696E 1F          	db	1fh ; CH16
+0395+  696F 20          	db	20h ; CH17
+0396+  6970             ;-------------------------------------------------------------------
+0397+  6970             ; BSMCH
+0398+  6970             ;-------------------------------------------------------------------
+0399+  6970             fm_drum_fnum: 
+0400+  6970 20 01       	dw 	0120h ; B
+0401+  6972 50 01       	dw 	0150h ; S
+0402+  6974 C0 01       	dw 	01c0h ; M
+0403+  6976 C0 01       	dw 	01c0h ; C
+0404+  6978 50 01       	dw 	0150h ; H
+0405+  697A             
+0406+  697A             fm_drum_fnum_map: 
+0407+  697A 06          	db 	06h ; B
+0408+  697B 07          	db 	07h ; S
+0409+  697C 08          	db 	08h ; M
+0410+  697D 08          	db 	08h ; C
+0411+  697E 07          	db 	07h ; H
+0412+  697F             
+0413+  697F             fm_drum_oct: 
+0414+  697F 02          	db 	02h ; B
+0415+  6980 02          	db 	02h ; S
+0416+  6981 00          	db 	00h ; M
+0417+  6982 00          	db 	00h ; C
+0418+  6983 02          	db 	02h ; H
+0419+  6984             ;-------------------------------------------------------------------
+0420+  6984             ; ÓÔËÒ‡ÌËÂ: œÓÎÛ˜ÂÌËÂ ‡‰ÂÒ‡ Ô‡ÏˇÚË ËÁ Ú‡·ÎËˆ˚
+0421+  6984             ; Ô‡‡ÏÂÚ˚: HL - ‡‰ÂÒ Ú‡·ÎËˆ˚
+0422+  6984             ; ‚ÓÁ‚‡˘‡ÂÏÓÂ  ÁÌ‡˜ÂÌËÂ: HL - ‡‰ÂÒ Ô‡ÏˇÚË
+0423+  6984             ;---------------------------------------------------------------------
+0424+  6984             get_table: 
+0425+  6984 5F          	ld	e, a
+0426+  6985 16 00       	ld	d, 0
+0427+  6987             
+0428+  6987 7E          	ld	a, (hl)
+0429+  6988 23          	inc	hl
+0430+  6989 66          	ld	h, (hl)
+0431+  698A 6F          	ld	l, a
+0432+  698B             
+0433+  698B D5          	push	de
+0434+  698C 11 00 40    	ld	de,S_ADDR_CORRECT
+0435+  698F 19          	add	hl,de
+0436+  6990 D1          	pop	de	
+0437+  6991             
+0438+  6991 19          	add	hl, de
+0439+  6992 19          	add	hl, de
+0440+  6993             
+0441+  6993 7E          	ld	a, (hl)
+0442+  6994 23          	inc	hl
+0443+  6995 66          	ld	h, (hl)
+0444+  6996 6F          	ld	l, a
+0445+  6997             
+0446+  6997 11 00 40    	ld	de,S_ADDR_CORRECT
+0447+  699A 19          	add	hl,de
+0448+  699B             
+0449+  699B C9          	ret
+0450+  699C             ;-------------------------------------------------------------------
+0451+  699C             ; ÓÔËÒ‡ÌËÂ: œÓÎÛ˜ÂÌËÂ ‰‡ÌÌ˚ı Ô‡ÏˇÚË ÔÓ ‡‰ÂÒÛ ËÁ Ú‡·ÎËˆ˚
+0452+  699C             ; Ô‡‡ÏÂÚ˚: HL - ‡‰ÂÒ Ú‡·ÎËˆ˚
+0453+  699C             ; ‚ÓÁ‚‡˘‡ÂÏÓÂ  ÁÌ‡˜ÂÌËÂ: ¿ - ‰‡ÌÌ˚Â
+0454+  699C             ;---------------------------------------------------------------------
+0455+  699C             get_a_table
+0456+  699C 3A 8F 61    	ld	a,(seq_cur_ch)
+0457+  699F 5F          	ld	e,a
+0458+  69A0 16 00       	ld	d,0
+0459+  69A2             
+0460+  69A2 7E          	ld	a,(hl)
+0461+  69A3 23          	inc	hl
+0462+  69A4 66          	ld	h,(hl)
+0463+  69A5 6F          	ld	l,a
+0464+  69A6             
+0465+  69A6 D5          	push	de
+0466+  69A7 11 00 40    	ld	de,S_ADDR_CORRECT
+0467+  69AA 19          	add	hl,de
+0468+  69AB D1          	pop	de	
+0469+  69AC             
+0470+  69AC 19          	add	hl,de
+0471+  69AD             
+0472+  69AD 7E          	ld	a,(hl)
+0473+  69AE C9          	ret
+0474+  69AF             ;-------------------------------------------------------------------
+0475+  69AF             ; moon_seq_init
+0476+  69AF             ; initializes all channel's work
+0477+  69AF             ; dest : ALL
+0478+  69AF             ;-------------------------------------------------------------------
+0479+  69AF             moon_seq_init: 
+0480+  69AF AF          	xor	a
+0481+  69B0 21 8F 61    	ld	hl,seq_cur_ch
+0482+  69B3 11 90 61    	ld	de,seq_cur_ch +1
+0483+  69B6 01 F0 06    	ld	bc,seq_data_end - seq_cur_ch
+0484+  69B9 77          	ld	(hl),a
+0485+  69BA ED B0       	ldir		
+0486+  69BC             
+0487+  69BC 3A 07 C0    	ld	a, (S_DEVICE_FLAGS)
+0488+  69BF B7          	or	a
+0489+  69C0 20 02       	jr	nz, skip_def_device
+0490+  69C2 3E 01       	ld	a, 1 ; OPL4 by default
+0491+  69C4             skip_def_device: 
+0492+  69C4 47          	ld	b,a
+0493+  69C5             
+0494+  69C5 FD 21 5E 69 	ld	iy, fm_opbtbl
+0495+  69C9 DD 21 9B 61 	ld	ix, seq_work
+0496+  69CD             
+0497+  69CD 16 00       	ld	d, 0
+0498+  69CF 1E 18       	ld	e, 18h ; 24channels ; OPL4
+0499+  69D1             
+0500+  69D1 CB 18       	rr	b
+0501+  69D3 DC E3 69    	call	c, seq_init_chan
+0502+  69D6             
+0503+  69D6 14          	inc	d
+0504+  69D7 1E 12       	ld	e, 12h ; 18channels
+0505+  69D9 CB 18       	rr	b
+0506+  69DB DC E3 69    	call	c, seq_init_chan ; OPL3
+0507+  69DE             
+0508+  69DE DD 21 9B 61 	ld	ix, seq_work
+0509+  69E2 C9          	ret
+0510+  69E3             ;-------------------------------------------------------------------
+0511+  69E3             ; seq_init_chan
+0512+  69E3             ; in   : D = device, E = channels
+0513+  69E3             ; dest : AF,E
+0514+  69E3             ;-------------------------------------------------------------------
+0515+  69E3             seq_init_chan: 
+0516+  69E3             
+0517+  69E3 7A          	ld	a,d
+0518+  69E4 B7          	or	a
+0519+  69E5 28 06       	jr	z,skip_set_start_fm 		; if device isn't OPL3 then skip
+0520+  69E7             
+0521+  69E7 3A 90 61    	ld	a, (seq_use_ch)
+0522+  69EA 32 91 61    	ld	(seq_start_fm), a
+0523+  69ED             
+0524+  69ED             skip_set_start_fm: 
+0525+  69ED 3A 90 61    	ld	a, (seq_use_ch)
+0526+  69F0 83          	add	a,e
+0527+  69F1 32 90 61    	ld	(seq_use_ch), a
+0528+  69F4             
+0529+  69F4             
+0530+  69F4             seq_init_chan_lp: 
+0531+  69F4 AF          	xor	a
+0532+  69F5 DD 77 04    	ld	(ix + IDX_CNT),a
+0533+  69F8 7A          	ld	a,d
+0534+  69F9 DD 77 00    	ld	(ix + IDX_DSEL),a
+0535+  69FC             
+0536+  69FC D5          	push	de
+0537+  69FD 3E FF       	ld	a, 0ffh
+0538+  69FF DD 77 21    	ld	(ix + IDX_VENV), a
+0539+  6A02 DD 77 23    	ld	(ix + IDX_PENV), a
+0540+  6A05 DD 77 22    	ld	(ix + IDX_NENV), a
+0541+  6A08 DD 77 20    	ld	(ix + IDX_DETUNE), a
+0542+  6A0B DD 7E 00    	ld	a,(ix + IDX_DSEL)
+0543+  6A0E B7          	or	a
+0544+  6A0F 28 22       	jr 	z,init_op4tone
+0545+  6A11             
+0546+  6A11             init_fmtone: 
+0547+  6A11 21 35 69    	ld	hl,fm_testtone
+0548+  6A14 DD 75 09    	ld	(ix + IDX_TADR), l
+0549+  6A17 DD 74 0A    	ld	(ix + IDX_TADR+1), h
+0550+  6A1A 3E 30       	ld	a,30h
+0551+  6A1C DD 77 1F    	ld	(ix + IDX_PAN), a
+0552+  6A1F 3E 02       	ld	a,2
+0553+  6A21 DD 77 1D    	ld	(ix + IDX_VOLOP), a
+0554+  6A24 3E 3F       	ld	a,3fh
+0555+  6A26 DD 77 1E    	ld	(ix + IDX_VOL),a
+0556+  6A29 FD 7E 00    	ld	a,(iy)
+0557+  6A2C DD 77 01    	ld	(ix + IDX_OPSEL),a
+0558+  6A2F FD 23       	inc	iy
+0559+  6A31 18 0D       	jr	init_tone_fin
+0560+  6A33             
+0561+  6A33             init_op4tone: 
+0562+  6A33 21 88 68    	ld	hl,piano_tone
+0563+  6A36 DD 75 09    	ld	(ix + IDX_TADR),l
+0564+  6A39 DD 74 0A    	ld	(ix + IDX_TADR+1),h
+0565+  6A3C AF          	xor	a
+0566+  6A3D DD 77 1F    	ld	(ix + IDX_PAN),a
+0567+  6A40             
+0568+  6A40             init_tone_fin: 
+0569+  6A40             
+0570+  6A40 21 10 C0    	ld	hl, S_TRACK_TABLE
+0571+  6A43 3A 8F 61    	ld	a, (seq_cur_ch)
+0572+  6A46 CD 84 69    	call	get_table
+0573+  6A49             
+0574+  6A49 DD 75 07    	ld	(ix + IDX_ADDR), l
+0575+  6A4C DD 74 08    	ld	(ix + IDX_ADDR+1), h
+0576+  6A4F             
+0577+  6A4F 21 12 C0    	ld	hl, S_TRACK_BANK
+0578+  6A52 CD 9C 69    	call	get_a_table
+0579+  6A55 DD 77 06    	ld	(ix + IDX_BANK),a
+0580+  6A58             
+0581+  6A58             	; next work
+0582+  6A58 11 2A 00    	ld	de, SEQ_WORKSIZE
+0583+  6A5B DD 19       	add	ix, de
+0584+  6A5D             
+0585+  6A5D D1          	pop	de
+0586+  6A5E             	
+0587+  6A5E             	; next channel
+0588+  6A5E 3A 8F 61    	ld	a, (seq_cur_ch)
+0589+  6A61 3C          	inc	a
+0590+  6A62 32 8F 61    	ld	(seq_cur_ch), a
+0591+  6A65             
+0592+  6A65 1D          	dec	e
+0593+  6A66 20 8C       	jr	nz,seq_init_chan_lp
+0594+  6A68 C9          	ret
+0595+  6A69             ;-------------------------------------------------------------------
+0596+  6A69             ; seq_init_fmbase
+0597+  6A69             ; initializes all fmbase
+0598+  6A69             ; dest : ALL
+0599+  6A69             ;-------------------------------------------------------------------
+0600+  6A69             seq_init_fmbase: 
+0601+  6A69 DD 21 9B 61 	ld	ix, seq_work
+0602+  6A6D 06 12       	ld	b, 18 ; num of fmchan
+0603+  6A6F 21 5E 69    	ld	hl, fm_opbtbl
+0604+  6A72             seq_init_fmbase_lp1: 
+0605+  6A72 7E          	ld	a, (hl)
+0606+  6A73 DD 77 01    	ld	(ix + IDX_OPSEL), a
+0607+  6A76 23          	inc	hl
+0608+  6A77 11 2A 00    	ld	de, SEQ_WORKSIZE
+0609+  6A7A DD 19       	add	ix, de
+0610+  6A7C 10 F4       	djnz	seq_init_fmbase_lp1
+0611+  6A7E C9          	ret
+0612+  6A7F             ;-------------------------------------------------------------------
+0613+  6A7F             ;seq_all_keyoff
+0614+  6A7F             ;this makes all keys off
+0615+  6A7F             ;-------------------------------------------------------------------
+0616+  6A7F             moon_seq_all_keyoff: 
+0617+  6A7F DD 21 9B 61 	ld	ix,seq_work
+0618+  6A83 AF          	xor	a
+0619+  6A84 32 8F 61    	ld	(seq_cur_ch), a
+0620+  6A87             seq_all_keyoff_lp: 
+0621+  6A87             
+0622+  6A87 CD 25 73    	call	moon_key_off
+0623+  6A8A             
+0624+  6A8A 11 2A 00    	ld	de, SEQ_WORKSIZE
+0625+  6A8D DD 19       	add	ix, de
+0626+  6A8F             
+0627+  6A8F 3A 90 61    	ld	a, (seq_use_ch)
+0628+  6A92 5F          	ld	e, a
+0629+  6A93 3A 8F 61    	ld	a, (seq_cur_ch)
+0630+  6A96 BB          	cp	e
+0631+  6A97 30 06       	jr	nc,seq_all_keyoff_end
+0632+  6A99             
+0633+  6A99 3C          	inc	a
+0634+  6A9A 32 8F 61    	ld	(seq_cur_ch), a
+0635+  6A9D 18 E8       	jr	seq_all_keyoff_lp
+0636+  6A9F             	
+0637+  6A9F             seq_all_keyoff_end: 
+0638+  6A9F C9          	ret
+0639+  6AA0             ;-------------------------------------------------------------------
+0640+  6AA0             ; moon_proc_tracks
+0641+  6AA0             ; Process tracks in 1/60 interrupts
+0642+  6AA0             ;-------------------------------------------------------------------
+0643+  6AA0             moon_proc_tracks: 
+0644+  6AA0 DD 21 9B 61 	ld	ix,seq_work
+0645+  6AA4 AF          	xor	a
+0646+  6AA5 32 8F 61    	ld	(seq_cur_ch),a
+0647+  6AA8             
+0648+  6AA8             proc_tracks_lp: 
+0649+  6AA8 CD C1 6B    	call	proc_venv
+0650+  6AAB CD F7 6B    	call	proc_penv
+0651+  6AAE CD 84 6C    	call	proc_nenv
+0652+  6AB1 CD E3 6B    	call	proc_venv_reg
+0653+  6AB4 CD 2A 6D    	call	proc_freq_reg
+0654+  6AB7 CD D6 6A    	call	seq_track
+0655+  6ABA 11 2A 00    	ld	de,SEQ_WORKSIZE
+0656+  6ABD DD 19       	add	ix,de
+0657+  6ABF 3A 90 61    	ld	a, (seq_use_ch)
+0658+  6AC2 5F          	ld	e, a
+0659+  6AC3 3A 8F 61    	ld	a, (seq_cur_ch)
+0660+  6AC6 3C          	inc	a
+0661+  6AC7 BB          	cp	e
+0662+  6AC8 30 05       	jr	nc,proc_tracks_end
+0663+  6ACA 32 8F 61    	ld	(seq_cur_ch),a
+0664+  6ACD 18 D9       	jr	proc_tracks_lp
+0665+  6ACF             	
+0666+  6ACF             proc_tracks_end: 
+0667+  6ACF 3A 95 61    	ld 	a,(seq_jump_flag)
+0668+  6AD2 B7          	or 	a
+0669+  6AD3 C8          	ret 	z
+0670+  6AD4 18 CA       	jr 	moon_proc_tracks
+0671+  6AD6             ;-------------------------------------------------------------------
+0672+  6AD6             ;seq_track
+0673+  6AD6             ;Count down and process in a channel
+0674+  6AD6             ;-------------------------------------------------------------------
+0675+  6AD6             seq_track: 
+0676+  6AD6 DD 7E 04    	ld	a,(ix + IDX_CNT)
+0677+  6AD9 B7          	or	a
+0678+  6ADA 28 05       	jr	z,seq_cnt_zero
+0679+  6ADC 3D          	dec	a
+0680+  6ADD DD 77 04    	ld	(ix + IDX_CNT),a
+0681+  6AE0 C9          	ret
+0682+  6AE1             
+0683+  6AE1             seq_cnt_zero: 
+0684+  6AE1 DD 6E 07    	ld	l, (ix + IDX_ADDR)
+0685+  6AE4 DD 66 08    	ld	h, (ix + IDX_ADDR + 1)
+0686+  6AE7             seq_track_lp: 
+0687+  6AE7             	; Read command from memory
+0688+  6AE7 7E          	ld	a, (hl) 
+0689+  6AE8 23          	inc	hl
+0690+  6AE9 FE E0       	cp	0e0h
+0691+  6AEB 30 03       	jr	nc, seq_command
+0692+  6AED C3 0E 6B    	jp	seq_repeat_or_note
+0693+  6AF0             
+0694+  6AF0             seq_command: 
+0695+  6AF0 01 E7 6A    	ld	bc, seq_track_lp
+0696+  6AF3 C5          	push	bc ; <- return address
+0697+  6AF4 E5          	push	hl ; <- Preserve HL as pointer 
+0698+  6AF5 C6 20       	add	a, 20h
+0699+  6AF7 CB 27       	sla	a
+0700+  6AF9 6F          	ld	l, a
+0701+  6AFA 26 00       	ld	h, 0
+0702+  6AFC 01 76 6B    	ld	bc, seq_jmptable
+0703+  6AFF 09          	add	hl, bc
+0704+  6B00             
+0705+  6B00             	; Read address from table
+0706+  6B00 7E          	ld	a, (hl)
+0707+  6B01 23          	inc	hl
+0708+  6B02 66          	ld	h, (hl)
+0709+  6B03 6F          	ld	l,a
+0710+  6B04 E9          	jp	(hl)
+0711+  6B05             ;-------------------------------------------------------------------
+0712+  6B05             ; seq_next
+0713+  6B05             ; preserves  address and do next
+0714+  6B05             ; in   : HL
+0715+  6B05             ; dest : AF
+0716+  6B05             ;-------------------------------------------------------------------
+0717+  6B05             seq_next: 
+0718+  6B05 DD 75 07    	ld	(ix + IDX_ADDR),l
+0719+  6B08 DD 74 08    	ld	(ix + IDX_ADDR+1),h
+0720+  6B0B 18 C9       	jr	seq_track
+0721+  6B0D             
+0722+  6B0D C9          	ret
+0723+  6B0E             ;********************************************
+0724+  6B0E             ; seq_repeat_or_note
+0725+  6B0E             ;
+0726+  6B0E             ; n < $90 =  note
+0727+  6B0E             ; $A0     =  repeat_end
+0728+  6B0E             ; $A1     =  repeat_esc
+0729+  6B0E             
+0730+  6B0E             seq_repeat_or_note: 
+0731+  6B0E FE 90       	cp	90h
+0732+  6B10 38 36       	jr	c,seq_note
+0733+  6B12             
+0734+  6B12 FE A1       	cp	0a1h
+0735+  6B14 28 0D       	jr	z,seq_repeat_esc
+0736+  6B16             
+0737+  6B16             ;********************************************
+0738+  6B16             seq_repeat_end: 
+0739+  6B16 DD 7E 05    	ld	a,(ix + IDX_LOOP)
+0740+  6B19 FE 01       	cp	1
+0741+  6B1B 28 13       	jr	z,seq_skip_rep_jmp
+0742+  6B1D             
+0743+  6B1D B7          	or	a
+0744+  6B1E 20 01       	jr	nz,seq_skip_set_repcnt_end
+0745+  6B20             
+0746+  6B20 7E          	ld	a,(hl)    ; read repeat counter
+0747+  6B21             
+0748+  6B21             seq_skip_set_repcnt_end: 
+0749+  6B21 18 17       	jr	seq_rep_jmp
+0750+  6B23             
+0751+  6B23             ;********************************************
+0752+  6B23             seq_repeat_esc: 
+0753+  6B23 DD 7E 05    	ld	a,(ix + IDX_LOOP)
+0754+  6B26 FE 01       	cp	1
+0755+  6B28 28 10       	jr	z,seq_rep_jmp
+0756+  6B2A             
+0757+  6B2A B7          	or	a
+0758+  6B2B 20 01       	jr	nz,seq_skip_set_repcnt_esc
+0759+  6B2D             
+0760+  6B2D 7E          	ld	a,(hl)      ; read repeat counter
+0761+  6B2E             
+0762+  6B2E             seq_skip_set_repcnt_esc: 
+0763+  6B2E 18 00       	jr	seq_skip_rep_jmp
+0764+  6B30             
+0765+  6B30             seq_skip_rep_jmp: 
+0766+  6B30 23          	inc	hl
+0767+  6B31 3D          	dec	a
+0768+  6B32 DD 77 05    	ld	(ix + IDX_LOOP),a
+0769+  6B35 23          	inc	hl  ; bank
+0770+  6B36 23          	inc	hl  ; addr l
+0771+  6B37 23          	inc	hl  ; addr h
+0772+  6B38 18 CB       	jr	seq_next
+0773+  6B3A             
+0774+  6B3A             seq_rep_jmp: 
+0775+  6B3A 23          	inc	hl
+0776+  6B3B 3D          	dec	a
+0777+  6B3C DD 77 05    	ld	(ix + IDX_LOOP),a
+0778+  6B3F             
+0779+  6B3F 01 05 6B    	ld	bc,seq_next
+0780+  6B42 C5          	push	bc
+0781+  6B43 E5          	push	hl
+0782+  6B44             
+0783+  6B44 21 F3 6E    	ld	hl,seq_bank ; go to address
+0784+  6B47 E9          	jp	(hl)
+0785+  6B48             
+0786+  6B48             ;********************************************
+0787+  6B48             seq_note: 
+0788+  6B48 E5          	push	hl
+0789+  6B49             
+0790+  6B49 F5          	push	af
+0791+  6B4A DD 7E 00    	ld	a, (ix + IDX_DSEL)
+0792+  6B4D B7          	or	a
+0793+  6B4E 28 09       	jr	z,seq_note_opl4
+0794+  6B50             
+0795+  6B50             seq_note_fm: 
+0796+  6B50 F1          	pop	af
+0797+  6B51 DD 77 15    	ld	(ix + IDX_NOTE),a
+0798+  6B54 CD 7C 71    	call 	moon_set_fmnote
+0799+  6B57 18 0A       	jr	set_note_fin
+0800+  6B59             
+0801+  6B59             seq_note_opl4: 
+0802+  6B59             
+0803+  6B59 F1          	pop	af
+0804+  6B5A CD DB 6F    	call	conv_data_to_midi
+0805+  6B5D DD 77 15    	ld	(ix + IDX_NOTE),a
+0806+  6B60 CD 6F 71    	call	moon_set_midinote
+0807+  6B63             
+0808+  6B63             set_note_fin: 
+0809+  6B63 CD 8B 73    	call	moon_key_on
+0810+  6B66 E1          	pop	hl
+0811+  6B67             
+0812+  6B67             ; note length
+0813+  6B67 7E          	ld	a, (hl)
+0814+  6B68 DD 77 04    	ld	(ix + IDX_CNT),a
+0815+  6B6B 23          	inc	hl
+0816+  6B6C 18 97       	jr	seq_next
+0817+  6B6E             ; 
+0818+  6B6E             ;
+0819+  6B6E             read_cmd_length: 
+0820+  6B6E F1          	pop	af
+0821+  6B6F 7E          	ld	a, (hl)
+0822+  6B70 DD 77 04    	ld	(ix + IDX_CNT),a
+0823+  6B73 23          	inc	hl
+0824+  6B74 18 8F       	jr	seq_next
+0825+  6B76             
+0826+  6B76             
+0827+  6B76             seq_jmptable: 
+0828+  6B76 5E 6E       	dw	seq_drumnote ; $e0 : Set drum note
+0829+  6B78 E1 6D       	dw	seq_drumbit ; $e1 : Set drum bits
+0830+  6B7A 7B 6F       	dw	seq_jump   ; $e2 :
+0831+  6B7C 69 6F       	dw	seq_fbs    ; $e3 : Set FBS
+0832+  6B7E 50 6F       	dw	seq_tvp    ; $e4 : Set TVP
+0833+  6B80 32 6F       	dw	seq_ld2ops ; $e5 : Load 2OP Instrument
+0834+  6B82 2B 6F       	dw	seq_setop  ; $e6 : Set opbase
+0835+  6B84 3C 6D       	dw	seq_nop    ; $e7 : Pitch shift
+0836+  6B86 3C 6D       	dw	seq_nop    ; $e8 :
+0837+  6B88 25 6F       	dw	seq_slar   ; $e9 : Slar switch
+0838+  6B8A 1E 6F       	dw	seq_revbsw ; $ea : Reverb switch / VolumeOP
+0839+  6B8C 06 6F       	dw	seq_damp   ; $eb : Damp switch / OPMODE
+0840+  6B8E 3C 6D       	dw	seq_nop    ; $ec : LFO freq
+0841+  6B90 3C 6D       	dw	seq_nop    ; $ed : LFO mode
+0842+  6B92 F3 6E       	dw	seq_bank   ; $ee : Bank change
+0843+  6B94 EC 6E       	dw	seq_lfosw  ; $ef : Mode change
+0844+  6B96 D0 6E       	dw	seq_pan    ; $f0 : Set Pan
+0845+  6B98 A3 6E       	dw	seq_inst   ; $f1 : Load Instrument (4OP or OPL4)
+0846+  6B9A CB 6D       	dw	seq_drum   ; $f2 : Set Drum
+0847+  6B9C 3C 6D       	dw	seq_nop    ; $f3 :
+0848+  6B9E C7 6D       	dw	seq_wait   ; $f4 : Wait
+0849+  6BA0 9A 6D       	dw	seq_data_write ; $f5 : Data Write
+0850+  6BA2 3C 6D       	dw	seq_nop    ; $f6
+0851+  6BA4 8E 6D       	dw	seq_nenv   ; $f7 : Note  envelope
+0852+  6BA6 82 6D       	dw	seq_penv   ; $f8 : Pitch envelope
+0853+  6BA8 3E 6D       	dw	seq_skip_1 ; $f9 
+0854+  6BAA 7B 6D       	dw	seq_detune ; $fa : Detune
+0855+  6BAC 3C 6D       	dw	seq_nop    ; $fb : LFO
+0856+  6BAE 74 6D       	dw	seq_rest   ; $fc : Rest
+0857+  6BB0 57 6D       	dw	seq_volume ; $fd : Volume
+0858+  6BB2 3E 6D       	dw	seq_skip_1 ; $fe : Not used
+0859+  6BB4 41 6D       	dw	seq_loop   ; $ff : Loop
+0860+  6BB6             ;-------------------------------------------------------------------
+0861+  6BB6             ; Volume envelope stuff
+0862+  6BB6             ;-------------------------------------------------------------------
+0863+  6BB6             start_venv: 
+0864+  6BB6 DD 7E 21    	ld	a,(ix + IDX_VENV)
+0865+  6BB9 FE FF       	cp	0ffh
+0866+  6BBB C8          	ret	z
+0867+  6BBC             
+0868+  6BBC CD A0 6F    	call	set_venv_head
+0869+  6BBF 18 06       	jr	proc_venv_start
+0870+  6BC1             
+0871+  6BC1             proc_venv: 
+0872+  6BC1 DD 7E 21    	ld	a,(ix + IDX_VENV)
+0873+  6BC4 FE FF       	cp	0ffh
+0874+  6BC6 C8          	ret	z
+0875+  6BC7             
+0876+  6BC7             proc_venv_start: 
+0877+  6BC7 DD 6E 28    	ld	l,(ix + IDX_VENV_ADR)
+0878+  6BCA DD 66 29    	ld	h,(ix + IDX_VENV_ADR + 1)
+0879+  6BCD 7D          	ld	a,l
+0880+  6BCE B4          	or	h
+0881+  6BCF C8          	ret	z
+0882+  6BD0             
+0883+  6BD0 7E          	ld	a, (hl)
+0884+  6BD1 FE FF       	cp	0ffh
+0885+  6BD3 28 0B       	jr	z,proc_venv_end
+0886+  6BD5 23          	inc	hl
+0887+  6BD6 DD 75 28    	ld	(ix + IDX_VENV_ADR),l
+0888+  6BD9 DD 74 29    	ld	(ix + IDX_VENV_ADR + 1),h
+0889+  6BDC             
+0890+  6BDC DD 77 1E    	ld	(ix + IDX_VOL),a
+0891+  6BDF C9          	ret
+0892+  6BE0             
+0893+  6BE0             
+0894+  6BE0             proc_venv_end: 
+0895+  6BE0 C3 9A 6F    	jp	set_venv_loop
+0896+  6BE3             ;-------------------------------------------------------------------
+0897+  6BE3             ; Set venv's volume to register actually
+0898+  6BE3             ;-------------------------------------------------------------------
+0899+  6BE3             proc_venv_reg: 
+0900+  6BE3 DD 7E 21    	ld	a,(ix + IDX_VENV)
+0901+  6BE6 FE FF       	cp	0ffh
+0902+  6BE8 C8          	ret	z
+0903+  6BE9 C3 6A 72    	jp	moon_set_vol_ch
+0904+  6BEC             ;-------------------------------------------------------------------
+0905+  6BEC             ; Pitch envelope stuff
+0906+  6BEC             ;-------------------------------------------------------------------
+0907+  6BEC             start_penv: 
+0908+  6BEC DD 7E 23    	ld	a,(ix + IDX_PENV)
+0909+  6BEF FE FF       	cp	0ffh
+0910+  6BF1 C8          	ret	z
+0911+  6BF2             
+0912+  6BF2 CD B7 6F    	call	set_penv_head
+0913+  6BF5 18 06       	jr	proc_penv_start
+0914+  6BF7             
+0915+  6BF7             
+0916+  6BF7             proc_penv: 
+0917+  6BF7 DD 7E 23    	ld	a,(ix + IDX_PENV)
+0918+  6BFA FE FF       	cp	0ffh
+0919+  6BFC C8          	ret	z
+0920+  6BFD             proc_penv_start: 
+0921+  6BFD DD 6E 26    	ld	l,(ix + IDX_PENV_ADR)
+0922+  6C00 DD 66 27    	ld	h,(ix + IDX_PENV_ADR + 1)
+0923+  6C03             
+0924+  6C03 7E          	ld	a, (hl)
+0925+  6C04 FE FF       	cp	0ffh
+0926+  6C06 28 21       	jr	z,proc_penv_end
+0927+  6C08             
+0928+  6C08 23          	inc	hl
+0929+  6C09 DD 75 26    	ld	(ix + IDX_PENV_ADR),l
+0930+  6C0C DD 74 27    	ld	(ix + IDX_PENV_ADR + 1),h
+0931+  6C0F             
+0932+  6C0F F5          	push	af
+0933+  6C10 DD 7E 00    	ld	a,(ix + IDX_DSEL)
+0934+  6C13 B7          	or	a
+0935+  6C14 20 16       	jr	nz,proc_penv_fm
+0936+  6C16             
+0937+  6C16             proc_penv_opl4: 
+0938+  6C16 F1          	pop	af
+0939+  6C17             
+0940+  6C17 DD 6E 16    	ld	l,(ix + IDX_PITCH)
+0941+  6C1A DD 66 17    	ld	h,(ix + IDX_PITCH + 1)
+0942+  6C1D CD 55 71    	call	add_freq_offset
+0943+  6C20 DD 75 16    	ld	(ix + IDX_PITCH),l
+0944+  6C23 DD 74 17    	ld	(ix + IDX_PITCH+1),h
+0945+  6C26             
+0946+  6C26 C3 0F 71    	jp	moon_calc_opl4freq
+0947+  6C29             
+0948+  6C29             
+0949+  6C29             proc_penv_end: 
+0950+  6C29 C3 B1 6F    	jp	set_penv_loop
+0951+  6C2C             
+0952+  6C2C             proc_penv_fm: 
+0953+  6C2C F1          	pop	af
+0954+  6C2D DD 6E 1B    	ld	l,(ix + IDX_FNUM)
+0955+  6C30 DD 66 1C    	ld	h,(ix + IDX_FNUM + 1)
+0956+  6C33 CD 55 71    	call	add_freq_offset
+0957+  6C36             
+0958+  6C36 7C          	ld	a,h
+0959+  6C37 FE 80       	cp	80h
+0960+  6C39 30 14       	jr	nc,penv_fm_set_fnum
+0961+  6C3B             
+0962+  6C3B 11 5A 01    	ld	de,346
+0963+  6C3E CD 73 6C    	call	comp_hl_de
+0964+  6C41 38 15       	jr	c,penv_fm_dec_oct
+0965+  6C43 28 13       	jr	z,penv_fm_dec_oct
+0966+  6C45             
+0967+  6C45 11 B5 02    	ld	de,693
+0968+  6C48 CD 73 6C    	call	comp_hl_de
+0969+  6C4B 30 16       	jr	nc,penv_fm_inc_oct
+0970+  6C4D 28 14       	jr	z, penv_fm_inc_oct
+0971+  6C4F             
+0972+  6C4F             penv_fm_set_fnum: 
+0973+  6C4F DD 75 1B    	ld	(ix + IDX_FNUM), l
+0974+  6C52 DD 74 1C    	ld	(ix + IDX_FNUM+1), h
+0975+  6C55 C3 42 74    	jp	moon_key_fmfreq
+0976+  6C58             
+0977+  6C58             penv_fm_dec_oct: 
+0978+  6C58             	; hl < de
+0979+  6C58 DD 35 1A    	dec	(ix + IDX_OCT)
+0980+  6C5B 19          	add	hl,de
+0981+  6C5C CD 73 6C    	call	comp_hl_de
+0982+  6C5F 38 F7       	jr	c,penv_fm_dec_oct
+0983+  6C61             
+0984+  6C61 18 EC       	jr	penv_fm_set_fnum
+0985+  6C63             
+0986+  6C63             penv_fm_inc_oct: 
+0987+  6C63             	; hl > de
+0988+  6C63 01 5A 01    	ld	bc,346
+0989+  6C66             penv_fm_inc_oct_lp: 
+0990+  6C66 DD 34 1A    	inc	(ix + IDX_OCT)
+0991+  6C69 AF          	xor	a
+0992+  6C6A ED 42       	sbc	hl,bc
+0993+  6C6C CD 73 6C    	call	comp_hl_de
+0994+  6C6F 30 F5       	jr	nc,penv_fm_inc_oct_lp
+0995+  6C71 18 DC       	jr	penv_fm_set_fnum
+0996+  6C73             ;-------------------------------------------------------------------
+0997+  6C73             ; comp_hl_de
+0998+  6C73             ; Compare hl with de
+0999+  6C73             ; in   : HL,DE
+1000+  6C73             ; out  : C = (HL < DE), NC = (HL > DE), Z = (HL == DE)
+1001+  6C73             ; dest : AF
+1002+  6C73             ;-------------------------------------------------------------------
+1003+  6C73             comp_hl_de: 
+1004+  6C73 7C          	ld	a,h
+1005+  6C74 BA          	cp	d
+1006+  6C75 C0          	ret	nz
+1007+  6C76 7D          	ld	a,l
+1008+  6C77 BB          	cp	e
+1009+  6C78 C9          	ret
+1010+  6C79             ;-------------------------------------------------------------------
+1011+  6C79             ; Note envelope stuff
+1012+  6C79             ;-------------------------------------------------------------------
+1013+  6C79             start_nenv: 
+1014+  6C79 DD 7E 22    	ld	a,(ix + IDX_NENV)
+1015+  6C7C FE FF       	cp	0ffh
+1016+  6C7E C8          	ret	z
+1017+  6C7F             
+1018+  6C7F CD CC 6F    	call	set_nenv_head
+1019+  6C82 18 06       	jr	proc_nenv_start
+1020+  6C84             
+1021+  6C84             proc_nenv: 
+1022+  6C84 DD 7E 22    	ld	a,(ix + IDX_NENV)
+1023+  6C87 FE FF       	cp	0ffh
+1024+  6C89 C8          	ret	z
+1025+  6C8A             
+1026+  6C8A             proc_nenv_start: 
+1027+  6C8A DD 6E 24    	ld	l, (ix + IDX_NENV_ADR)
+1028+  6C8D DD 66 25    	ld	h, (ix + IDX_NENV_ADR + 1)
+1029+  6C90             
+1030+  6C90 7E          	ld	a, (hl)	
+1031+  6C91 FE FF       	cp	0ffh
+1032+  6C93 CA C6 6F    	jp	z, set_nenv_loop
+1033+  6C96             
+1034+  6C96 23          	inc	hl
+1035+  6C97 DD 75 24    	ld	(ix + IDX_NENV_ADR), l
+1036+  6C9A DD 74 25    	ld	(ix + IDX_NENV_ADR + 1), h
+1037+  6C9D             
+1038+  6C9D F5          	push	af
+1039+  6C9E DD 7E 00    	ld	a, (ix + IDX_DSEL)
+1040+  6CA1 B7          	or	a
+1041+  6CA2 20 1F       	jr	nz, proc_nenv_fm
+1042+  6CA4 18 00       	jr	proc_nenv_opl4
+1043+  6CA6             
+1044+  6CA6             proc_nenv_opl4: 
+1045+  6CA6 F1          	pop	af
+1046+  6CA7 CB 7F       	bit	7, a
+1047+  6CA9 20 0C       	jr	nz, proc_nenv_nega_opl4
+1048+  6CAB             
+1049+  6CAB DD 86 15    	add	a, (ix + IDX_NOTE)
+1050+  6CAE DD 77 15    	ld	(ix + IDX_NOTE), a
+1051+  6CB1             proc_nenv_opl4_setnote
+1052+  6CB1 CD 24 71    	call	moon_calc_midinote
+1053+  6CB4 C3 0F 71    	jp	moon_calc_opl4freq
+1054+  6CB7             
+1055+  6CB7             proc_nenv_nega_opl4: 
+1056+  6CB7 E6 7F       	and	7fh
+1057+  6CB9 5F          	ld	e, a
+1058+  6CBA DD 7E 15    	ld	a, (ix + IDX_NOTE)
+1059+  6CBD 93          	sub	e
+1060+  6CBE DD 77 15    	ld	(ix + IDX_NOTE), a
+1061+  6CC1 18 EE       	jr	proc_nenv_opl4_setnote
+1062+  6CC3             
+1063+  6CC3             proc_nenv_fm: 
+1064+  6CC3 F1          	pop	af
+1065+  6CC4 06 00       	ld	b, 0
+1066+  6CC6 CB 7F       	bit	7, a
+1067+  6CC8 20 30       	jr	nz, proc_nenv_fm_nega
+1068+  6CCA             proc_nenv_fm_lp1: 
+1069+  6CCA FE 0C       	cp	0ch
+1070+  6CCC 38 05       	jr	c, proc_nenv_fm_add
+1071+  6CCE D6 0C       	sub	0ch
+1072+  6CD0 04          	inc	b
+1073+  6CD1 18 F7       	jr	proc_nenv_fm_lp1
+1074+  6CD3             proc_nenv_fm_add: 
+1075+  6CD3 4F          	ld	c, a ; C = (note % 12)
+1076+  6CD4 DD 7E 15    	ld	a, (ix + IDX_NOTE)
+1077+  6CD7 E6 0F       	and	0fh
+1078+  6CD9 81          	add	a, c
+1079+  6CDA FE 0C       	cp	0ch
+1080+  6CDC 38 05       	jr	c, skip_nenv_inc_oct
+1081+  6CDE C6 04       	add	a,4
+1082+  6CE0 E6 0F       	and	0fh
+1083+  6CE2 04          	inc	b
+1084+  6CE3             skip_nenv_inc_oct: 
+1085+  6CE3 4F          	ld	c, a ; C = (note & 0x0f)
+1086+  6CE4 78          	ld	a, b ; B = oct
+1087+  6CE5 07          	rlca
+1088+  6CE6 07          	rlca
+1089+  6CE7 07          	rlca
+1090+  6CE8 07          	rlca
+1091+  6CE9 47          	ld	b, a
+1092+  6CEA DD 7E 15    	ld	a, (ix + IDX_NOTE)
+1093+  6CED E6 F0       	and	0f0h
+1094+  6CEF 80          	add	a, b
+1095+  6CF0 B1          	or	c
+1096+  6CF1 DD 77 15    	ld	(ix + IDX_NOTE), a
+1097+  6CF4 CD 7C 71    	call	moon_set_fmnote
+1098+  6CF7 C3 42 74    	jp	moon_key_fmfreq
+1099+  6CFA             
+1100+  6CFA             proc_nenv_fm_nega: 
+1101+  6CFA E6 7F       	and	7fh
+1102+  6CFC             
+1103+  6CFC             proc_nenv_fm_nega_lp1: 
+1104+  6CFC FE 0C       	cp	0ch
+1105+  6CFE 38 05       	jr	c,proc_nenv_fm_sub
+1106+  6D00 D6 0C       	sub	0ch
+1107+  6D02 04          	inc	b
+1108+  6D03 18 F7       	jr	proc_nenv_fm_nega_lp1
+1109+  6D05             proc_nenv_fm_sub: 
+1110+  6D05 4F          	ld	c, a ; C = (note % 12)
+1111+  6D06 DD 7E 15    	ld	a,(ix + IDX_NOTE)
+1112+  6D09 E6 0F       	and	0fh
+1113+  6D0B 91          	sub	c
+1114+  6D0C 30 05       	jr	nc,skip_nenv_dec_oct
+1115+  6D0E D6 04       	sub	4
+1116+  6D10 E6 0F       	and	0fh
+1117+  6D12 04          	inc	b
+1118+  6D13             skip_nenv_dec_oct: 
+1119+  6D13 4F          	ld	c,a ; C = (note & 0x0f)
+1120+  6D14 78          	ld	a,b ; B = oct
+1121+  6D15 07          	rlca
+1122+  6D16 07          	rlca
+1123+  6D17 07          	rlca
+1124+  6D18 07          	rlca
+1125+  6D19 47          	ld	b,a
+1126+  6D1A DD 7E 15    	ld	a,(ix + IDX_NOTE)
+1127+  6D1D E6 F0       	and	0f0h
+1128+  6D1F 90          	sub	b
+1129+  6D20 B1          	or	c
+1130+  6D21 DD 77 15    	ld	(ix + IDX_NOTE),a
+1131+  6D24 CD 7C 71    	call	moon_set_fmnote
+1132+  6D27 C3 42 74    	jp	moon_key_fmfreq
+1133+  6D2A             ;-------------------------------------------------------------------
+1134+  6D2A             ;Set frequency to registers actually
+1135+  6D2A             ;
+1136+  6D2A             ;-------------------------------------------------------------------
+1137+  6D2A             proc_freq_reg: 
+1138+  6D2A DD 7E 23    	ld	a,(ix + IDX_PENV)
+1139+  6D2D FE FF       	cp	0ffh
+1140+  6D2F 20 08       	jr	nz,proc_freq_to_moon
+1141+  6D31 DD 7E 22    	ld	a,(ix + IDX_NENV)
+1142+  6D34 FE FF       	cp	0ffh
+1143+  6D36 20 01       	jr	nz,proc_freq_to_moon
+1144+  6D38 C9          	ret
+1145+  6D39             proc_freq_to_moon: 
+1146+  6D39 C3 25 72    	jp	moon_set_freq_ch
+1147+  6D3C             ;-------------------------------------------------------------------
+1148+  6D3C             ; Subroutines to process sequence
+1149+  6D3C             ; dest : AF, BC, DE
+1150+  6D3C             ; No Program
+1151+  6D3C             ;-------------------------------------------------------------------
+1152+  6D3C             seq_nop: 
+1153+  6D3C E1          	pop	hl
+1154+  6D3D C9          	ret
+1155+  6D3E             
+1156+  6D3E             ; Skip the command with an augment
+1157+  6D3E             seq_skip_1: 
+1158+  6D3E E1          	pop	hl
+1159+  6D3F 23          	inc	hl
+1160+  6D40 C9          	ret
+1161+  6D41             
+1162+  6D41             
+1163+  6D41             ; cmd $FF : loop point
+1164+  6D41             seq_loop: 
+1165+  6D41 E1          	pop	hl
+1166+  6D42             
+1167+  6D42 21 14 C0    	ld	hl, S_LOOP_TABLE
+1168+  6D45 3A 8F 61    	ld	a, (seq_cur_ch)
+1169+  6D48 CD 84 69    	call	get_table
+1170+  6D4B             
+1171+  6D4B E5          	push	hl
+1172+  6D4C             
+1173+  6D4C 21 16 C0    	ld	hl, S_LOOP_BANK
+1174+  6D4F CD 9C 69    	call	get_a_table
+1175+  6D52 DD 77 06    	ld	(ix + IDX_BANK),a
+1176+  6D55             
+1177+  6D55 E1          	pop	hl
+1178+  6D56 C9          	ret
+1179+  6D57             
+1180+  6D57             ; cmd $FD : volume
+1181+  6D57             seq_volume: 
+1182+  6D57 E1          	pop	hl
+1183+  6D58             
+1184+  6D58 7E          	ld	a,(hl)
+1185+  6D59 DD 77 21    	ld	(ix + IDX_VENV),a
+1186+  6D5C             
+1187+  6D5C CB 7F       	bit	7,a
+1188+  6D5E 28 0F       	jr	z,seq_venv
+1189+  6D60 E6 7F       	and	7fh
+1190+  6D62             
+1191+  6D62 DD 77 1E    	ld	(ix + IDX_VOL),a
+1192+  6D65             
+1193+  6D65 3E FF       	ld	a, 0ffh
+1194+  6D67 DD 77 21    	ld	(ix + IDX_VENV),a  ; venv = off
+1195+  6D6A             
+1196+  6D6A CD 6A 72    	call	moon_set_vol_ch
+1197+  6D6D             
+1198+  6D6D 23          	inc	hl
+1199+  6D6E C9          	ret
+1200+  6D6F             
+1201+  6D6F             seq_venv: 
+1202+  6D6F             
+1203+  6D6F CD A0 6F    	call	set_venv_head
+1204+  6D72             
+1205+  6D72 23          	inc	hl
+1206+  6D73 C9          	ret
+1207+  6D74             
+1208+  6D74             ; cmd $FC : rest
+1209+  6D74             seq_rest: 
+1210+  6D74 E1          	pop	hl
+1211+  6D75 CD 25 73    	call	moon_key_off
+1212+  6D78 C3 6E 6B    	jp	read_cmd_length
+1213+  6D7B             
+1214+  6D7B             ; cmd $FA : detune
+1215+  6D7B             seq_detune: 
+1216+  6D7B E1          	pop	hl
+1217+  6D7C             
+1218+  6D7C 7E          	ld	a,(hl)
+1219+  6D7D DD 77 20    	ld	(ix + IDX_DETUNE),a
+1220+  6D80 23          	inc	hl
+1221+  6D81 C9          	ret
+1222+  6D82             
+1223+  6D82             ; cmd $F8 : pitch env
+1224+  6D82             seq_penv: 
+1225+  6D82 E1          	pop	hl
+1226+  6D83             
+1227+  6D83 7E          	ld	a, (hl)
+1228+  6D84 23          	inc	hl
+1229+  6D85             
+1230+  6D85 DD 77 23    	ld	(ix + IDX_PENV),a
+1231+  6D88 FE FF       	cp	0ffh
+1232+  6D8A C4 B7 6F    	call	nz,set_penv_head
+1233+  6D8D             
+1234+  6D8D C9          	ret
+1235+  6D8E             
+1236+  6D8E             ; cmd $F7 : note env
+1237+  6D8E             seq_nenv: 
+1238+  6D8E E1          	pop	hl
+1239+  6D8F             
+1240+  6D8F 7E          	ld	a, (hl)
+1241+  6D90 23          	inc	hl
+1242+  6D91             
+1243+  6D91 DD 77 22    	ld	(ix + IDX_NENV), a
+1244+  6D94 FE FF       	cp	0ffh
+1245+  6D96 C4 CC 6F    	call	nz,set_nenv_head
+1246+  6D99             
+1247+  6D99 C9          	ret
+1248+  6D9A             ;-------------------------------------------------------------------
+1249+  6D9A             ; cmd $F5 : data_write
+1250+  6D9A             ; in: low, high, data
+1251+  6D9A             ;-------------------------------------------------------------------
+1252+  6D9A             seq_data_write: 
+1253+  6D9A E1          	pop	hl
+1254+  6D9B 7E          	ld	a, (hl)
+1255+  6D9C 57          	ld	d, a ; Address Low
+1256+  6D9D 23          	inc	hl
+1257+  6D9E 7E          	ld	a, (hl) ; Address High
+1258+  6D9F B7          	or	a
+1259+  6DA0 28 08       	jr	z, write_data_cur_fm ; (a >> 8) == 0
+1260+  6DA2 3D          	dec a
+1261+  6DA3 28 14       	jr	z, write_data_fm1 ; (a >> 8) == 1
+1262+  6DA5 3D          	dec a
+1263+  6DA6 28 18       	jr	z, write_data_fm2 ; (a >> 8) == 2
+1264+  6DA8 23          	inc	hl
+1265+  6DA9 C9          	ret
+1266+  6DAA             
+1267+  6DAA             write_data_cur_fm: 
+1268+  6DAA 23          	inc	hl
+1269+  6DAB 7E          	ld	a, (hl)
+1270+  6DAC 5F          	ld	e, a ; Data
+1271+  6DAD 23          	inc	hl
+1272+  6DAE             	
+1273+  6DAE 3A 8F 61    	ld	a, (seq_cur_ch)
+1274+  6DB1 FE 09       	cp	9
+1275+  6DB3 DA 0A 72    	jp	c, moon_fm1_out
+1276+  6DB6 C3 11 72    	jp	moon_fm2_out
+1277+  6DB9             
+1278+  6DB9             write_data_fm1: 
+1279+  6DB9 23          	inc	hl
+1280+  6DBA 7E          	ld	a, (hl)
+1281+  6DBB 5F          	ld	e, a ; Data
+1282+  6DBC 23          	inc	hl
+1283+  6DBD C3 0A 72    	jp	moon_fm1_out
+1284+  6DC0             
+1285+  6DC0             write_data_fm2: 
+1286+  6DC0 23          	inc	hl
+1287+  6DC1 7E          	ld	a, (hl)
+1288+  6DC2 5F          	ld	e, a ; Data
+1289+  6DC3 23          	inc	hl
+1290+  6DC4 C3 11 72    	jp	moon_fm2_out
+1291+  6DC7             
+1292+  6DC7             ; cmd $F4 : wait
+1293+  6DC7             seq_wait: 
+1294+  6DC7 E1          	pop	hl
+1295+  6DC8 C3 6E 6B    	jp	read_cmd_length
+1296+  6DCB             
+1297+  6DCB             ; cmd $F2 : drum
+1298+  6DCB             seq_drum: 
+1299+  6DCB E1          	pop	hl
+1300+  6DCC 7E          	ld	a, (hl)
+1301+  6DCD E6 1F       	and	1fh
+1302+  6DCF 5F          	ld	e, a
+1303+  6DD0 3A 94 61    	ld	a, (seq_reg_bd)
+1304+  6DD3 E6 E0       	and	0e0h
+1305+  6DD5 B3          	or	e
+1306+  6DD6 32 94 61    	ld	(seq_reg_bd), a
+1307+  6DD9 5F          	ld	e, a
+1308+  6DDA 16 BD       	ld	d, 0bdh
+1309+  6DDC CD 0A 72    	call	moon_fm1_out
+1310+  6DDF 23          	inc	hl
+1311+  6DE0 C9          	ret
+1312+  6DE1             	
+1313+  6DE1             ; cmd $E1 : drumbit
+1314+  6DE1             seq_drumbit: 
+1315+  6DE1 E1          	pop	hl
+1316+  6DE2             
+1317+  6DE2             	; drums key-off
+1318+  6DE2 7E          	ld	a, (hl)
+1319+  6DE3 E6 1F       	and	1fh
+1320+  6DE5 EE FF       	xor	0ffh
+1321+  6DE7             	
+1322+  6DE7             	; e = mask bits of drums
+1323+  6DE7 5F          	ld	e, a
+1324+  6DE8 3A 94 61    	ld	a, (seq_reg_bd)
+1325+  6DEB A3          	and	e
+1326+  6DEC 32 94 61    	ld	(seq_reg_bd), a
+1327+  6DEF 5F          	ld	e, a
+1328+  6DF0 16 BD       	ld	d, 0bdh
+1329+  6DF2 CD 0A 72    	call	moon_fm1_out
+1330+  6DF5             	
+1331+  6DF5             	; set fnum
+1332+  6DF5 E5          	push	hl
+1333+  6DF6 7E          	ld	a, (hl)
+1334+  6DF7 E6 1F       	and	1fh
+1335+  6DF9             	
+1336+  6DF9 0E 00       	ld	c, 0
+1337+  6DFB 06 05       	ld	b, 5
+1338+  6DFD             
+1339+  6DFD 07          	rlca
+1340+  6DFE 07          	rlca
+1341+  6DFF 07          	rlca
+1342+  6E00             
+1343+  6E00             ; A = drum bits, BC = count
+1344+  6E00             drumbit_fnum_lp: 
+1345+  6E00 07          	rlca
+1346+  6E01             
+1347+  6E01 30 07       	jr	nc, drumbit_fnum_next
+1348+  6E03 F5          	push	af
+1349+  6E04 C5          	push	bc
+1350+  6E05 CD 32 6E    	call	drumbit_set_fnum ; set Fnum for drums
+1351+  6E08 C1          	pop	bc
+1352+  6E09 F1          	pop	af
+1353+  6E0A             
+1354+  6E0A             drumbit_fnum_next: 
+1355+  6E0A 0C          	inc	c
+1356+  6E0B 10 F3       	djnz	drumbit_fnum_lp
+1357+  6E0D             	
+1358+  6E0D E1          	pop	hl
+1359+  6E0E             	
+1360+  6E0E             	; skip if jump flag is true
+1361+  6E0E 3A 95 61    	ld	a, (seq_jump_flag)
+1362+  6E11 B7          	or	a
+1363+  6E12 20 13       	jr	nz, drumbit_skip_keyon
+1364+  6E14             
+1365+  6E14             	; drums key-on
+1366+  6E14 7E          	ld	a, (hl)
+1367+  6E15 E6 1F       	and	1fh
+1368+  6E17 5F          	ld	e, a
+1369+  6E18 3A 94 61    	ld	a, (seq_reg_bd)
+1370+  6E1B E6 E0       	and	0e0h
+1371+  6E1D B3          	or	e
+1372+  6E1E 32 94 61    	ld	(seq_reg_bd), a
+1373+  6E21 5F          	ld	e, a
+1374+  6E22 16 BD       	ld	d, 0bdh
+1375+  6E24 CD 0A 72    	call	moon_fm1_out
+1376+  6E27             
+1377+  6E27             drumbit_skip_keyon: 
+1378+  6E27             	; length check
+1379+  6E27 7E          	ld	a, (hl)
+1380+  6E28 E6 80       	and 	80h 					; Lxxxxxxx L = the command has length 
+1381+  6E2A 20 02       	jr	nz, drumbit_with_length
+1382+  6E2C 23          	inc	hl
+1383+  6E2D C9          	ret
+1384+  6E2E             
+1385+  6E2E             ; drumbit with length
+1386+  6E2E             drumbit_with_length: 
+1387+  6E2E 23          	inc 	hl
+1388+  6E2F C3 6E 6B    	jp	read_cmd_length
+1389+  6E32             ;-------------------------------------------------------------------
+1390+  6E32             ; Set Fnum for drum
+1391+  6E32             ; C = index
+1392+  6E32             ; dest : almost all
+1393+  6E32             ;-------------------------------------------------------------------
+1394+  6E32             drumbit_set_fnum: 
+1395+  6E32             	; fnum 
+1396+  6E32 21 70 69    	ld	hl, fm_drum_fnum
+1397+  6E35 06 00       	ld	b, 0
+1398+  6E37 09          	add	hl, bc
+1399+  6E38 09          	add	hl, bc
+1400+  6E39 7E          	ld	a, (hl)
+1401+  6E3A 32 99 61    	ld	(seq_tmp_fnum), a
+1402+  6E3D 23          	inc	hl
+1403+  6E3E 7E          	ld	a, (hl)
+1404+  6E3F 32 9A 61    	ld	(seq_tmp_fnum + 1), a
+1405+  6E42             	
+1406+  6E42             	; oct
+1407+  6E42 21 7F 69    	ld	hl, fm_drum_oct
+1408+  6E45 09          	add	hl, bc
+1409+  6E46 7E          	ld	a, (hl)
+1410+  6E47 32 98 61    	ld	(seq_tmp_oct), a
+1411+  6E4A             
+1412+  6E4A             	; ch
+1413+  6E4A 21 7A 69    	ld	hl, fm_drum_fnum_map
+1414+  6E4D 09          	add	hl, bc
+1415+  6E4E 7E          	ld	a, (hl)
+1416+  6E4F 32 97 61    	ld	(seq_tmp_ch), a
+1417+  6E52             
+1418+  6E52             	; write FnumL
+1419+  6E52 CD 27 74    	call	moon_key_write_fmfreq_base
+1420+  6E55             
+1421+  6E55 5F          	ld	e, a
+1422+  6E56 16 B0       	ld	d, 0b0h
+1423+  6E58 3A 97 61    	ld	a, (seq_tmp_ch)
+1424+  6E5B             	
+1425+  6E5B             	; write FnumH and BLK
+1426+  6E5B C3 E8 71    	jp	moon_write_fmreg_nch
+1427+  6E5E             
+1428+  6E5E             
+1429+  6E5E             ; cmd $E0 : drum note
+1430+  6E5E             seq_drumnote: 
+1431+  6E5E E1          	pop	hl
+1432+  6E5F             	
+1433+  6E5F             	; set fnum	
+1434+  6E5F 7E          	ld	a, (hl) ; drum bits
+1435+  6E60 E6 1F       	and	1fh
+1436+  6E62             	
+1437+  6E62 F5          	push	af
+1438+  6E63 23          	inc	hl 
+1439+  6E64 7E          	ld	a, (hl) ; note
+1440+  6E65 32 96 61    	ld	(seq_tmp_note), a
+1441+  6E68 23          	inc	hl
+1442+  6E69 F1          	pop	af
+1443+  6E6A             	
+1444+  6E6A E5          	push	hl
+1445+  6E6B             
+1446+  6E6B 0E 00       	ld	c, 0
+1447+  6E6D 06 05       	ld	b, 5
+1448+  6E6F             	
+1449+  6E6F 07          	rlca
+1450+  6E70 07          	rlca
+1451+  6E71 07          	rlca
+1452+  6E72             
+1453+  6E72             ; A = drum bits, BC = count
+1454+  6E72             drumnote_lp: 
+1455+  6E72 07          	rlca
+1456+  6E73             	
+1457+  6E73 30 07       	jr	nc, drumnote_next
+1458+  6E75 F5          	push	af
+1459+  6E76 C5          	push	bc
+1460+  6E77 CD 82 6E    	call	drumnote_fnum ; set Fnum for drums
+1461+  6E7A C1          	pop	bc
+1462+  6E7B F1          	pop	af
+1463+  6E7C             
+1464+  6E7C             drumnote_next: 
+1465+  6E7C 0C          	inc c
+1466+  6E7D 10 F3       	djnz	drumnote_lp
+1467+  6E7F             	
+1468+  6E7F E1          	pop	hl
+1469+  6E80 23          	inc	hl
+1470+  6E81 C9          	ret
+1471+  6E82             
+1472+  6E82             ; C = index
+1473+  6E82             ; dest: AF, BC, HL
+1474+  6E82             drumnote_fnum: 
+1475+  6E82 C5          	push	bc
+1476+  6E83 3A 96 61    	ld	a, (seq_tmp_note)
+1477+  6E86 CD 8F 71    	call	moon_calc_opl3note
+1478+  6E89 C1          	pop	bc
+1479+  6E8A             	
+1480+  6E8A             	; oct
+1481+  6E8A 06 00       	ld	b, 0
+1482+  6E8C 21 7F 69    	ld	hl, fm_drum_oct
+1483+  6E8F 09          	add	hl, bc
+1484+  6E90 3A 98 61    	ld	a, (seq_tmp_oct)
+1485+  6E93 77          	ld	(hl), a
+1486+  6E94             
+1487+  6E94             	; fnum 
+1488+  6E94 21 70 69    	ld	hl, fm_drum_fnum
+1489+  6E97 09          	add	hl, bc
+1490+  6E98 09          	add	hl, bc
+1491+  6E99 3A 99 61    	ld	a, (seq_tmp_fnum)
+1492+  6E9C 77          	ld	(hl), a
+1493+  6E9D 23          	inc	hl
+1494+  6E9E 3A 9A 61    	ld	a, (seq_tmp_fnum + 1)
+1495+  6EA1 77          	ld	(hl), a
+1496+  6EA2             	
+1497+  6EA2 C9          	ret
+1498+  6EA3             
+1499+  6EA3             
+1500+  6EA3             ; cmd $F1 : Load instrument
+1501+  6EA3             seq_inst: 
+1502+  6EA3 E1          	pop	hl
+1503+  6EA4 7E          	ld	a, (hl)
+1504+  6EA5             
+1505+  6EA5 F5          	push	af
+1506+  6EA6             
+1507+  6EA6             	; Device select
+1508+  6EA6 DD 7E 00    	ld	a, (ix + IDX_DSEL)
+1509+  6EA9 B7          	or	a
+1510+  6EAA 28 13       	jr	z, seq_inst_opl4
+1511+  6EAC             
+1512+  6EAC             	; Load OPL3 instrument
+1513+  6EAC F1          	pop	af
+1514+  6EAD E5          	push	hl
+1515+  6EAE 21 28 C0    	ld	hl, S_OPL3_TABLE
+1516+  6EB1 CD 84 69    	call	get_table
+1517+  6EB4             
+1518+  6EB4 DD 75 09    	ld	(ix + IDX_TADR), l
+1519+  6EB7 DD 74 0A    	ld	(ix + IDX_TADR+1), h
+1520+  6EBA             
+1521+  6EBA             	; set tone to FM
+1522+  6EBA CD 1A 70    	call	moon_set_fmtone
+1523+  6EBD             
+1524+  6EBD 18 0E       	jr	seq_inst_fin
+1525+  6EBF             
+1526+  6EBF             seq_inst_opl4: 
+1527+  6EBF F1          	pop	af
+1528+  6EC0 E5          	push	hl
+1529+  6EC1 21 26 C0    	ld	hl, S_INST_TABLE
+1530+  6EC4 CD 84 69    	call	get_table
+1531+  6EC7             
+1532+  6EC7 DD 75 09    	ld	(ix + IDX_TADR), l
+1533+  6ECA DD 74 0A    	ld	(ix + IDX_TADR+1), h
+1534+  6ECD             
+1535+  6ECD             seq_inst_fin: 
+1536+  6ECD             
+1537+  6ECD             ;	call	set_page3_ch
+1538+  6ECD E1          	pop	hl
+1539+  6ECE             
+1540+  6ECE 23          	inc	hl
+1541+  6ECF C9          	ret
+1542+  6ED0             
+1543+  6ED0             ; cmd $F0 : pan
+1544+  6ED0             seq_pan: 
+1545+  6ED0 E1          	pop	hl
+1546+  6ED1             	; Device select
+1547+  6ED1 DD 7E 00    	ld	a,(ix + IDX_DSEL)
+1548+  6ED4 B7          	or	a
+1549+  6ED5 28 0F       	jr	z,seq_pan_opl4
+1550+  6ED7             
+1551+  6ED7             seq_pan_fm: 
+1552+  6ED7 7E          	ld	a,(hl)
+1553+  6ED8 E6 0F       	and	0fh
+1554+  6EDA 07          	rlca
+1555+  6EDB 07          	rlca
+1556+  6EDC 07          	rlca
+1557+  6EDD 07          	rlca
+1558+  6EDE DD 77 1F    	ld	(ix + IDX_PAN), a ; PPPPxxxx
+1559+  6EE1 CD 5B 73    	call 	moon_write_fmpan ; Write PAN to FM
+1560+  6EE4             	
+1561+  6EE4 18 04       	jr	seq_pan_fin
+1562+  6EE6             
+1563+  6EE6             seq_pan_opl4: 
+1564+  6EE6 7E          	ld	a, (hl)
+1565+  6EE7 DD 77 1F    	ld	(ix + IDX_PAN), a
+1566+  6EEA             seq_pan_fin: 
+1567+  6EEA 23          	inc	hl
+1568+  6EEB C9          	ret
+1569+  6EEC             
+1570+  6EEC             ; cmd $EF : mode change
+1571+  6EEC             seq_lfosw: 
+1572+  6EEC E1          	pop	hl
+1573+  6EED             
+1574+  6EED 7E          	ld	a,(hl)
+1575+  6EEE DD 77 0F    	ld	(ix + IDX_LFO),a
+1576+  6EF1 23          	inc	hl
+1577+  6EF2 C9          	ret
+1578+  6EF3             
+1579+  6EF3             
+1580+  6EF3             ; cmd $EE : change bank
+1581+  6EF3             seq_bank: 
+1582+  6EF3 E1          	pop	hl
+1583+  6EF4             
+1584+  6EF4 7E          	ld	a,(hl) ; read number of bank
+1585+  6EF5 23          	inc	hl
+1586+  6EF6             	
+1587+  6EF6 F5          	push	af
+1588+  6EF7             	
+1589+  6EF7 7E          	ld	a,(hl) ; read address
+1590+  6EF8 23          	inc	hl
+1591+  6EF9 66          	ld	h,(hl)
+1592+  6EFA 6F          	ld	l,a
+1593+  6EFB             
+1594+  6EFB D5          	push	de
+1595+  6EFC 11 00 40    	ld	de,S_ADDR_CORRECT
+1596+  6EFF 19          	add	hl,de
+1597+  6F00 D1          	pop	de	
+1598+  6F01             
+1599+  6F01 F1          	pop	af
+1600+  6F02             
+1601+  6F02 DD 77 06    	ld	(ix + IDX_BANK),a
+1602+  6F05 C9          	ret
+1603+  6F06             
+1604+  6F06             ; cmd $EB : damp switch / OPMODE
+1605+  6F06             seq_damp: 
+1606+  6F06 E1          	pop	hl
+1607+  6F07             	; Device select
+1608+  6F07 DD 7E 00    	ld	a,(ix + IDX_DSEL)
+1609+  6F0A B7          	or	a
+1610+  6F0B 28 0B       	jr	z,seq_damp_opl4
+1611+  6F0D             
+1612+  6F0D 7E          	ld	a,(hl)
+1613+  6F0E E6 3F       	and	3fh
+1614+  6F10 5F          	ld	e,a
+1615+  6F11 16 04       	ld	d,4
+1616+  6F13 CD 11 72    	call	moon_fm2_out
+1617+  6F16 18 04       	jr	seq_damp_fin
+1618+  6F18             	
+1619+  6F18             seq_damp_opl4: 
+1620+  6F18 7E          	ld	a,(hl)
+1621+  6F19 DD 77 0E    	ld	(ix + IDX_DAMP),a
+1622+  6F1C             seq_damp_fin: 
+1623+  6F1C 23          	inc	hl
+1624+  6F1D C9          	ret
+1625+  6F1E             
+1626+  6F1E             ; cmd $EA : reverb sw / VolumeOP
+1627+  6F1E             seq_revbsw: 
+1628+  6F1E E1          	pop	hl
+1629+  6F1F 7E          	ld	a,(hl)
+1630+  6F20 DD 77 1D    	ld	(ix + IDX_REVERB),a
+1631+  6F23 23          	inc	hl
+1632+  6F24 C9          	ret
+1633+  6F25             
+1634+  6F25             ; cmd $E9 : slar sw
+1635+  6F25             seq_slar: 
+1636+  6F25 E1          	pop	hl
+1637+  6F26 DD CB 03 C6 	set	0,(ix + IDX_EFX1)
+1638+  6F2A C9          	ret
+1639+  6F2B             
+1640+  6F2B             
+1641+  6F2B             ; cmd $E6 : set opbase
+1642+  6F2B             seq_setop: 
+1643+  6F2B E1          	pop	hl
+1644+  6F2C 7E          	ld	a, (hl)
+1645+  6F2D DD 77 01    	ld	(ix + IDX_OPSEL), a
+1646+  6F30 23          	inc	hl
+1647+  6F31 C9          	ret
+1648+  6F32             
+1649+  6F32             ; cmd $E5 : load 2ops
+1650+  6F32             seq_ld2ops: 
+1651+  6F32 DD 7E 00    	ld	a, (ix + IDX_DSEL)
+1652+  6F35 B7          	or	a
+1653+  6F36 20 03       	jr	nz, seq_ld2ops_fm
+1654+  6F38             
+1655+  6F38 E1          	pop	hl
+1656+  6F39 23          	inc	hl
+1657+  6F3A C9          	ret
+1658+  6F3B             seq_ld2ops_fm: 
+1659+  6F3B E1          	pop	hl
+1660+  6F3C             
+1661+  6F3C 7E          	ld	a,(hl)
+1662+  6F3D E5          	push	hl
+1663+  6F3E 21 28 C0    	ld	hl, S_OPL3_TABLE
+1664+  6F41 CD 84 69    	call	get_table
+1665+  6F44             
+1666+  6F44 DD 75 09    	ld	(ix + IDX_TADR), l
+1667+  6F47 DD 74 0A    	ld	(ix + IDX_TADR+1), h
+1668+  6F4A             
+1669+  6F4A             	; Set 2OP tone to FM
+1670+  6F4A CD 13 70    	call	moon_set_fmtone2
+1671+  6F4D             
+1672+  6F4D E1          	pop	hl
+1673+  6F4E 23          	inc	hl
+1674+  6F4F C9          	ret
+1675+  6F50             
+1676+  6F50             
+1677+  6F50             ; cmd $E4 : tvp
+1678+  6F50             seq_tvp: 
+1679+  6F50 E1          	pop	hl
+1680+  6F51 7E          	ld	a, (hl)
+1681+  6F52 E6 07       	and	7
+1682+  6F54 0F          	rrca
+1683+  6F55 0F          	rrca
+1684+  6F56 0F          	rrca
+1685+  6F57 5F          	ld	e, a
+1686+  6F58 3A 94 61    	ld	a, (seq_reg_bd)
+1687+  6F5B E6 1F       	and	1fh
+1688+  6F5D B3          	or	e
+1689+  6F5E             
+1690+  6F5E 32 94 61    	ld	(seq_reg_bd), a
+1691+  6F61 5F          	ld	e, a
+1692+  6F62 16 BD       	ld	d, 0bdh
+1693+  6F64 CD 0A 72    	call	moon_fm1_out
+1694+  6F67             
+1695+  6F67 23          	inc	hl
+1696+  6F68 C9          	ret
+1697+  6F69             
+1698+  6F69             ; cmd $E3 : fb
+1699+  6F69             seq_fbs: 
+1700+  6F69 E1          	pop	hl
+1701+  6F6A 7E          	ld	a, (hl)
+1702+  6F6B E6 07       	and	7
+1703+  6F6D 07          	rlca
+1704+  6F6E 07          	rlca
+1705+  6F6F 5F          	ld	e, a
+1706+  6F70 DD 7E 02    	ld	a,(ix + IDX_SYNTH)
+1707+  6F73 E6 E3       	and	0e3h
+1708+  6F75 B3          	or	e
+1709+  6F76 DD 77 02    	ld	(ix + IDX_SYNTH),a
+1710+  6F79 23          	inc	hl
+1711+  6F7A C9          	ret
+1712+  6F7B             
+1713+  6F7B             ; cmd $E2 : set jump flag
+1714+  6F7B             seq_jump: 
+1715+  6F7B E1          	pop	hl
+1716+  6F7C 7E          	ld	a, (hl)
+1717+  6F7D 32 95 61    	ld (seq_jump_flag), a
+1718+  6F80 23          	inc	hl
+1719+  6F81 C9          	ret
+1720+  6F82             ;-------------------------------------------------------------------
+1721+  6F82             ; pause_venv
+1722+  6F82             ; dest : AF
+1723+  6F82             ;-------------------------------------------------------------------
+1724+  6F82             pause_venv: 
+1725+  6F82 AF          	xor	a
+1726+  6F83 DD 77 28    	ld	(ix + IDX_VENV_ADR), a
+1727+  6F86 DD 77 29    	ld	(ix + IDX_VENV_ADR+1), a
+1728+  6F89 C9          	ret
+1729+  6F8A             ;-------------------------------------------------------------------
+1730+  6F8A             ; read_effect_table
+1731+  6F8A             ; in   : A  = index
+1732+  6F8A             ;      : HL = table address 
+1733+  6F8A             ;      : DE = pointer to value in work
+1734+  6F8A             ; out  : (ix + de) = (HL + 2A)
+1735+  6F8A             ; dest : AF
+1736+  6F8A             ;-------------------------------------------------------------------
+1737+  6F8A             read_effect_table: 
+1738+  6F8A DD E5       	push	ix
+1739+  6F8C DD 19       	add	ix, de
+1740+  6F8E CD 84 69    	call	get_table
+1741+  6F91             
+1742+  6F91 DD 75 00    	ld	(ix), l
+1743+  6F94 DD 74 01    	ld	(ix+1), h
+1744+  6F97 DD E1       	pop	ix
+1745+  6F99 C9          	ret
+1746+  6F9A             ;-------------------------------------------------------------------
+1747+  6F9A             ; set_venv_loop
+1748+  6F9A             ; dest : AF,DE
+1749+  6F9A             ;-------------------------------------------------------------------
+1750+  6F9A             set_venv_loop: 
+1751+  6F9A E5          	push	hl
+1752+  6F9B 21 1A C0    	ld	hl, S_VENV_LOOP
+1753+  6F9E 18 04       	jr	set_venv_hl
+1754+  6FA0             ;-------------------------------------------------------------------
+1755+  6FA0             ; set_venv_head
+1756+  6FA0             ; dest : AF,DE
+1757+  6FA0             ;-------------------------------------------------------------------
+1758+  6FA0             set_venv_head: 
+1759+  6FA0 E5          	push	hl
+1760+  6FA1 21 18 C0    	ld	hl, S_VENV_TABLE
+1761+  6FA4             set_venv_hl: 
+1762+  6FA4 11 28 00    	ld	de, IDX_VENV_ADR
+1763+  6FA7 DD 7E 21    	ld	a, (ix + IDX_VENV)
+1764+  6FAA E6 7F       	and	7fh
+1765+  6FAC CD 8A 6F    	call	read_effect_table
+1766+  6FAF E1          	pop	hl
+1767+  6FB0 C9          	ret
+1768+  6FB1             ;-------------------------------------------------------------------
+1769+  6FB1             ; set_penv_loop
+1770+  6FB1             ; dest : AF, DE
+1771+  6FB1             ;-------------------------------------------------------------------
+1772+  6FB1             set_penv_loop: 
+1773+  6FB1 E5          	push	hl
+1774+  6FB2 21 1E C0    	ld	hl, S_PENV_LOOP
+1775+  6FB5 18 04       	jr	set_penv_hl
+1776+  6FB7             ;-------------------------------------------------------------------
+1777+  6FB7             ; set_penv_head
+1778+  6FB7             ; dest : AF, DE
+1779+  6FB7             ;-------------------------------------------------------------------
+1780+  6FB7             set_penv_head: 
+1781+  6FB7 E5          	push	hl
+1782+  6FB8 21 1C C0    	ld	hl, S_PENV_TABLE
+1783+  6FBB             set_penv_hl: 
+1784+  6FBB 11 26 00    	ld	de, IDX_PENV_ADR
+1785+  6FBE DD 7E 23    	ld	a, (ix + IDX_PENV)
+1786+  6FC1 CD 8A 6F    	call	read_effect_table
+1787+  6FC4 E1          	pop	hl
+1788+  6FC5 C9          	ret
+1789+  6FC6             ;-------------------------------------------------------------------
+1790+  6FC6             ; set_nenv_loop
+1791+  6FC6             ; dest : AF, DE
+1792+  6FC6             ;-------------------------------------------------------------------
+1793+  6FC6             set_nenv_loop: 
+1794+  6FC6 E5          	push	hl
+1795+  6FC7 21 22 C0    	ld	hl, S_NENV_LOOP
+1796+  6FCA 18 04       	jr	set_nenv_hl
+1797+  6FCC             ;-------------------------------------------------------------------
+1798+  6FCC             ; set_nenv_head
+1799+  6FCC             ; dest : AF, DE
+1800+  6FCC             ;-------------------------------------------------------------------
+1801+  6FCC             set_nenv_head: 
+1802+  6FCC E5          	push	hl
+1803+  6FCD 21 20 C0    	ld	hl, S_NENV_TABLE
+1804+  6FD0             set_nenv_hl: 
+1805+  6FD0 11 24 00    	ld	de, IDX_NENV_ADR
+1806+  6FD3 DD 7E 22    	ld	a, (ix + IDX_NENV)
+1807+  6FD6 CD 8A 6F    	call	read_effect_table
+1808+  6FD9 E1          	pop	hl
+1809+  6FDA C9          	ret
+1810+  6FDB             ;-------------------------------------------------------------------
+1811+  6FDB             ; conv_data_to_midi
+1812+  6FDB             ; Converts data to midi note
+1813+  6FDB             ; in   : A = data ($40 = o4c)
+1814+  6FDB             ; out  : A = midi note
+1815+  6FDB             ; dest : AF,DE
+1816+  6FDB             ;-------------------------------------------------------------------
+1817+  6FDB             conv_data_to_midi: 
+1818+  6FDB 16 00       	ld	d,0
+1819+  6FDD 5F          	ld	e,a
+1820+  6FDE             
+1821+  6FDE 0F          	rrca
+1822+  6FDF 0F          	rrca
+1823+  6FE0 0F          	rrca
+1824+  6FE1 0F          	rrca
+1825+  6FE2 E6 0F       	and	0fh
+1826+  6FE4 57          	ld	d,a
+1827+  6FE5 28 06       	jr	z,skip_conv_midi_lp
+1828+  6FE7 AF          	xor	a
+1829+  6FE8             conv_midi_lp: 
+1830+  6FE8 C6 0C       	add	a,0ch
+1831+  6FEA 15          	dec	d
+1832+  6FEB 20 FB       	jr	nz,conv_midi_lp
+1833+  6FED             skip_conv_midi_lp: 
+1834+  6FED 57          	ld	d,a
+1835+  6FEE 7B          	ld	a,e
+1836+  6FEF E6 0F       	and	0fh
+1837+  6FF1 82          	add	a,d
+1838+  6FF2 C6 0C       	add	a,0ch
+1839+  6FF4 C9          	ret
+1840+  6FF5             ;-------------------------------------------------------------------
+1841+  6FF5             ; oct_div
+1842+  6FF5             ; octave divider
+1843+  6FF5             ; in   : H = pitch / 0x100
+1844+  6FF5             ; out  : L = octave
+1845+  6FF5             ; dest : AF
+1846+  6FF5             ;-------------------------------------------------------------------
+1847+  6FF5             oct_div: 
+1848+  6FF5 7C          	ld	a,h
+1849+  6FF6 2E 00       	ld	l,0
+1850+  6FF8             
+1851+  6FF8             oct_div_lp: 
+1852+  6FF8 C6 FA       	add	a,0fah
+1853+  6FFA D0          	ret	nc
+1854+  6FFB 2C          	inc	l
+1855+  6FFC 18 FA       	jr	oct_div_lp
+1856+  6FFE             ;-------------------------------------------------------------------
+1857+  6FFE             ; make_fnum
+1858+  6FFE             ; Make F-number from pitch
+1859+  6FFE             ; F-num = pitch / $600
+1860+  6FFE             ; in   : HL = pitch
+1861+  6FFE             ; out  : HL = f-num
+1862+  6FFE             ; dest : AF, DE
+1863+  6FFE             ;-------------------------------------------------------------------
+1864+  6FFE             make_fnum: 
+1865+  6FFE 11 00 FA    	ld	de, $fa00
+1866+  7001             make_fnum_lp: 
+1867+  7001 19          	add	hl, de
+1868+  7002 38 FD       	jr	c, make_fnum_lp
+1869+  7004 11 00 06    	ld	de, 0600h
+1870+  7007 19          	add	hl, de
+1871+  7008             
+1872+  7008 EB          	ex	de,hl
+1873+  7009             
+1874+  7009 21 5A 74    	ld	hl, freq_table
+1875+  700C 19          	add	hl, de
+1876+  700D 19          	add	hl, de
+1877+  700E             
+1878+  700E 7E          	ld	a, (hl)
+1879+  700F 23          	inc	hl
+1880+  7010 66          	ld	h, (hl)
+1881+  7011 6F          	ld	l, a
+1882+  7012             
+1883+  7012 C9          	ret
+1884+  7013             ;-------------------------------------------------------------------
+1885+  7013             ; moon_set_fmtone2
+1886+  7013             ; load and set 2 oprators from data in table
+1887+  7013             ; in   : work
+1888+  7013             ; dest : DE
+1889+  7013             ;-------------------------------------------------------------------
+1890+  7013             moon_set_fmtone2: 
+1891+  7013 F5          	push	af
+1892+  7014 C5          	push	bc
+1893+  7015 E5          	push	hl
+1894+  7016             
+1895+  7016 0E 02       	ld	c, 2
+1896+  7018             
+1897+  7018 18 05       	jr	moon_set_fmtone_start_lp
+1898+  701A             ;-------------------------------------------------------------------
+1899+  701A             ; moon_set_fmtone
+1900+  701A             ; load and set 4 oprators from data in table
+1901+  701A             ; in   : work
+1902+  701A             ; dest : DE
+1903+  701A             ;-------------------------------------------------------------------
+1904+  701A             moon_set_fmtone: 
+1905+  701A F5          	push	af
+1906+  701B C5          	push	bc
+1907+  701C E5          	push	hl
+1908+  701D             
+1909+  701D 0E 04       	ld	c,4
+1910+  701F             
+1911+  701F             moon_set_fmtone_start_lp: 
+1912+  701F DD 6E 09    	ld	l, (ix + IDX_TADR)
+1913+  7022 DD 66 0A    	ld	h, (ix + IDX_TADR+1)
+1914+  7025             
+1915+  7025 DD 7E 01    	ld	a, (ix + IDX_OPSEL)
+1916+  7028 32 93 61    	ld	(seq_opsel), a
+1917+  702B             
+1918+  702B             	; FBS   store to IDX_SYNTH( OxxFFFSS )
+1919+  702B 7E          	ld	a, (hl)
+1920+  702C E6 0E       	and	0eh 
+1921+  702E 07          	rlca
+1922+  702F 5F          	ld	e, a
+1923+  7030 7E          	ld	a, (hl)
+1924+  7031 E6 01       	and	1
+1925+  7033 B3          	or	e
+1926+  7034 5F          	ld	e, a
+1927+  7035 23          	inc	hl
+1928+  7036             
+1929+  7036 DD 7E 02    	ld	a, (ix + IDX_SYNTH)
+1930+  7039 E6 E2       	and	0e2h
+1931+  703B B3          	or	e
+1932+  703C DD 77 02    	ld	(ix + IDX_SYNTH), a ; xxxFFFxS
+1933+  703F             
+1934+  703F 79          	ld	a, c
+1935+  7040 FE 04       	cp	4
+1936+  7042 20 13       	jr	nz, fmtone_skip_set_fbs2
+1937+  7044             
+1938+  7044             	; FBS-2  Store SynthType for 4OP
+1939+  7044 7E          	ld	a, (hl)
+1940+  7045 E6 01       	and	1
+1941+  7047 07          	rlca
+1942+  7048 F6 80       	or	80h    ; 4OP flag
+1943+  704A 5F          	ld	e, a
+1944+  704B             	
+1945+  704B DD 7E 02    	ld	a, (ix + IDX_SYNTH)
+1946+  704E E6 7D       	and	7dh    ; mask for 4OP and 2nd SynthType
+1947+  7050 B3          	or	e
+1948+  7051 DD 77 02    	ld	(ix + IDX_SYNTH), a ; OxxFFFSS 
+1949+  7054 23          	inc	hl
+1950+  7055             
+1951+  7055 18 09       	jr	fmtone_set_tvp
+1952+  7057             
+1953+  7057             fmtone_skip_set_fbs2: 
+1954+  7057 DD 7E 02    	ld	a, (ix + IDX_SYNTH)
+1955+  705A E6 7F       	and	7fh
+1956+  705C DD 77 02    	ld	(ix + IDX_SYNTH), a
+1957+  705F 23          	inc	hl
+1958+  7060             
+1959+  7060             fmtone_set_tvp: 
+1960+  7060             	; TYP in W/WX is removed
+1961+  7060 23          	inc	hl
+1962+  7061 CD 79 70    	call	moon_load_fmvol
+1963+  7064             
+1964+  7064             moon_set_fmtone_lp1: 
+1965+  7064 CD 90 70    	call	moon_set_fmop
+1966+  7067 3A 93 61    	ld	a, (seq_opsel)
+1967+  706A C6 03       	add	a,3
+1968+  706C 32 93 61    	ld	(seq_opsel), a
+1969+  706F             
+1970+  706F 0D          	dec	c
+1971+  7070 20 F2       	jr	nz, moon_set_fmtone_lp1
+1972+  7072             	
+1973+  7072 CD 5B 73    	call moon_write_fmpan
+1974+  7075             
+1975+  7075 E1          	pop	hl
+1976+  7076 C1          	pop	bc
+1977+  7077 F1          	pop	af
+1978+  7078 C9          	ret
+1979+  7079             
+1980+  7079             moon_load_fmvol: 
+1981+  7079 E5          	push	hl
+1982+  707A C5          	push	bc
+1983+  707B DD E5       	push	ix
+1984+  707D 23          	inc	hl ; skip Reg.$20
+1985+  707E 11 05 00    	ld	de, 5
+1986+  7081             moon_load_fmvol_lp: 
+1987+  7081 7E          	ld	a, (hl)
+1988+  7082 DD 77 11    	ld	(ix + IDX_OLDAT1), a
+1989+  7085 DD 23       	inc	ix
+1990+  7087 19          	add	hl, de
+1991+  7088 0D          	dec	c
+1992+  7089 20 F6       	jr	nz, moon_load_fmvol_lp
+1993+  708B             
+1994+  708B DD E1       	pop	ix
+1995+  708D C1          	pop	bc
+1996+  708E E1          	pop	hl
+1997+  708F C9          	ret
+1998+  7090             
+1999+  7090             moon_set_fmop: 
+2000+  7090 7E          	ld	a, (hl)
+2001+  7091 5F          	ld	e, a
+2002+  7092 16 20       	ld	d, 20h
+2003+  7094 CD C0 71    	call	moon_write_fmop
+2004+  7097 23          	inc	hl
+2005+  7098 7E          	ld	a, (hl)
+2006+  7099 5F          	ld	e, a
+2007+  709A 16 40       	ld	d, 40h
+2008+  709C CD C0 71    	call	moon_write_fmop  ; OL
+2009+  709F 23          	inc	hl
+2010+  70A0 7E          	ld	a, (hl)
+2011+  70A1 5F          	ld	e, a
+2012+  70A2 16 60       	ld	d, 60h
+2013+  70A4 CD C0 71    	call	moon_write_fmop
+2014+  70A7 23          	inc	hl
+2015+  70A8 7E          	ld	a, (hl)
+2016+  70A9 5F          	ld	e, a
+2017+  70AA 16 80       	ld	d, 80h
+2018+  70AC CD C0 71    	call	moon_write_fmop
+2019+  70AF 23          	inc	hl
+2020+  70B0 7E          	ld	a, (hl)
+2021+  70B1 5F          	ld	e, a
+2022+  70B2 16 E0       	ld	d, 0e0h
+2023+  70B4 CD C0 71    	call	moon_write_fmop
+2024+  70B7 23          	inc	hl
+2025+  70B8 C9          	ret
+2026+  70B9             ;-------------------------------------------------------------------
+2027+  70B9             ; moon_tonesel
+2028+  70B9             ; Select tone number from table ( OPL4 )
+2029+  70B9             ; in   : work
+2030+  70B9             ; dest : flags, HL
+2031+  70B9             ;-------------------------------------------------------------------
+2032+  70B9             moon_tonesel: 
+2033+  70B9 DD 6E 09    	ld	l,(ix + IDX_TADR)
+2034+  70BC DD 66 0A    	ld	h,(ix + IDX_TADR+1)
+2035+  70BF             tonesel_lp01: 
+2036+  70BF F5          	push	af
+2037+  70C0 E5          	push	hl
+2038+  70C1 7E          	ld	a,(hl)
+2039+  70C2 23          	inc	hl
+2040+  70C3 B6          	or	(hl)
+2041+  70C4 28 0D       	jr	z,tonesel_fin ; if min == 0 && max == 0
+2042+  70C6 E1          	pop	hl
+2043+  70C7 F1          	pop	af
+2044+  70C8             
+2045+  70C8 BE          	cp	(hl)
+2046+  70C9 38 0B       	jr	c,tonesel_skip01    ; if a < (hl)
+2047+  70CB 23          	inc	hl
+2048+  70CC BE          	cp	(hl)
+2049+  70CD 38 10       	jr	c,tonesel_loadtone  ; if a < (hl)
+2050+  70CF 28 0E       	jr	z,tonesel_loadtone  ; if a == (hl)
+2051+  70D1 18 04       	jr	tonesel_skip02
+2052+  70D3             
+2053+  70D3             tonesel_fin: 
+2054+  70D3 E1          	pop	hl
+2055+  70D4 F1          	pop	af
+2056+  70D5 C9          	ret
+2057+  70D6             
+2058+  70D6             tonesel_skip01: 
+2059+  70D6 23          	inc	hl
+2060+  70D7             tonesel_skip02: 
+2061+  70D7 D5          	push	de
+2062+  70D8 11 0A 00    	ld	de,000ah
+2063+  70DB 19          	add	hl,de
+2064+  70DC D1          	pop	de
+2065+  70DD             
+2066+  70DD 18 E0       	jr	tonesel_lp01
+2067+  70DF             
+2068+  70DF             tonesel_loadtone: 
+2069+  70DF F5          	push	af
+2070+  70E0 23          	inc	hl
+2071+  70E1 7E          	ld	a,(hl)
+2072+  70E2 DD 77 0B    	ld	(ix + IDX_TONE),a
+2073+  70E5 23          	inc	hl
+2074+  70E6 7E          	ld	a,(hl)
+2075+  70E7 DD 77 0C    	ld	(ix + IDX_TONE+1),a
+2076+  70EA 23          	inc	hl
+2077+  70EB 7E          	ld	a,(hl)
+2078+  70EC DD 77 18    	ld	(ix + IDX_P_OFS),a
+2079+  70EF 23          	inc	hl
+2080+  70F0 7E          	ld	a,(hl)
+2081+  70F1 DD 77 19    	ld	(ix + IDX_P_OFS+1),a
+2082+  70F4             
+2083+  70F4 23          	inc	hl
+2084+  70F5 7E          	ld	a,(hl)
+2085+  70F6 DD 77 10    	ld	(ix + IDX_LFO_VIB),a
+2086+  70F9 23          	inc	hl
+2087+  70FA 7E          	ld	a,(hl)
+2088+  70FB DD 77 11    	ld	(ix + IDX_AR_D1R),a
+2089+  70FE 23          	inc	hl
+2090+  70FF 7E          	ld	a,(hl)
+2091+  7100 DD 77 12    	ld	(ix + IDX_DL_D2R),a
+2092+  7103 23          	inc	hl
+2093+  7104 7E          	ld	a,(hl)
+2094+  7105 DD 77 13    	ld	(ix + IDX_RC_RR),a
+2095+  7108 23          	inc	hl
+2096+  7109 7E          	ld	a,(hl)
+2097+  710A DD 77 14    	ld	(ix + IDX_AM),a
+2098+  710D             
+2099+  710D F1          	pop	af
+2100+  710E C9          	ret
+2101+  710F             ;-------------------------------------------------------------------
+2102+  710F             ; moon_calc_opl4freq
+2103+  710F             ; in   : HL = pitch
+2104+  710F             ; dest : AF,HL
+2105+  710F             ;-------------------------------------------------------------------
+2106+  710F             moon_calc_opl4freq: 
+2107+  710F E5          	push	hl
+2108+  7110 CD F5 6F    	call	oct_div
+2109+  7113 7D          	ld	a,l
+2110+  7114 C6 F8       	add	a,0f8h
+2111+  7116 DD 77 1A    	ld	(ix + IDX_OCT),a
+2112+  7119 E1          	pop	hl
+2113+  711A             
+2114+  711A CD FE 6F    	call	make_fnum
+2115+  711D             
+2116+  711D DD 75 1B    	ld	(ix + IDX_FNUM),l
+2117+  7120 DD 74 1C    	ld	(ix + IDX_FNUM+1),h
+2118+  7123 C9          	ret
+2119+  7124             ;-------------------------------------------------------------------
+2120+  7124             ; moon_calc_midinote
+2121+  7124             ; calclulates freq from note
+2122+  7124             ; in   : A = note ( 04c = 0x3c )
+2123+  7124             ; out  : work
+2124+  7124             ; dest : AF,DE
+2125+  7124             ;-------------------------------------------------------------------
+2126+  7124             moon_calc_midinote: 
+2127+  7124 C6 C4       	add	a,0c4h	; a -= $3c
+2128+  7126             
+2129+  7126 2E 00       	ld	l,0
+2130+  7128 CB 3F       	srl	a
+2131+  712A 67          	ld	h,a
+2132+  712B CB 1D       	rr	l
+2133+  712D E6 40       	and	40h
+2134+  712F 28 04       	jr	z,skip_set_nega ; if a >= $80 then it's negative 
+2135+  7131 7C          	ld	a,h
+2136+  7132 F6 80       	or	80h
+2137+  7134 67          	ld	h,a
+2138+  7135             skip_set_nega: 
+2139+  7135 11 00 1E    	ld	de,1e00h ; 7680
+2140+  7138 19          	add	hl,de
+2141+  7139 DD 5E 18    	ld	e,(ix + IDX_P_OFS)
+2142+  713C DD 56 19    	ld	d,(ix + IDX_P_OFS+1)
+2143+  713F 19          	add	hl,de
+2144+  7140             
+2145+  7140 DD 7E 20    	ld	a,(ix + IDX_DETUNE)
+2146+  7143 CD 55 71    	call	add_freq_offset
+2147+  7146             
+2148+  7146             skip_detune: 
+2149+  7146 7C          	ld	a,h
+2150+  7147 FE 60       	cp	60h
+2151+  7149 38 03       	jr	c,skip_set_pitch ; if a < $60
+2152+  714B 21 FF 5F    	ld	hl,5fffh
+2153+  714E             skip_set_pitch: 
+2154+  714E DD 75 16    	ld	(ix + IDX_PITCH),l
+2155+  7151 DD 74 17    	ld	(ix + IDX_PITCH + 1),h
+2156+  7154 C9          	ret
+2157+  7155             ;-------------------------------------------------------------------
+2158+  7155             ; add_freq_offset
+2159+  7155             ; HL = HL + VALUE
+2160+  7155             ; in : A ( detune data )
+2161+  7155             ; dest : DE
+2162+  7155             ;-------------------------------------------------------------------
+2163+  7155             add_freq_offset: 
+2164+  7155             
+2165+  7155 FE FF       	cp	0ffh
+2166+  7157 C8          	ret	z
+2167+  7158             	
+2168+  7158 CB 7F       	bit	7,a
+2169+  715A 20 05       	jr	nz,add_freq_nega
+2170+  715C             	
+2171+  715C 5F          	ld	e,a
+2172+  715D 16 00       	ld	d,0
+2173+  715F 18 0A       	jr	add_freq_de
+2174+  7161             
+2175+  7161             add_freq_nega: 
+2176+  7161 E6 7F       	and	7fh
+2177+  7163 16 00       	ld	d,0
+2178+  7165 5F          	ld	e,a
+2179+  7166 AF          	xor	a
+2180+  7167 93          	sub	e
+2181+  7168 30 01       	jr	nc,add_freq_de
+2182+  716A 15          	dec	d
+2183+  716B             add_freq_de: 
+2184+  716B 5F          	ld	e,a
+2185+  716C 19          	add	hl,de
+2186+  716D 19          	add	hl,de
+2187+  716E C9          	ret
+2188+  716F             ;-------------------------------------------------------------------
+2189+  716F             ; moon_set_midinote
+2190+  716F             ; in : A = note
+2191+  716F             ;
+2192+  716F             ;-------------------------------------------------------------------
+2193+  716F             moon_set_midinote: 
+2194+  716F DD CB 03 46 	bit	0,(ix + IDX_EFX1)
+2195+  7173 CC B9 70    	call	z,moon_tonesel
+2196+  7176 CD 24 71    	call	moon_calc_midinote
+2197+  7179 C3 0F 71    	jp	moon_calc_opl4freq
+2198+  717C             ;-------------------------------------------------------------------
+2199+  717C             ; moon_set_fmnote
+2200+  717C             ; in   : A = note
+2201+  717C             ; dest : AF, HL, BC
+2202+  717C             ;-------------------------------------------------------------------
+2203+  717C             moon_set_fmnote: 
+2204+  717C CD 8F 71    	call	moon_calc_opl3note
+2205+  717F             
+2206+  717F             	; oct
+2207+  717F 3A 98 61    	ld	a, (seq_tmp_oct)
+2208+  7182 DD 77 1A    	ld	(ix + IDX_OCT), a
+2209+  7185             
+2210+  7185             	; Fnum
+2211+  7185 2A 99 61    	ld	hl, (seq_tmp_fnum)
+2212+  7188 DD 75 1B    	ld	(ix + IDX_FNUM), l
+2213+  718B DD 74 1C    	ld	(ix + IDX_FNUM+1), h
+2214+  718E C9          	ret
+2215+  718F             ;-------------------------------------------------------------------
+2216+  718F             ; moon_calc_opl3note
+2217+  718F             ; in : A = note , (ix + IDX_DETUNE)
+2218+  718F             ; out : (seq_tmp_fnum), (seq_tmp_oct)
+2219+  718F             ; dest AF, BC, HL
+2220+  718F             ;-------------------------------------------------------------------
+2221+  718F             moon_calc_opl3note: 
+2222+  718F F5          	push	af
+2223+  7190 E6 0F       	and	0fh
+2224+  7192 FE 0C       	cp	0ch
+2225+  7194 38 02       	jr	c, fm_load_fnumtbl
+2226+  7196 D6 0C       	sub	0ch
+2227+  7198             fm_load_fnumtbl: 
+2228+  7198 21 1B 69    	ld	hl, fm_fnumtbl
+2229+  719B 4F          	ld	c, a
+2230+  719C 06 00       	ld	b, 0
+2231+  719E 09          	add	hl, bc
+2232+  719F 09          	add	hl, bc
+2233+  71A0 7E          	ld	a, (hl)
+2234+  71A1 32 99 61    	ld	(seq_tmp_fnum), a
+2235+  71A4 23          	inc	hl
+2236+  71A5 7E          	ld	a, (hl)
+2237+  71A6 32 9A 61    	ld	(seq_tmp_fnum + 1), a
+2238+  71A9 F1          	pop	af
+2239+  71AA 1F          	rra
+2240+  71AB 1F          	rra
+2241+  71AC 1F          	rra
+2242+  71AD 1F          	rra
+2243+  71AE E6 0F       	and	0fh
+2244+  71B0 32 98 61    	ld	(seq_tmp_oct), a
+2245+  71B3             
+2246+  71B3             	; Add detune effect
+2247+  71B3 2A 99 61    	ld	hl, (seq_tmp_fnum)	
+2248+  71B6             
+2249+  71B6 DD 7E 20    	ld	a, (ix + IDX_DETUNE)
+2250+  71B9 CD 55 71    	call	add_freq_offset
+2251+  71BC             
+2252+  71BC 22 99 61    	ld	(seq_tmp_fnum), hl
+2253+  71BF             
+2254+  71BF C9          	ret
+2255+  71C0             ;-------------------------------------------------------------------
+2256+  71C0             ; moon_write_fmop
+2257+  71C0             ; Write an OPL3 reg for op
+2258+  71C0             ; (opsel)
+2259+  71C0             ; in   : seq_opsel, D = addr, E = data
+2260+  71C0             ; dest : AF, DE
+2261+  71C0             ;-------------------------------------------------------------------
+2262+  71C0             moon_write_fmop: 
+2263+  71C0 E5          	push	hl
+2264+  71C1 3A 93 61    	ld	a, (seq_opsel)
+2265+  71C4 FE 12       	cp	12h
+2266+  71C6 38 02       	jr	c,skip_sub_a
+2267+  71C8 D6 12       	sub	12h
+2268+  71CA             skip_sub_a: 
+2269+  71CA 21 4C 69    	ld	hl, fm_op2reg_tbl ; HL = HL + A
+2270+  71CD 85          	add	a,l
+2271+  71CE 6F          	ld	l,a
+2272+  71CF 30 01       	jr	nc,add_hl_fin
+2273+  71D1 24          	inc	h
+2274+  71D2             add_hl_fin: 
+2275+  71D2 7E          	ld	a,(hl)
+2276+  71D3 82          	add	a,d
+2277+  71D4 57          	ld	d,a
+2278+  71D5 E1          	pop	hl
+2279+  71D6             
+2280+  71D6 3A 93 61    	ld	a,(seq_opsel)
+2281+  71D9 FE 12       	cp	12h
+2282+  71DB 38 03       	jr	c,moon_write_fmop_1
+2283+  71DD C3 11 72    	jp	moon_fm2_out
+2284+  71E0             moon_write_fmop_1: 
+2285+  71E0 C3 0A 72    	jp	moon_fm1_out
+2286+  71E3             ;-------------------------------------------------------------------
+2287+  71E3             ; moon_write_fmreg
+2288+  71E3             ; moon_write_fmreg_ch
+2289+  71E3             ; Write to OPL3 register 
+2290+  71E3             ; in : D = addr, E = data
+2291+  71E3             ; dest : AF, DE
+2292+  71E3             ;-------------------------------------------------------------------
+2293+  71E3             moon_write_fmreg: 
+2294+  71E3 3A 8F 61    	ld	a, (seq_cur_ch)
+2295+  71E6 18 00       	jr	moon_write_fmreg_nch
+2296+  71E8             
+2297+  71E8             ; A = ch
+2298+  71E8             moon_write_fmreg_nch: 
+2299+  71E8 D5          	push	de
+2300+  71E9 5F          	ld	e, a
+2301+  71EA 3A 91 61    	ld	a, (seq_start_fm)
+2302+  71ED 57          	ld	d, a
+2303+  71EE 7B          	ld	a, e
+2304+  71EF 92          	sub	d ; a = ch, d = start_fm
+2305+  71F0 D1          	pop	de
+2306+  71F1 18 00       	jr moon_write_fm_ch
+2307+  71F3             
+2308+  71F3             ; Write fm ( A = ch )
+2309+  71F3             moon_write_fm_ch: 
+2310+  71F3             ; first or second FM register
+2311+  71F3 FE 09       	cp	9
+2312+  71F5 38 07       	jr	c, moon_write_fm1
+2313+  71F7             
+2314+  71F7             ; second register
+2315+  71F7 D6 09       	sub	9
+2316+  71F9 82          	add	a, d
+2317+  71FA 57          	ld	d, a
+2318+  71FB C3 11 72    	jp	moon_fm2_out
+2319+  71FE             
+2320+  71FE             ; first register
+2321+  71FE             moon_write_fm1: 
+2322+  71FE 82          	add	a, d
+2323+  71FF 57          	ld	d, a
+2324+  7200 C3 0A 72    	jp	moon_fm1_out
+2325+  7203             ;-------------------------------------------------------------------
+2326+  7203             ; wait while BUSY
+2327+  7203             ; dest : AF
+2328+  7203             ;-------------------------------------------------------------------
+2329+  7203             moon_wait: 
+2330+  7203 DB C4       	in	a, (MOON_STAT)
+2331+  7205 E6 01       	and	1
+2332+  7207 20 FA       	jr	nz, moon_wait
+2333+  7209 C9          	ret
+2334+  720A             ;-------------------------------------------------------------------
+2335+  720A             ; write moonsound fm1 register
+2336+  720A             ; in   : D = an address of register , E = data
+2337+  720A             ; dest : AF
+2338+  720A             ;-------------------------------------------------------------------
+2339+  720A             moon_fm1_out: 
+2340+  720A             	; call	moon_wait
+2341+  720A 7A          	ld	a, d
+2342+  720B D3 C4       	out	(MOON_REG1), a
+2343+  720D             	; call	moon_wait
+2344+  720D 7B          	ld	a, e
+2345+  720E D3 C5       	out	(MOON_DAT1), a
+2346+  7210 C9          	ret
+2347+  7211             ;-------------------------------------------------------------------
+2348+  7211             ; «‡ÔËÒ¸ ‚ fm2 Â„ËÒÚ MoonSound 
+2349+  7211             ; ¬ıÓ‰Ì˚Â ‰‡ÌÌ˚Â: D = ÌÓÏÂ Â„ËÒÚ‡ , 
+2350+  7211             ;		  E = ‰‡ÌÌ˚Â
+2351+  7211             ; ¬˚ıÓ‰Ì˚Â ‰‡ÌÌ˚Â : ÌÂÚ
+2352+  7211             ;-------------------------------------------------------------------
+2353+  7211             moon_fm2_out: 
+2354+  7211             	; call	moon_wait
+2355+  7211 7A          	ld	a,d
+2356+  7212 D3 C6       	out	(MOON_REG2), a
+2357+  7214             	; call	moon_wait
+2358+  7214 7B          	ld	a,e
+2359+  7215 D3 C7       	out	(MOON_DAT2), a
+2360+  7217 C9          	ret
+2361+  7218             ;-------------------------------------------------------------------
+2362+  7218             ; «‡ÔËÒ¸ ‚ wave Â„ËÒÚ MoonSound 
+2363+  7218             ; ¬ıÓ‰Ì˚Â ‰‡ÌÌ˚Â: D = ÌÓÏÂ Â„ËÒÚ‡ , 
+2364+  7218             ;		  E = ‰‡ÌÌ˚Â
+2365+  7218             ; ¬˚ıÓ‰Ì˚Â ‰‡ÌÌ˚Â : ÌÂÚ
+2366+  7218             ;-------------------------------------------------------------------
+2367+  7218             moon_wave_out: 
+2368+  7218             	; call	moon_wait
+2369+  7218 7A          	ld	a, d
+2370+  7219 D3 7E       	out	(MOON_WREG),a
+2371+  721B             	; call	moon_wait
+2372+  721B 7B          	ld	a, e
+2373+  721C D3 7F       	out	(MOON_WDAT),a
+2374+  721E C9          	ret
+2375+  721F             ;-------------------------------------------------------------------
+2376+  721F             ; add number of channel to the index of register
+2377+  721F             ; in : D = index of register
+2378+  721F             ; dest : AF
+2379+  721F             ;-------------------------------------------------------------------
+2380+  721F             moon_add_reg_ch: 
+2381+  721F 3A 8F 61    	ld	a, (seq_cur_ch)
+2382+  7222 82          	add	a, d
+2383+  7223 57          	ld	d, a
+2384+  7224 C9          	ret
+2385+  7225             ;-------------------------------------------------------------------
+2386+  7225             ; set frequency on the channel
+2387+  7225             ; in   : work
+2388+  7225             ; dest : AF,DE
+2389+  7225             ;-------------------------------------------------------------------
+2390+  7225             moon_set_freq_ch: 
+2391+  7225 DD 7E 00    	ld	a, (ix + IDX_DSEL)
+2392+  7228 B7          	or	a
+2393+  7229 C0          	ret	nz
+2394+  722A             
+2395+  722A             set_freq_ch_opl4: 
+2396+  722A             	; ocatve and f-number(hi)
+2397+  722A DD 7E 1C    	ld	a, (ix + IDX_FNUM + 1)
+2398+  722D 07          	rlca
+2399+  722E E6 0E       	and	0eh
+2400+  7230 5F          	ld	e,a
+2401+  7231 DD 7E 1B    	ld	a, (ix + IDX_FNUM)
+2402+  7234 07          	rlca
+2403+  7235 E6 01       	and	1
+2404+  7237 B3          	or	e
+2405+  7238 5F          	ld	e,a
+2406+  7239             
+2407+  7239 DD 7E 1A    	ld	a, (ix + IDX_OCT)
+2408+  723C E6 0F       	and	0fh
+2409+  723E 07          	rlca
+2410+  723F 07          	rlca
+2411+  7240 07          	rlca
+2412+  7241 07          	rlca
+2413+  7242 B3          	or	e
+2414+  7243 5F          	ld	e, a
+2415+  7244             
+2416+  7244 DD 7E 1D    	ld	a, (ix + IDX_REVERB)
+2417+  7247 B7          	or	a
+2418+  7248 28 02       	jr	z, moon_set_freq_ch_skip_reverb
+2419+  724A CB DB       	set	3, e
+2420+  724C             moon_set_freq_ch_skip_reverb: 
+2421+  724C             
+2422+  724C 16 38       	ld	d, 38h
+2423+  724E CD 1F 72    	call	moon_add_reg_ch
+2424+  7251 CD 18 72    	call	moon_wave_out
+2425+  7254             
+2426+  7254             	; f-number(lo)
+2427+  7254 DD 7E 0C    	ld	a, (ix + IDX_TONE+1)
+2428+  7257 E6 01       	and	1
+2429+  7259 5F          	ld	e,a
+2430+  725A             
+2431+  725A DD 7E 1B    	ld	a, (ix + IDX_FNUM)
+2432+  725D 07          	rlca
+2433+  725E E6 FE       	and	0feh
+2434+  7260 B3          	or	e
+2435+  7261 5F          	ld	e, a
+2436+  7262             
+2437+  7262 16 20       	ld	d, 20h
+2438+  7264 CD 1F 72    	call	moon_add_reg_ch
+2439+  7267 C3 18 72    	jp	moon_wave_out
+2440+  726A             ;-------------------------------------------------------------------
+2441+  726A             ; set volume on the channel
+2442+  726A             ; in   : work
+2443+  726A             ; dest : AF,DE
+2444+  726A             ;-------------------------------------------------------------------
+2445+  726A             moon_set_vol_ch: 
+2446+  726A DD 7E 00    	ld	a, (ix + IDX_DSEL)
+2447+  726D B7          	or	a
+2448+  726E 20 11       	jr	nz, moon_set_fmvol_ch
+2449+  7270             
+2450+  7270             	; volume ( 0x7f = -inf )
+2451+  7270 DD 7E 1E    	ld	a, (ix + IDX_VOL)
+2452+  7273 EE 7F       	xor	7fh
+2453+  7275 07          	rlca
+2454+  7276 F6 01       	or	1
+2455+  7278 5F          	ld	e, a
+2456+  7279 16 50       	ld	d, 50h
+2457+  727B CD 1F 72    	call	moon_add_reg_ch
+2458+  727E C3 18 72    	jp	moon_wave_out
+2459+  7281             
+2460+  7281             moon_set_fmvol_ch: 
+2461+  7281 DD E5       	push	ix
+2462+  7283 E5          	push	hl
+2463+  7284 C5          	push	bc
+2464+  7285             
+2465+  7285 DD 7E 01    	ld	a, (ix + IDX_OPSEL)
+2466+  7288 32 93 61    	ld	(seq_opsel), a
+2467+  728B             
+2468+  728B DD 46 1E    	ld	b, (ix + IDX_VOL)
+2469+  728E             
+2470+  728E DD 66 1D    	ld	h, (ix + IDX_VOLOP)
+2471+  7291             
+2472+  7291 0E 02       	ld	c, 2
+2473+  7293 DD 7E 02    	ld	a, (ix + IDX_SYNTH)
+2474+  7296 E6 80       	and	80h
+2475+  7298 28 02       	jr	z,moon_set_fmvol_lp ; 4OP check
+2476+  729A 0E 04       	ld	c,4
+2477+  729C             moon_set_fmvol_lp
+2478+  729C CB 1C       	rr	h
+2479+  729E 30 09       	jr	nc, skip_set_fmvol
+2480+  72A0 CD BB 72    	call	moon_calc_current_fmvol
+2481+  72A3 5F          	ld	e, a
+2482+  72A4 16 40       	ld	d, 40h
+2483+  72A6 CD C0 71    	call	moon_write_fmop
+2484+  72A9             skip_set_fmvol: 
+2485+  72A9 DD 23       	inc	ix
+2486+  72AB 3A 93 61    	ld	a, (seq_opsel)
+2487+  72AE C6 03       	add	a, 3
+2488+  72B0 32 93 61    	ld	(seq_opsel), a
+2489+  72B3             
+2490+  72B3 0D          	dec	c
+2491+  72B4 20 E6       	jr	nz, moon_set_fmvol_lp
+2492+  72B6             
+2493+  72B6 C1          	pop	bc
+2494+  72B7 E1          	pop	hl
+2495+  72B8 DD E1       	pop	ix
+2496+  72BA C9          	ret
+2497+  72BB             
+2498+  72BB             moon_calc_current_fmvol: 
+2499+  72BB             	; A = (OL + (63-VOL))
+2500+  72BB 78          	ld	a,b
+2501+  72BC E6 3F       	and	3fh
+2502+  72BE EE 3F       	xor	3fh
+2503+  72C0 5F          	ld	e,a
+2504+  72C1             
+2505+  72C1 DD 7E 11    	ld	a, (ix + IDX_OLDAT1)
+2506+  72C4 E6 3F       	and	3fh
+2507+  72C6 83          	add	a, e
+2508+  72C7 FE 40       	cp	40h
+2509+  72C9 30 03       	jr	nc, set_fmvol_min
+2510+  72CB 5F          	ld	e, a
+2511+  72CC 18 02       	jr	set_fmvol_ks
+2512+  72CE             set_fmvol_min: 
+2513+  72CE 1E 3F       	ld	e, 3fh
+2514+  72D0             set_fmvol_ks: 
+2515+  72D0 DD 7E 11    	ld	a, (ix + IDX_OLDAT1)
+2516+  72D3 E6 C0       	and	0c0h
+2517+  72D5 B3          	or	e
+2518+  72D6 C9          	ret
+2519+  72D7             ;-------------------------------------------------------------------
+2520+  72D7             ; set ADSR regs
+2521+  72D7             ; in   : work
+2522+  72D7             ; dest : AF,DE
+2523+  72D7             ;-------------------------------------------------------------------
+2524+  72D7             moon_set_adsr: 
+2525+  72D7 DD 5E 10    	ld	e, (ix + IDX_LFO_VIB)
+2526+  72DA 16 80       	ld	d, 80h
+2527+  72DC CD 1F 72    	call	moon_add_reg_ch
+2528+  72DF CD 18 72    	call	moon_wave_out
+2529+  72E2 DD 5E 11    	ld	e, (ix + IDX_AR_D1R)
+2530+  72E5 16 98       	ld	d, 98h
+2531+  72E7 CD 1F 72    	call	moon_add_reg_ch
+2532+  72EA CD 18 72    	call	moon_wave_out
+2533+  72ED DD 5E 12    	ld	e, (ix + IDX_DL_D2R)
+2534+  72F0 16 B0       	ld	d, 0B0h
+2535+  72F2 CD 1F 72    	call	moon_add_reg_ch
+2536+  72F5 CD 18 72    	call	moon_wave_out
+2537+  72F8 DD 5E 13    	ld	e, (ix + IDX_RC_RR)
+2538+  72FB 16 C8       	ld	d, 0C8h
+2539+  72FD CD 1F 72    	call	moon_add_reg_ch
+2540+  7300 CD 18 72    	call	moon_wave_out
+2541+  7303 DD 5E 14    	ld	e, (ix + IDX_AM)
+2542+  7306 16 E0       	ld	d, 0E0h
+2543+  7308 CD 1F 72    	call	moon_add_reg_ch
+2544+  730B C3 18 72    	jp	moon_wave_out
+2545+  730E             ;-------------------------------------------------------------------
+2546+  730E             ; moon_key_data
+2547+  730E             ; make data for key-on/off
+2548+  730E             ; in   : work
+2549+  730E             ; out  : E = data for key
+2550+  730E             ; dest : almost all
+2551+  730E             ;-------------------------------------------------------------------
+2552+  730E             moon_key_data: 
+2553+  730E DD 7E 1F    	ld	a, (ix + IDX_PAN)
+2554+  7311 E6 0F       	and	0fh
+2555+  7313             
+2556+  7313             ;;	or	$10 ; PCM-MIX
+2557+  7313             
+2558+  7313 5F          	ld	e,a
+2559+  7314 DD 7E 0F    	ld	a,(ix + IDX_LFO)
+2560+  7317 B7          	or	a
+2561+  7318 20 02       	jr	nz,moon_key_data_lfo_on
+2562+  731A CB EB       	set	5,e  ; LFO deactive
+2563+  731C             moon_key_data_lfo_on: 
+2564+  731C DD 7E 0E    	ld	a,(ix + IDX_DAMP)
+2565+  731F B7          	or	a
+2566+  7320 28 02       	jr	z,moon_key_data_damp_off
+2567+  7322 CB F3       	set	6,e  ; Damp on
+2568+  7324             moon_key_data_damp_off: 
+2569+  7324 C9          	ret
+2570+  7325             ;-------------------------------------------------------------------
+2571+  7325             ; moon_key_off
+2572+  7325             ; this function does : key-off
+2573+  7325             ; in   : work
+2574+  7325             ; dest : almost all
+2575+  7325             ;-------------------------------------------------------------------
+2576+  7325             moon_key_off: 
+2577+  7325             	; key off
+2578+  7325             
+2579+  7325 DD 7E 00    	ld	a,(ix + IDX_DSEL)
+2580+  7328 B7          	or	a
+2581+  7329 28 19       	jr	z,moon_key_opl4off
+2582+  732B             
+2583+  732B             moon_key_fmoff: 
+2584+  732B DD 7E 0D    	ld	a,(ix + IDX_KEY)
+2585+  732E E6 20       	and	20h
+2586+  7330 C8          	ret	z
+2587+  7331 DD 7E 0D    	ld	a,(ix + IDX_KEY)
+2588+  7334 E6 DF       	and	0dfh
+2589+  7336 5F          	ld	e,a
+2590+  7337 16 B0       	ld	d,0b0h
+2591+  7339 DD 73 0D    	ld	(ix + IDX_KEY),e
+2592+  733C             	
+2593+  733C             	; skip if jump flag is true
+2594+  733C 3A 95 61    	ld	a, (seq_jump_flag)
+2595+  733F B7          	or	a
+2596+  7340 C0          	ret nz
+2597+  7341             	
+2598+  7341 C3 E3 71    	jp	moon_write_fmreg ; key-off
+2599+  7344             
+2600+  7344             moon_key_opl4off: 
+2601+  7344 DD 7E 0D    	ld	a,(ix + IDX_KEY)
+2602+  7347 E6 80       	and	80h
+2603+  7349 C8          	ret	z
+2604+  734A DD 7E 0D    	ld	a,(ix + IDX_KEY)
+2605+  734D E6 7F       	and	7fh
+2606+  734F 5F          	ld	e,a
+2607+  7350 16 68       	ld	d,68h
+2608+  7352 DD 73 0D    	ld	(ix + IDX_KEY),e
+2609+  7355 CD 1F 72    	call	moon_add_reg_ch
+2610+  7358 C3 18 72    	jp	moon_wave_out ; key-off
+2611+  735B             ;-------------------------------------------------------------------
+2612+  735B             ; moon_write_fmpan
+2613+  735B             ; calc and write Reg $Cx
+2614+  735B             ; dest AF, DE
+2615+  735B             ;-------------------------------------------------------------------
+2616+  735B             moon_write_fmpan: 
+2617+  735B DD 7E 02    	ld	a, (ix + IDX_SYNTH)
+2618+  735E 57          	ld	d, a
+2619+  735F E6 1C       	and	1ch ; 000FFF00
+2620+  7361 0F          	rrca
+2621+  7362 5F          	ld	e, a
+2622+  7363 7A          	ld	a, d
+2623+  7364 E6 01       	and	1 ; SynthType
+2624+  7366 B3          	or	e
+2625+  7367 DD B6 1F    	or	(ix + IDX_PAN)
+2626+  736A             	
+2627+  736A             	; E -> $C0
+2628+  736A 5F          	ld	e,a
+2629+  736B 16 C0       	ld	d,0c0h
+2630+  736D CD E3 71    	call moon_write_fmreg
+2631+  7370             
+2632+  7370             	; 4OP
+2633+  7370 DD 7E 02    	ld	a, (ix + IDX_SYNTH)
+2634+  7373 57          	ld	d, a
+2635+  7374 E6 80       	and	80h
+2636+  7376             	
+2637+  7376             	; skip if not 4op
+2638+  7376 28 12       	jr	z, moon_write_fmpan_4op_fin 
+2639+  7378             	
+2640+  7378 7A          	ld	a, d
+2641+  7379 0F          	rrca
+2642+  737A E6 01       	and	1 ; 2nd SynthType
+2643+  737C DD B6 1F    	or	(ix + IDX_PAN)
+2644+  737F 5F          	ld	e, a
+2645+  7380 16 C0       	ld	d, 0c0h
+2646+  7382             
+2647+  7382             	; E -> $C0 + 3 + ch 
+2648+  7382 3A 8F 61    	ld	a, (seq_cur_ch)
+2649+  7385 C6 03       	add	a, 3
+2650+  7387 C3 E8 71    	jp	moon_write_fmreg_nch
+2651+  738A             
+2652+  738A             moon_write_fmpan_4op_fin: 
+2653+  738A C9          	ret
+2654+  738B             ;-------------------------------------------------------------------
+2655+  738B             ; moon_key_on
+2656+  738B             ; Set tone number, frequency and key-on
+2657+  738B             ; in   : work
+2658+  738B             ; dest : almost all
+2659+  738B             ;-------------------------------------------------------------------
+2660+  738B             moon_key_on: 
+2661+  738B             
+2662+  738B DD 7E 00    	ld	a,(ix + IDX_DSEL)
+2663+  738E B7          	or	a
+2664+  738F 28 29       	jr	z,moon_key_opl4on
+2665+  7391             
+2666+  7391             moon_key_fmon: 
+2667+  7391 DD CB 03 46 	bit	0, (ix + IDX_EFX1)
+2668+  7395 20 0C       	jr	nz,slar_fm_on
+2669+  7397             
+2670+  7397 CD 25 73    	call	moon_key_off
+2671+  739A CD B6 6B    	call	start_venv
+2672+  739D CD EC 6B    	call	start_penv
+2673+  73A0 CD 79 6C    	call	start_nenv
+2674+  73A3             
+2675+  73A3             slar_fm_on: 
+2676+  73A3 DD CB 03 86 	res	0, (ix + IDX_EFX1)
+2677+  73A7 CD 12 74    	call	moon_key_write_fmfreq
+2678+  73AA F6 20       	or	20h ; key on
+2679+  73AC 5F          	ld	e, a
+2680+  73AD 16 B0       	ld	d, 0b0h
+2681+  73AF DD 73 0D    	ld	(ix + IDX_KEY), e
+2682+  73B2             	
+2683+  73B2             	; skip if jump flag is true
+2684+  73B2 3A 95 61    	ld	a, (seq_jump_flag)
+2685+  73B5 B7          	or	a
+2686+  73B6 C0          	ret nz
+2687+  73B7             
+2688+  73B7 C3 E3 71    	jp	moon_write_fmreg ; key-on
+2689+  73BA             
+2690+  73BA             
+2691+  73BA             moon_key_opl4on: 
+2692+  73BA DD CB 03 46 	bit	0,(ix + IDX_EFX1)
+2693+  73BE 20 4B       	jr	nz,slar_opl4_on
+2694+  73C0             
+2695+  73C0 CD 25 73    	call	moon_key_off
+2696+  73C3 CD B6 6B    	call	start_venv
+2697+  73C6 CD EC 6B    	call	start_penv
+2698+  73C9 CD 79 6C    	call	start_nenv
+2699+  73CC             
+2700+  73CC             
+2701+  73CC             	; tone number(hi)
+2702+  73CC DD 7E 0C    	ld	a,(ix + IDX_TONE+1)
+2703+  73CF E6 01       	and	1
+2704+  73D1 5F          	ld	e,a
+2705+  73D2 16 20       	ld	d,20h
+2706+  73D4 CD 1F 72    	call	moon_add_reg_ch
+2707+  73D7 CD 18 72    	call	moon_wave_out
+2708+  73DA             
+2709+  73DA             	; tone number(lo)
+2710+  73DA DD 5E 0B    	ld	e,(ix + IDX_TONE)
+2711+  73DD 16 08       	ld	d,8
+2712+  73DF CD 1F 72    	call	moon_add_reg_ch
+2713+  73E2 CD 18 72    	call	moon_wave_out
+2714+  73E5             
+2715+  73E5             moon_wavechg_lp: 
+2716+  73E5 DB C4       	in	a, (MOON_STAT)
+2717+  73E7 E6 02       	and	2
+2718+  73E9 20 FA       	jr	nz,moon_wavechg_lp
+2719+  73EB             
+2720+  73EB CD 25 72    	call	moon_set_freq_ch
+2721+  73EE CD 6A 72    	call	moon_set_vol_ch
+2722+  73F1 CD D7 72    	call	moon_set_adsr
+2723+  73F4             
+2724+  73F4             moon_opl4_set_keyreg: 
+2725+  73F4             	; OPL4 key-on
+2726+  73F4             	; skip if jump flag is true
+2727+  73F4 3A 95 61    	ld	a, (seq_jump_flag)
+2728+  73F7 B7          	or	a
+2729+  73F8 C0          	ret nz
+2730+  73F9             
+2731+  73F9 CD 0E 73    	call	moon_key_data
+2732+  73FC 7B          	ld	a,e
+2733+  73FD F6 80       	or	80h ; key-on
+2734+  73FF 5F          	ld	e,a
+2735+  7400 16 68       	ld	d,68h
+2736+  7402 DD 73 0D    	ld	(ix + IDX_KEY),e
+2737+  7405             
+2738+  7405 CD 1F 72    	call	moon_add_reg_ch
+2739+  7408 C3 18 72    	jp	moon_wave_out ; key-on
+2740+  740B             
+2741+  740B             slar_opl4_on: 
+2742+  740B DD CB 03 86 	res	0,(ix + IDX_EFX1)
+2743+  740F C3 25 72    	jp	moon_set_freq_ch
+2744+  7412             ;-------------------------------------------------------------------
+2745+  7412             ; moon_key_write_fmfreq
+2746+  7412             ; calculates and writes related FM frequency
+2747+  7412             ; out : A = Reg.$B0 ( FnumH + BLK )
+2748+  7412             ; dest : almost all
+2749+  7412             ;-------------------------------------------------------------------
+2750+  7412             moon_key_write_fmfreq: 
+2751+  7412 3A 8F 61    	ld	a, (seq_cur_ch)
+2752+  7415 32 97 61    	ld	(seq_tmp_ch), a
+2753+  7418             
+2754+  7418 DD 7E 1A    	ld	a, (ix + IDX_OCT)
+2755+  741B 32 98 61    	ld	(seq_tmp_oct), a
+2756+  741E             	
+2757+  741E DD 6E 1B    	ld	l, (ix + IDX_FNUM)
+2758+  7421 DD 66 1C    	ld	h, (ix + IDX_FNUM + 1)
+2759+  7424 22 99 61    	ld	(seq_tmp_fnum), hl
+2760+  7427             
+2761+  7427             moon_key_write_fmfreq_base: 
+2762+  7427 3A 99 61    	ld	a, (seq_tmp_fnum)
+2763+  742A 5F          	ld	e, a
+2764+  742B 16 A0       	ld	d, 0a0h
+2765+  742D 3A 97 61    	ld	a, (seq_tmp_ch)
+2766+  7430 CD E8 71    	call	moon_write_fmreg_nch
+2767+  7433             
+2768+  7433 3A 9A 61    	ld	a, (seq_tmp_fnum + 1)
+2769+  7436 E6 03       	and	3
+2770+  7438 5F          	ld	e, a
+2771+  7439             
+2772+  7439 3A 98 61    	ld	a, (seq_tmp_oct)
+2773+  743C 07          	rlca
+2774+  743D 07          	rlca
+2775+  743E E6 1C       	and	1ch ; mask for Octave
+2776+  7440 B3          	or	e   ; F-Number
+2777+  7441 C9          	ret
+2778+  7442             ;-------------------------------------------------------------------
+2779+  7442             ; moon_key_fmfreq
+2780+  7442             ; calculates and writes related regs with keeping key
+2781+  7442             ;-------------------------------------------------------------------
+2782+  7442             moon_key_fmfreq: 
+2783+  7442 CD 12 74    	call	moon_key_write_fmfreq
+2784+  7445 5F          	ld	e,a
+2785+  7446 DD 7E 0D    	ld	a, (ix + IDX_KEY)
+2786+  7449 E6 20       	and	20h
+2787+  744B B3          	or	e
+2788+  744C             
+2789+  744C DD 77 0D    	ld	(ix + IDX_KEY), a
+2790+  744F 5F          	ld	e, a
+2791+  7450 16 B0       	ld	d, 0b0h
+2792+  7452             	
+2793+  7452             	; skip if jump flag is true
+2794+  7452 3A 95 61    	ld	a, (seq_jump_flag)
+2795+  7455 B7          	or	a
+2796+  7456 C0          	ret nz
+2797+  7457             
+2798+  7457 C3 E3 71    	jp	moon_write_fmreg ; key-on
+2799+  745A             
+2800+  745A             
+2801+  745A             ;-------------------------------------------------------------------
+2802+  745A             ; ÓÔËÒ‡ÌËÂ: “‡·ÎËˆ‡ ˜‡ÒÚÓÚ
+2803+  745A             ;---------------------------------------------------------------------
+2804+  745A             freq_table: 
+2805+  745A             	.include	"ftbl600.inc"
+0001++ 745A             	dw	0000h,0000h,0000h,0001h,0001h,0002h,0002h,0003h ; 00 
+0001++ 745A 00000000000001000100020002000300
+0002++ 746A             	dw	0003h,0004h,0004h,0005h,0005h,0006h,0006h,0006h ; 08 
+0002++ 746A 03000400040005000500060006000600
+0003++ 747A             	dw	0007h,0007h,0008h,0008h,0009h,0009h,000Ah,000Ah ; 10 
+0003++ 747A 0700070008000800090009000A000A00
+0004++ 748A             	dw	000Bh,000Bh,000Ch,000Ch,000Dh,000Dh,000Dh,000Eh ; 18 
+0004++ 748A 0B000B000C000C000D000D000D000E00
+0005++ 749A             	dw	000Eh,000Fh,000Fh,0010h,0010h,0011h,0011h,0012h ; 20 
+0005++ 749A 0E000F000F0010001000110011001200
+0006++ 74AA             	dw	0012h,0013h,0013h,0014h,0014h,0015h,0015h,0015h ; 28 
+0006++ 74AA 12001300130014001400150015001500
+0007++ 74BA             	dw	0016h,0016h,0017h,0017h,0018h,0018h,0019h,0019h ; 30 
+0007++ 74BA 16001600170017001800180019001900
+0008++ 74CA             	dw	001Ah,001Ah,001Bh,001Bh,001Ch,001Ch,001Dh,001Dh ; 38 
+0008++ 74CA 1A001A001B001B001C001C001D001D00
+0009++ 74DA             	dw	001Eh,001Eh,001Eh,001Fh,001Fh,0020h,0020h,0021h ; 40 
+0009++ 74DA 1E001E001E001F001F00200020002100
+0010++ 74EA             	dw	0021h,0022h,0022h,0023h,0023h,0024h,0024h,0025h ; 48 
+0010++ 74EA 21002200220023002300240024002500
+0011++ 74FA             	dw	0025h,0026h,0026h,0027h,0027h,0028h,0028h,0029h ; 50 
+0011++ 74FA 25002600260027002700280028002900
+0012++ 750A             	dw	0029h,0029h,002Ah,002Ah,002Bh,002Bh,002Ch,002Ch ; 58 
+0012++ 750A 290029002A002A002B002B002C002C00
+0013++ 751A             	dw	002Dh,002Dh,002Eh,002Eh,002Fh,002Fh,0030h,0030h ; 60 
+0013++ 751A 2D002D002E002E002F002F0030003000
+0014++ 752A             	dw	0031h,0031h,0032h,0032h,0033h,0033h,0034h,0034h ; 68 
+0014++ 752A 31003100320032003300330034003400
+0015++ 753A             	dw	0035h,0035h,0036h,0036h,0037h,0037h,0038h,0038h ; 70 
+0015++ 753A 35003500360036003700370038003800
+0016++ 754A             	dw	0038h,0039h,0039h,003Ah,003Ah,003Bh,003Bh,003Ch ; 78 
+0016++ 754A 3800390039003A003A003B003B003C00
+0017++ 755A             	dw	003Ch,003Dh,003Dh,003Eh,003Eh,003Fh,003Fh,0040h ; 80 
+0017++ 755A 3C003D003D003E003E003F003F004000
+0018++ 756A             	dw	0040h,0041h,0041h,0042h,0042h,0043h,0043h,0044h ; 88 
+0018++ 756A 40004100410042004200430043004400
+0019++ 757A             	dw	0044h,0045h,0045h,0046h,0046h,0047h,0047h,0048h ; 90 
+0019++ 757A 44004500450046004600470047004800
+0020++ 758A             	dw	0048h,0049h,0049h,004Ah,004Ah,004Bh,004Bh,004Ch ; 98 
+0020++ 758A 4800490049004A004A004B004B004C00
+0021++ 759A             	dw	004Ch,004Dh,004Dh,004Eh,004Eh,004Fh,004Fh,0050h ; a0 
+0021++ 759A 4C004D004D004E004E004F004F005000
+0022++ 75AA             	dw	0050h,0051h,0051h,0052h,0052h,0053h,0053h,0054h ; a8 
+0022++ 75AA 50005100510052005200530053005400
+0023++ 75BA             	dw	0054h,0055h,0055h,0056h,0056h,0057h,0057h,0058h ; b0 
+0023++ 75BA 54005500550056005600570057005800
+0024++ 75CA             	dw	0058h,0059h,0059h,005Ah,005Ah,005Bh,005Bh,005Ch ; b8 
+0024++ 75CA 5800590059005A005A005B005B005C00
+0025++ 75DA             	dw	005Ch,005Dh,005Dh,005Eh,005Eh,005Fh,005Fh,0060h ; c0 
+0025++ 75DA 5C005D005D005E005E005F005F006000
+0026++ 75EA             	dw	0060h,0061h,0061h,0062h,0062h,0063h,0063h,0064h ; c8 
+0026++ 75EA 60006100610062006200630063006400
+0027++ 75FA             	dw	0064h,0065h,0065h,0066h,0066h,0067h,0067h,0068h ; d0 
+0027++ 75FA 64006500650066006600670067006800
+0028++ 760A             	dw	0068h,0069h,0069h,006Ah,006Ah,006Bh,006Bh,006Ch ; d8 
+0028++ 760A 6800690069006A006A006B006B006C00
+0029++ 761A             	dw	006Ch,006Dh,006Dh,006Eh,006Eh,006Fh,006Fh,0070h ; e0 
+0029++ 761A 6C006D006D006E006E006F006F007000
+0030++ 762A             	dw	0071h,0071h,0072h,0072h,0073h,0073h,0074h,0074h ; e8 
+0030++ 762A 71007100720072007300730074007400
+0031++ 763A             	dw	0075h,0075h,0076h,0076h,0077h,0077h,0078h,0078h ; f0 
+0031++ 763A 75007500760076007700770078007800
+0032++ 764A             	dw	0079h,0079h,007Ah,007Ah,007Bh,007Bh,007Ch,007Ch ; f8 
+0032++ 764A 790079007A007A007B007B007C007C00
+0033++ 765A             	dw	007Dh,007Dh,007Eh,007Eh,007Fh,007Fh,0080h,0081h ; 100 
+0033++ 765A 7D007D007E007E007F007F0080008100
+0034++ 766A             	dw	0081h,0082h,0082h,0083h,0083h,0084h,0084h,0085h ; 108 
+0034++ 766A 81008200820083008300840084008500
+0035++ 767A             	dw	0085h,0086h,0086h,0087h,0087h,0088h,0088h,0089h ; 110 
+0035++ 767A 85008600860087008700880088008900
+0036++ 768A             	dw	0089h,008Ah,008Ah,008Bh,008Ch,008Ch,008Dh,008Dh ; 118 
+0036++ 768A 89008A008A008B008C008C008D008D00
+0037++ 769A             	dw	008Eh,008Eh,008Fh,008Fh,0090h,0090h,0091h,0091h ; 120 
+0037++ 769A 8E008E008F008F009000900091009100
+0038++ 76AA             	dw	0092h,0092h,0093h,0093h,0094h,0094h,0095h,0096h ; 128 
+0038++ 76AA 92009200930093009400940095009600
+0039++ 76BA             	dw	0096h,0097h,0097h,0098h,0098h,0099h,0099h,009Ah ; 130 
+0039++ 76BA 96009700970098009800990099009A00
+0040++ 76CA             	dw	009Ah,009Bh,009Bh,009Ch,009Ch,009Dh,009Eh,009Eh ; 138 
+0040++ 76CA 9A009B009B009C009C009D009E009E00
+0041++ 76DA             	dw	009Fh,009Fh,00A0h,00A0h,00A1h,00A1h,00A2h,00A2h ; 140 
+0041++ 76DA 9F009F00A000A000A100A100A200A200
+0042++ 76EA             	dw	00A3h,00A3h,00A4h,00A4h,00A5h,00A6h,00A6h,00A7h ; 148 
+0042++ 76EA A300A300A400A400A500A600A600A700
+0043++ 76FA             	dw	00A7h,00A8h,00A8h,00A9h,00A9h,00AAh,00AAh,00ABh ; 150 
+0043++ 76FA A700A800A800A900A900AA00AA00AB00
+0044++ 770A             	dw	00ABh,00ACh,00ADh,00ADh,00AEh,00AEh,00AFh,00AFh ; 158 
+0044++ 770A AB00AC00AD00AD00AE00AE00AF00AF00
+0045++ 771A             	dw	00B0h,00B0h,00B1h,00B1h,00B2h,00B3h,00B3h,00B4h ; 160 
+0045++ 771A B000B000B100B100B200B300B300B400
+0046++ 772A             	dw	00B4h,00B5h,00B5h,00B6h,00B6h,00B7h,00B7h,00B8h ; 168 
+0046++ 772A B400B500B500B600B600B700B700B800
+0047++ 773A             	dw	00B8h,00B9h,00BAh,00BAh,00BBh,00BBh,00BCh,00BCh ; 170 
+0047++ 773A B800B900BA00BA00BB00BB00BC00BC00
+0048++ 774A             	dw	00BDh,00BDh,00BEh,00BFh,00BFh,00C0h,00C0h,00C1h ; 178 
+0048++ 774A BD00BD00BE00BF00BF00C000C000C100
+0049++ 775A             	dw	00C1h,00C2h,00C2h,00C3h,00C3h,00C4h,00C5h,00C5h ; 180 
+0049++ 775A C100C200C200C300C300C400C500C500
+0050++ 776A             	dw	00C6h,00C6h,00C7h,00C7h,00C8h,00C8h,00C9h,00CAh ; 188 
+0050++ 776A C600C600C700C700C800C800C900CA00
+0051++ 777A             	dw	00CAh,00CBh,00CBh,00CCh,00CCh,00CDh,00CDh,00CEh ; 190 
+0051++ 777A CA00CB00CB00CC00CC00CD00CD00CE00
+0052++ 778A             	dw	00CFh,00CFh,00D0h,00D0h,00D1h,00D1h,00D2h,00D2h ; 198 
+0052++ 778A CF00CF00D000D000D100D100D200D200
+0053++ 779A             	dw	00D3h,00D4h,00D4h,00D5h,00D5h,00D6h,00D6h,00D7h ; 1a0 
+0053++ 779A D300D400D400D500D500D600D600D700
+0054++ 77AA             	dw	00D7h,00D8h,00D9h,00D9h,00DAh,00DAh,00DBh,00DBh ; 1a8 
+0054++ 77AA D700D800D900D900DA00DA00DB00DB00
+0055++ 77BA             	dw	00DCh,00DCh,00DDh,00DEh,00DEh,00DFh,00DFh,00E0h ; 1b0 
+0055++ 77BA DC00DC00DD00DE00DE00DF00DF00E000
+0056++ 77CA             	dw	00E0h,00E1h,00E2h,00E2h,00E3h,00E3h,00E4h,00E4h ; 1b8 
+0056++ 77CA E000E100E200E200E300E300E400E400
+0057++ 77DA             	dw	00E5h,00E5h,00E6h,00E7h,00E7h,00E8h,00E8h,00E9h ; 1c0 
+0057++ 77DA E500E500E600E700E700E800E800E900
+0058++ 77EA             	dw	00E9h,00EAh,00EBh,00EBh,00ECh,00ECh,00EDh,00EDh ; 1c8 
+0058++ 77EA E900EA00EB00EB00EC00EC00ED00ED00
+0059++ 77FA             	dw	00EEh,00EFh,00EFh,00F0h,00F0h,00F1h,00F1h,00F2h ; 1d0 
+0059++ 77FA EE00EF00EF00F000F000F100F100F200
+0060++ 780A             	dw	00F3h,00F3h,00F4h,00F4h,00F5h,00F5h,00F6h,00F7h ; 1d8 
+0060++ 780A F300F300F400F400F500F500F600F700
+0061++ 781A             	dw	00F7h,00F8h,00F8h,00F9h,00F9h,00FAh,00FBh,00FBh ; 1e0 
+0061++ 781A F700F800F800F900F900FA00FB00FB00
+0062++ 782A             	dw	00FCh,00FCh,00FDh,00FDh,00FEh,00FFh,00FFh,0100h; 1e8 
+0062++ 782A FC00FC00FD00FD00FE00FF00FF000001
+0063++ 783A             	dw	0100h,0101h,0102h,0102h,0103h,0103h,0104h,0104h ; 1f0 
+0063++ 783A 00010101020102010301030104010401
+0064++ 784A             	dw	0105h,0106h,0106h,0107h,0107h,0108h,0108h,0109h ; 1f8 
+0064++ 784A 05010601060107010701080108010901
+0065++ 785A             	dw	010Ah,010Ah,010Bh,010Bh,010Ch,010Dh,010Dh,010Eh ; 200 
+0065++ 785A 0A010A010B010B010C010D010D010E01
+0066++ 786A             	dw	010Eh,010Fh,010Fh,0110h,0111h,0111h,0112h,0112h ; 208 
+0066++ 786A 0E010F010F0110011101110112011201
+0067++ 787A             	dw	0113h,0114h,0114h,0115h,0115h,0116h,0117h,0117h ; 210 
+0067++ 787A 13011401140115011501160117011701
+0068++ 788A             	dw	0118h,0118h,0119h,0119h,011Ah,011Bh,011Bh,011Ch ; 218 
+0068++ 788A 18011801190119011A011B011B011C01
+0069++ 789A             	dw	011Ch,011Dh,011Eh,011Eh,011Fh,011Fh,0120h,0121h ; 220 
+0069++ 789A 1C011D011E011E011F011F0120012101
+0070++ 78AA             	dw	0121h,0122h,0122h,0123h,0124h,0124h,0125h,0125h ; 228 
+0070++ 78AA 21012201220123012401240125012501
+0071++ 78BA             	dw	0126h,0127h,0127h,0128h,0128h,0129h,0129h,012Ah ; 230 
+0071++ 78BA 26012701270128012801290129012A01
+0072++ 78CA             	dw	012Bh,012Bh,012Ch,012Ch,012Dh,012Eh,012Eh,012Fh ; 238 
+0072++ 78CA 2B012B012C012C012D012E012E012F01
+0073++ 78DA             	dw	012Fh,0130h,0131h,0131h,0132h,0132h,0133h,0134h ; 240 
+0073++ 78DA 2F013001310131013201320133013401
+0074++ 78EA             	dw	0134h,0135h,0135h,0136h,0137h,0137h,0138h,0138h ; 248 
+0074++ 78EA 34013501350136013701370138013801
+0075++ 78FA             	dw	0139h,013Ah,013Ah,013Bh,013Ch,013Ch,013Dh,013Dh ; 250 
+0075++ 78FA 39013A013A013B013C013C013D013D01
+0076++ 790A             	dw	013Eh,013Fh,013Fh,0140h,0140h,0141h,0142h,0142h ; 258 
+0076++ 790A 3E013F013F0140014001410142014201
+0077++ 791A             	dw	0143h,0143h,0144h,0145h,0145h,0146h,0146h,0147h ; 260 
+0077++ 791A 43014301440145014501460146014701
+0078++ 792A             	dw	0148h,0148h,0149h,0149h,014Ah,014Bh,014Bh,014Ch ; 268 
+0078++ 792A 48014801490149014A014B014B014C01
+0079++ 793A             	dw	014Dh,014Dh,014Eh,014Eh,014Fh,0150h,0150h,0151h ; 270 
+0079++ 793A 4D014D014E014E014F01500150015101
+0080++ 794A             	dw	0151h,0152h,0153h,0153h,0154h,0155h,0155h,0156h ; 278 
+0080++ 794A 51015201530153015401550155015601
+0081++ 795A             	dw	0156h,0157h,0158h,0158h,0159h,0159h,015Ah,015Bh ; 280 
+0081++ 795A 5601570158015801590159015A015B01
+0082++ 796A             	dw	015Bh,015Ch,015Dh,015Dh,015Eh,015Eh,015Fh,0160h ; 288 
+0082++ 796A 5B015C015D015D015E015E015F016001
+0083++ 797A             	dw	0160h,0161h,0162h,0162h,0163h,0163h,0164h,0165h ; 290 
+0083++ 797A 60016101620162016301630164016501
+0084++ 798A             	dw	0165h,0166h,0167h,0167h,0168h,0168h,0169h,016Ah ; 298 
+0084++ 798A 65016601670167016801680169016A01
+0085++ 799A             	dw	016Ah,016Bh,016Ch,016Ch,016Dh,016Dh,016Eh,016Fh ; 2a0 
+0085++ 799A 6A016B016C016C016D016D016E016F01
+0086++ 79AA             	dw	016Fh,0170h,0171h,0171h,0172h,0172h,0173h,0174h ; 2a8 
+0086++ 79AA 6F017001710171017201720173017401
+0087++ 79BA             	dw	0174h,0175h,0176h,0176h,0177h,0177h,0178h,0179h ; 2b0 
+0087++ 79BA 74017501760176017701770178017901
+0088++ 79CA             	dw	0179h,017Ah,017Bh,017Bh,017Ch,017Dh,017Dh,017Eh ; 2b8 
+0088++ 79CA 79017A017B017B017C017D017D017E01
+0089++ 79DA             	dw	017Eh,017Fh,0180h,0180h,0181h,0182h,0182h,0183h ; 2c0 
+0089++ 79DA 7E017F01800180018101820182018301
+0090++ 79EA             	dw	0184h,0184h,0185h,0185h,0186h,0187h,0187h,0188h ; 2c8 
+0090++ 79EA 84018401850185018601870187018801
+0091++ 79FA             	dw	0189h,0189h,018Ah,018Bh,018Bh,018Ch,018Ch,018Dh ; 2d0 
+0091++ 79FA 890189018A018B018B018C018C018D01
+0092++ 7A0A             	dw	018Eh,018Eh,018Fh,0190h,0190h,0191h,0192h,0192h ; 2d8 
+0092++ 7A0A 8E018E018F0190019001910192019201
+0093++ 7A1A             	dw	0193h,0194h,0194h,0195h,0195h,0196h,0197h,0197h ; 2e0 
+0093++ 7A1A 93019401940195019501960197019701
+0094++ 7A2A             	dw	0198h,0199h,0199h,019Ah,019Bh,019Bh,019Ch,019Dh ; 2e8 
+0094++ 7A2A 9801990199019A019B019B019C019D01
+0095++ 7A3A             	dw	019Dh,019Eh,019Fh,019Fh,01A0h,01A0h,01A1h,01A2h ; 2f0 
+0095++ 7A3A 9D019E019F019F01A001A001A101A201
+0096++ 7A4A             	dw	01A2h,01A3h,01A4h,01A4h,01A5h,01A6h,01A6h,01A7h ; 2f8 
+0096++ 7A4A A201A301A401A401A501A601A601A701
+0097++ 7A5A             	dw	01A8h,01A8h,01A9h,01AAh,01AAh,01ABh,01ACh,01ACh ; 300 
+0097++ 7A5A A801A801A901AA01AA01AB01AC01AC01
+0098++ 7A6A             	dw	01ADh,01AEh,01AEh,01AFh,01B0h,01B0h,01B1h,01B1h ; 308 
+0098++ 7A6A AD01AE01AE01AF01B001B001B101B101
+0099++ 7A7A             	dw	01B2h,01B3h,01B3h,01B4h,01B5h,01B5h,01B6h,01B7h ; 310 
+0099++ 7A7A B201B301B301B401B501B501B601B701
+0100++ 7A8A             	dw	01B7h,01B8h,01B9h,01B9h,01BAh,01BBh,01BBh,01BCh ; 318 
+0100++ 7A8A B701B801B901B901BA01BB01BB01BC01
+0101++ 7A9A             	dw	01BDh,01BDh,01BEh,01BFh,01BFh,01C0h,01C1h,01C1h ; 320 
+0101++ 7A9A BD01BD01BE01BF01BF01C001C101C101
+0102++ 7AAA             	dw	01C2h,01C3h,01C3h,01C4h,01C5h,01C5h,01C6h,01C7h ; 328 
+0102++ 7AAA C201C301C301C401C501C501C601C701
+0103++ 7ABA             	dw	01C7h,01C8h,01C9h,01C9h,01CAh,01CBh,01CBh,01CCh ; 330 
+0103++ 7ABA C701C801C901C901CA01CB01CB01CC01
+0104++ 7ACA             	dw	01CDh,01CDh,01CEh,01CFh,01CFh,01D0h,01D1h,01D1h ; 338 
+0104++ 7ACA CD01CD01CE01CF01CF01D001D101D101
+0105++ 7ADA             	dw	01D2h,01D3h,01D3h,01D4h,01D5h,01D5h,01D6h,01D7h ; 340 
+0105++ 7ADA D201D301D301D401D501D501D601D701
+0106++ 7AEA             	dw	01D7h,01D8h,01D9h,01DAh,01DAh,01DBh,01DCh,01DCh ; 348 
+0106++ 7AEA D701D801D901DA01DA01DB01DC01DC01
+0107++ 7AFA             	dw	01DDh,01DEh,01DEh,01DFh,01E0h,01E0h,01E1h,01E2h ; 350 
+0107++ 7AFA DD01DE01DE01DF01E001E001E101E201
+0108++ 7B0A             	dw	01E2h,01E3h,01E4h,01E4h,01E5h,01E6h,01E6h,01E7h ; 358 
+0108++ 7B0A E201E301E401E401E501E601E601E701
+0109++ 7B1A             	dw	01E8h,01E8h,01E9h,01EAh,01EBh,01EBh,01ECh,01EDh ; 360 
+0109++ 7B1A E801E801E901EA01EB01EB01EC01ED01
+0110++ 7B2A             	dw	01EDh,01EEh,01EFh,01EFh,01F0h,01F1h,01F1h,01F2h ; 368 
+0110++ 7B2A ED01EE01EF01EF01F001F101F101F201
+0111++ 7B3A             	dw	01F3h,01F3h,01F4h,01F5h,01F5h,01F6h,01F7h,01F8h ; 370 
+0111++ 7B3A F301F301F401F501F501F601F701F801
+0112++ 7B4A             	dw	01F8h,01F9h,01FAh,01FAh,01FBh,01FCh,01FCh,01FDh ; 378 
+0112++ 7B4A F801F901FA01FA01FB01FC01FC01FD01
+0113++ 7B5A             	dw	01FEh,01FEh,01FFh,0200h,0201h,0201h,0202h,0203h ; 380 
+0113++ 7B5A FE01FE01FF0100020102010202020302
+0114++ 7B6A             	dw	0203h,0204h,0205h,0205h,0206h,0207h,0207h,0208h ; 388 
+0114++ 7B6A 03020402050205020602070207020802
+0115++ 7B7A             	dw	0209h,020Ah,020Ah,020Bh,020Ch,020Ch,020Dh,020Eh ; 390 
+0115++ 7B7A 09020A020A020B020C020C020D020E02
+0116++ 7B8A             	dw	020Eh,020Fh,0210h,0211h,0211h,0212h,0213h,0213h ; 398 
+0116++ 7B8A 0E020F02100211021102120213021302
+0117++ 7B9A             	dw	0214h,0215h,0215h,0216h,0217h,0218h,0218h,0219h ; 3a0 
+0117++ 7B9A 14021502150216021702180218021902
+0118++ 7BAA             	dw	021Ah,021Ah,021Bh,021Ch,021Dh,021Dh,021Eh,021Fh ; 3a8 
+0118++ 7BAA 1A021A021B021C021D021D021E021F02
+0119++ 7BBA             	dw	021Fh,0220h,0221h,0221h,0222h,0223h,0224h,0224h ; 3b0 
+0119++ 7BBA 1F022002210221022202230224022402
+0120++ 7BCA             	dw	0225h,0226h,0226h,0227h,0228h,0229h,0229h,022Ah ; 3b8 
+0120++ 7BCA 25022602260227022802290229022A02
+0121++ 7BDA             	dw	022Bh,022Bh,022Ch,022Dh,022Eh,022Eh,022Fh,0230h ; 3c0 
+0121++ 7BDA 2B022B022C022D022E022E022F023002
+0122++ 7BEA             	dw	0230h,0231h,0232h,0233h,0233h,0234h,0235h,0235h ; 3c8 
+0122++ 7BEA 30023102320233023302340235023502
+0123++ 7BFA             	dw	0236h,0237h,0238h,0238h,0239h,023Ah,023Ah,023Bh ; 3d0 
+0123++ 7BFA 360237023802380239023A023A023B02
+0124++ 7C0A             	dw	023Ch,023Dh,023Dh,023Eh,023Fh,0240h,0240h,0241h ; 3d8 
+0124++ 7C0A 3C023D023D023E023F02400240024102
+0125++ 7C1A             	dw	0242h,0242h,0243h,0244h,0245h,0245h,0246h,0247h; 3e0 
+0125++ 7C1A 42024202430244024502450246024702
+0126++ 7C2A             	dw	0247h,0248h,0249h,024Ah,024Ah,024Bh,024Ch,024Dh ; 3e8 
+0126++ 7C2A 4702480249024A024A024B024C024D02
+0127++ 7C3A             	dw	024Dh,024Eh,024Fh,024Fh,0250h,0251h,0252h,0252h ; 3f0 
+0127++ 7C3A 4D024E024F024F025002510252025202
+0128++ 7C4A             	dw	0253h,0254h,0255h,0255h,0256h,0257h,0258h,0258h ; 3f8 
+0128++ 7C4A 53025402550255025602570258025802
+0129++ 7C5A             	dw	0259h,025Ah,025Ah,025Bh,025Ch,025Dh,025Dh,025Eh ; 400 
+0129++ 7C5A 59025A025A025B025C025D025D025E02
+0130++ 7C6A             	dw	025Fh,0260h,0260h,0261h,0262h,0263h,0263h,0264h ; 408 
+0130++ 7C6A 5F026002600261026202630263026402
+0131++ 7C7A             	dw	0265h,0266h,0266h,0267h,0268h,0268h,0269h,026Ah ; 410 
+0131++ 7C7A 65026602660267026802680269026A02
+0132++ 7C8A             	dw	026Bh,026Bh,026Ch,026Dh,026Eh,026Eh,026Fh,0270h ; 418 
+0132++ 7C8A 6B026B026C026D026E026E026F027002
+0133++ 7C9A             	dw	0271h,0271h,0272h,0273h,0274h,0274h,0275h,0276h ; 420 
+0133++ 7C9A 71027102720273027402740275027602
+0134++ 7CAA             	dw	0277h,0277h,0278h,0279h,027Ah,027Ah,027Bh,027Ch ; 428 
+0134++ 7CAA 77027702780279027A027A027B027C02
+0135++ 7CBA             	dw	027Dh,027Dh,027Eh,027Fh,0280h,0280h,0281h,0282h ; 430 
+0135++ 7CBA 7D027D027E027F028002800281028202
+0136++ 7CCA             	dw	0283h,0283h,0284h,0285h,0286h,0286h,0287h,0288h ; 438 
+0136++ 7CCA 83028302840285028602860287028802
+0137++ 7CDA             	dw	0289h,0289h,028Ah,028Bh,028Ch,028Ch,028Dh,028Eh ; 440 
+0137++ 7CDA 890289028A028B028C028C028D028E02
+0138++ 7CEA             	dw	028Fh,028Fh,0290h,0291h,0292h,0292h,0293h,0294h ; 448 
+0138++ 7CEA 8F028F02900291029202920293029402
+0139++ 7CFA             	dw	0295h,0296h,0296h,0297h,0298h,0299h,0299h,029Ah ; 450 
+0139++ 7CFA 95029602960297029802990299029A02
+0140++ 7D0A             	dw	029Bh,029Ch,029Ch,029Dh,029Eh,029Fh,029Fh,02A0h ; 458 
+0140++ 7D0A 9B029C029C029D029E029F029F02A002
+0141++ 7D1A             	dw	02A1h,02A2h,02A2h,02A3h,02A4h,02A5h,02A6h,02A6h ; 460 
+0141++ 7D1A A102A202A202A302A402A502A602A602
+0142++ 7D2A             	dw	02A7h,02A8h,02A9h,02A9h,02AAh,02ABh,02ACh,02ACh ; 468 
+0142++ 7D2A A702A802A902A902AA02AB02AC02AC02
+0143++ 7D3A             	dw	02ADh,02AEh,02AFh,02B0h,02B0h,02B1h,02B2h,02B3h ; 470 
+0143++ 7D3A AD02AE02AF02B002B002B102B202B302
+0144++ 7D4A             	dw	02B3h,02B4h,02B5h,02B6h,02B7h,02B7h,02B8h,02B9h ; 478 
+0144++ 7D4A B302B402B502B602B702B702B802B902
+0145++ 7D5A             	dw	02BAh,02BAh,02BBh,02BCh,02BDh,02BEh,02BEh,02BFh ; 480 
+0145++ 7D5A BA02BA02BB02BC02BD02BE02BE02BF02
+0146++ 7D6A             	dw	02C0h,02C1h,02C1h,02C2h,02C3h,02C4h,02C5h,02C5h ; 488 
+0146++ 7D6A C002C102C102C202C302C402C502C502
+0147++ 7D7A             	dw	02C6h,02C7h,02C8h,02C8h,02C9h,02CAh,02CBh,02CCh ; 490 
+0147++ 7D7A C602C702C802C802C902CA02CB02CC02
+0148++ 7D8A             	dw	02CCh,02CDh,02CEh,02CFh,02D0h,02D0h,02D1h,02D2h ; 498 
+0148++ 7D8A CC02CD02CE02CF02D002D002D102D202
+0149++ 7D9A             	dw	02D3h,02D3h,02D4h,02D5h,02D6h,02D7h,02D7h,02D8h ; 4a0 
+0149++ 7D9A D302D302D402D502D602D702D702D802
+0150++ 7DAA             	dw	02D9h,02DAh,02DBh,02DBh,02DCh,02DDh,02DEh,02DFh ; 4a8 
+0150++ 7DAA D902DA02DB02DB02DC02DD02DE02DF02
+0151++ 7DBA             	dw	02DFh,02E0h,02E1h,02E2h,02E3h,02E3h,02E4h,02E5h ; 4b0 
+0151++ 7DBA DF02E002E102E202E302E302E402E502
+0152++ 7DCA             	dw	02E6h,02E7h,02E7h,02E8h,02E9h,02EAh,02EBh,02EBh ; 4b8 
+0152++ 7DCA E602E702E702E802E902EA02EB02EB02
+0153++ 7DDA             	dw	02ECh,02EDh,02EEh,02EFh,02EFh,02F0h,02F1h,02F2h ; 4c0 
+0153++ 7DDA EC02ED02EE02EF02EF02F002F102F202
+0154++ 7DEA             	dw	02F3h,02F3h,02F4h,02F5h,02F6h,02F7h,02F7h,02F8h ; 4c8 
+0154++ 7DEA F302F302F402F502F602F702F702F802
+0155++ 7DFA             	dw	02F9h,02FAh,02FBh,02FBh,02FCh,02FDh,02FEh,02FFh ; 4d0 
+0155++ 7DFA F902FA02FB02FB02FC02FD02FE02FF02
+0156++ 7E0A             	dw	02FFh,0300h,0301h,0302h,0303h,0303h,0304h,0305h ; 4d8 
+0156++ 7E0A FF020003010302030303030304030503
+0157++ 7E1A             	dw	0306h,0307h,0308h,0308h,0309h,030Ah,030Bh,030Ch ; 4e0 
+0157++ 7E1A 060307030803080309030A030B030C03
+0158++ 7E2A             	dw	030Ch,030Dh,030Eh,030Fh,0310h,0310h,0311h,0312h ; 4e8 
+0158++ 7E2A 0C030D030E030F031003100311031203
+0159++ 7E3A             	dw	0313h,0314h,0315h,0315h,0316h,0317h,0318h,0319h ; 4f0 
+0159++ 7E3A 13031403150315031603170318031903
+0160++ 7E4A             	dw	0319h,031Ah,031Bh,031Ch,031Dh,031Eh,031Eh,031Fh ; 4f8 
+0160++ 7E4A 19031A031B031C031D031E031E031F03
+0161++ 7E5A             	dw	0320h,0321h,0322h,0323h,0323h,0324h,0325h,0326h ; 500 
+0161++ 7E5A 20032103220323032303240325032603
+0162++ 7E6A             	dw	0327h,0327h,0328h,0329h,032Ah,032Bh,032Ch,032Ch ; 508 
+0162++ 7E6A 27032703280329032A032B032C032C03
+0163++ 7E7A             	dw	032Dh,032Eh,032Fh,0330h,0331h,0331h,0332h,0333h ; 510 
+0163++ 7E7A 2D032E032F0330033103310332033303
+0164++ 7E8A             	dw	0334h,0335h,0336h,0336h,0337h,0338h,0339h,033Ah ; 518 
+0164++ 7E8A 34033503360336033703380339033A03
+0165++ 7E9A             	dw	033Bh,033Bh,033Ch,033Dh,033Eh,033Fh,0340h,0340h ; 520 
+0165++ 7E9A 3B033B033C033D033E033F0340034003
+0166++ 7EAA             	dw	0341h,0342h,0343h,0344h,0345h,0345h,0346h,0347h ; 528 
+0166++ 7EAA 41034203430344034503450346034703
+0167++ 7EBA             	dw	0348h,0349h,034Ah,034Bh,034Bh,034Ch,034Dh,034Eh ; 530 
+0167++ 7EBA 480349034A034B034B034C034D034E03
+0168++ 7ECA             	dw	034Fh,0350h,0350h,0351h,0352h,0353h,0354h,0355h ; 538 
+0168++ 7ECA 4F035003500351035203530354035503
+0169++ 7EDA             	dw	0356h,0356h,0357h,0358h,0359h,035Ah,035Bh,035Bh; 540 
+0169++ 7EDA 560356035703580359035A035B035B03
+0170++ 7EEA             	dw	035Ch,035Dh,035Eh,035Fh,0360h,0361h,0361h,0362h ; 548 
+0170++ 7EEA 5C035D035E035F036003610361036203
+0171++ 7EFA             	dw	0363h,0364h,0365h,0366h,0367h,0367h,0368h,0369h ; 550 
+0171++ 7EFA 63036403650366036703670368036903
+0172++ 7F0A             	dw	036Ah,036Bh,036Ch,036Dh,036Dh,036Eh,036Fh,0370h ; 558 
+0172++ 7F0A 6A036B036C036D036D036E036F037003
+0173++ 7F1A             	dw	0371h,0372h,0373h,0373h,0374h,0375h,0376h,0377h ; 560 
+0173++ 7F1A 71037203730373037403750376037703
+0174++ 7F2A             	dw	0378h,0379h,0379h,037Ah,037Bh,037Ch,037Dh,037Eh ; 568 
+0174++ 7F2A 7803790379037A037B037C037D037E03
+0175++ 7F3A             	dw	037Fh,0380h,0380h,0381h,0382h,0383h,0384h,0385h ; 570 
+0175++ 7F3A 7F038003800381038203830384038503
+0176++ 7F4A             	dw	0386h,0386h,0387h,0388h,0389h,038Ah,038Bh,038Ch ; 578 
+0176++ 7F4A 860386038703880389038A038B038C03
+0177++ 7F5A             	dw	038Dh,038Dh,038Eh,038Fh,0390h,0391h,0392h,0393h ; 580 
+0177++ 7F5A 8D038D038E038F039003910392039303
+0178++ 7F6A             	dw	0394h,0394h,0395h,0396h,0397h,0398h,0399h,039Ah ; 588 
+0178++ 7F6A 94039403950396039703980399039A03
+0179++ 7F7A             	dw	039Bh,039Bh,039Ch,039Dh,039Eh,039Fh,03A0h,03A1h ; 590 
+0179++ 7F7A 9B039B039C039D039E039F03A003A103
+0180++ 7F8A             	dw	03A2h,03A2h,03A3h,03A4h,03A5h,03A6h,03A7h,03A8h ; 598 
+0180++ 7F8A A203A203A303A403A503A603A703A803
+0181++ 7F9A             	dw	03A9h,03AAh,03AAh,03ABh,03ACh,03ADh,03AEh,03AFh ; 5a0 
+0181++ 7F9A A903AA03AA03AB03AC03AD03AE03AF03
+0182++ 7FAA             	dw	03B0h,03B1h,03B2h,03B2h,03B3h,03B4h,03B5h,03B6h ; 5a8 
+0182++ 7FAA B003B103B203B203B303B403B503B603
+0183++ 7FBA             	dw	03B7h,03B8h,03B9h,03BAh,03BAh,03BBh,03BCh,03BDh ; 5b0 
+0183++ 7FBA B703B803B903BA03BA03BB03BC03BD03
+0184++ 7FCA             	dw	03BEh,03BFh,03C0h,03C1h,03C2h,03C3h,03C3h,03C4h ; 5b8 
+0184++ 7FCA BE03BF03C003C103C203C303C303C403
+0185++ 7FDA             	dw	03C5h,03C6h,03C7h,03C8h,03C9h,03CAh,03CBh,03CBh ; 5c0 
+0185++ 7FDA C503C603C703C803C903CA03CB03CB03
+0186++ 7FEA             	dw	03CCh,03CDh,03CEh,03CFh,03D0h,03D1h,03D2h,03D3h ; 5c8 
+0186++ 7FEA CC03CD03CE03CF03D003D103D203D303
+0187++ 7FFA             	dw	03D4h,03D5h,03D5h,03D6h,03D7h,03D8h,03D9h,03DAh ; 5d0 
+0187++ 7FFA D403D503D503D603D703D803D903DA03
+0188++ 800A             	dw	03DBh,03DCh,03DDh,03DEh,03DEh,03DFh,03E0h,03E1h ; 5d8 
+0188++ 800A DB03DC03DD03DE03DE03DF03E003E103
+0189++ 801A             	dw	03E2h,03E3h,03E4h,03E5h,03E6h,03E7h,03E8h,03E9h ; 5e0 
+0189++ 801A E203E303E403E503E603E703E803E903
+0190++ 802A             	dw	03E9h,03EAh,03EBh,03ECh,03EDh,03EEh,03EFh,03F0h ; 5e8 
+0190++ 802A E903EA03EB03EC03ED03EE03EF03F003
+0191++ 803A             	dw	03F1h,03F2h,03F3h,03F4h,03F4h,03F5h,03F6h,03F7h; 5f0 
+0191++ 803A F103F203F303F403F403F503F603F703
+0192++ 804A             	dw	03F8h,03F9h,03FAh,03FBh,03FCh,03FDh,03FEh,03FFh ; 5f8 
+0192++ 804A F803F903FA03FB03FC03FD03FE03FF03
+0193++ 805A             
+2806+  805A             
+2807+  805A             
+2808+  805A             
+0221   805A             		.include  string.asm
+0001+  805A             ;--------------------------------------------------------------------
+0002+  805A             ; ŒÔËÒ‡ÌËÂ: ¡Â„Û˘‡ˇ ÒÚÓÍ‡
+0003+  805A             ; ¿‚ÚÓ ÔÓÚ‡: ÓÒÌÓ‚‡ ‚˚‰‡Ì‡ ËÁ Á‡ÔËÎˇÚÓ‡
+0004+  805A             ;--------------------------------------------------------------------
+0005+  805A             Str_reload: 
+0006+  805A 3A 9A 81    		ld	a,(Str_flg_end)
+0007+  805D A7          		and	a
+0008+  805E 28 06       		jr 	z,Str_init
+0009+  8060 AF          		xor	a
+0010+  8061 32 9A 81    		ld	(Str_flg_end),a
+0011+  8064 37          		scf
+0012+  8065 C9          		ret
+0013+  8066             
+0014+  8066             Str_init: 
+0015+  8066 3E 0F       		ld	a,0Fh
+0016+  8068 32 9B 81    		ld	(Str_count_bit),a
+0017+  806B 21 B6 83    		ld	hl,Str_addr_text
+0018+  806E 22 9C 81    		ld	(Str_addr_work),hl
+0019+  8071 7E          		ld	a,(hl)
+0020+  8072 C9          		ret
+0021+  8073             
+0022+  8073             
+0023+  8073             Str_init_load: 
+0024+  8073 3E 0F       		ld	a,0Fh
+0025+  8075 32 9B 81    		ld	(Str_count_bit),a
+0026+  8078 21 9E 83    		ld	hl,Str_addr_load
+0027+  807B 22 9C 81    		ld	(Str_addr_work),hl
+0028+  807E 3E 01       		ld	a,1
+0029+  8080 32 9A 81    		ld	(Str_flg_end),a
+0030+  8083 7E          		ld	a,(hl)
+0031+  8084 C9          		ret	
+0032+  8085             
+0033+  8085             Str_play: 
+0034+  8085 3A 9B 81    		ld	a,(Str_count_bit)
+0035+  8088 3C          		inc	a
+0036+  8089 E6 0F       		and	0Fh
+0037+  808B 32 9B 81    		ld	(Str_count_bit),a
+0038+  808E B7          		or	a
+0039+  808F 20 10       		jr	nz, Str_move_string
+0040+  8091             
+0041+  8091             Str_next_symbol: 
+0042+  8091 2A 9C 81    		ld	hl,(Str_addr_work)
+0043+  8094 7E          		ld	a,(hl)
+0044+  8095 A7          		and	a
+0045+  8096 CC 5A 80    		call	z,Str_reload
+0046+  8099 D8          		ret	c
+0047+  809A 23          		inc	hl
+0048+  809B 22 9C 81    		ld	(Str_addr_work),hl
+0049+  809E CD 2A 81    		call	Str_load_symbol
+0050+  80A1             
+0051+  80A1             Str_move_string: 
+0052+  80A1 11 BF 54    		ld	de, 54BFh
+0053+  80A4 21 9F 81    		ld	hl, Str_buf_data +1 
+0054+  80A7 06 10       		ld	b, 10h
+0055+  80A9             
+0056+  80A9             Str_move_line: 
+0057+  80A9 37          		scf	
+0058+  80AA 3F          		ccf	
+0059+  80AB CB 16       		rl	(hl)
+0060+  80AD 2B          		dec	hl
+0061+  80AE CB 16       		rl	(hl)
+0062+  80B0 23          		inc	hl
+0063+  80B1 23          		inc	hl
+0064+  80B2 23          		inc	hl
+0065+  80B3 EB          		ex	de, hl
+0066+  80B4 E5          		push	hl
+0067+  80B5 CB 16       		rl	(hl)
+0068+  80B7 2B          		dec	hl
+0069+  80B8 CB 16       		rl	(hl)
+0070+  80BA 2B          		dec	hl
+0071+  80BB CB 16       		rl	(hl)
+0072+  80BD 2B          		dec	hl
+0073+  80BE CB 16       		rl	(hl)
+0074+  80C0 2B          		dec	hl
+0075+  80C1 CB 16       		rl	(hl)
+0076+  80C3 2B          		dec	hl
+0077+  80C4 CB 16       		rl	(hl)
+0078+  80C6 2B          		dec	hl
+0079+  80C7 CB 16       		rl	(hl)
+0080+  80C9 2B          		dec	hl
+0081+  80CA CB 16       		rl	(hl)
+0082+  80CC 2B          		dec	hl
+0083+  80CD CB 16       		rl	(hl)
+0084+  80CF 2B          		dec	hl
+0085+  80D0 CB 16       		rl	(hl)
+0086+  80D2 2B          		dec	hl
+0087+  80D3 CB 16       		rl	(hl)
+0088+  80D5 2B          		dec	hl
+0089+  80D6 CB 16       		rl	(hl)
+0090+  80D8 2B          		dec	hl
+0091+  80D9 CB 16       		rl	(hl)
+0092+  80DB 2B          		dec	hl
+0093+  80DC CB 16       		rl	(hl)
+0094+  80DE 2B          		dec	hl
+0095+  80DF CB 16       		rl	(hl)
+0096+  80E1 2B          		dec	hl
+0097+  80E2 CB 16       		rl	(hl)
+0098+  80E4 2B          		dec	hl
+0099+  80E5 CB 16       		rl	(hl)
+0100+  80E7 2B          		dec	hl
+0101+  80E8 CB 16       		rl	(hl)
+0102+  80EA 2B          		dec	hl
+0103+  80EB CB 16       		rl	(hl)
+0104+  80ED 2B          		dec	hl
+0105+  80EE CB 16       		rl	(hl)
+0106+  80F0 2B          		dec	hl
+0107+  80F1 CB 16       		rl	(hl)
+0108+  80F3 2B          		dec	hl
+0109+  80F4 CB 16       		rl	(hl)
+0110+  80F6 2B          		dec	hl
+0111+  80F7 CB 16       		rl	(hl)
+0112+  80F9 2B          		dec	hl
+0113+  80FA CB 16       		rl	(hl)
+0114+  80FC 2B          		dec	hl
+0115+  80FD CB 16       		rl	(hl)
+0116+  80FF 2B          		dec	hl
+0117+  8100 CB 16       		rl	(hl)
+0118+  8102 2B          		dec	hl
+0119+  8103 CB 16       		rl	(hl)
+0120+  8105 2B          		dec	hl
+0121+  8106 CB 16       		rl	(hl)
+0122+  8108 2B          		dec	hl
+0123+  8109 CB 16       		rl	(hl)
+0124+  810B 2B          		dec	hl
+0125+  810C CB 16       		rl	(hl)
+0126+  810E 2B          		dec	hl
+0127+  810F CB 16       		rl	(hl)
+0128+  8111 2B          		dec	hl
+0129+  8112 CB 16       		rl	(hl)
+0130+  8114 2B          		dec	hl
+0131+  8115 E1          		pop	hl
+0132+  8116 24          		inc	h
+0133+  8117 7C          		ld	a, h
+0134+  8118 E6 07       		and	7
+0135+  811A 20 09       		jr	nz, Str_next_line
+0136+  811C 7D          		ld	a, l
+0137+  811D D6 E0       		sub	0E0h ; '‡'
+0138+  811F 6F          		ld	l, a
+0139+  8120 9F          		sbc	a, a
+0140+  8121 E6 F8       		and	0F8h ; '¯'
+0141+  8123 84          		add	a, h
+0142+  8124 67          		ld	h, a
+0143+  8125             Str_next_line: 
+0144+  8125 EB          		ex	de, hl
+0145+  8126 10 81       		djnz	Str_move_line
+0146+  8128 A7          		and	a
+0147+  8129 C9          		ret
+0148+  812A             
+0149+  812A             Str_load_symbol: 
+0150+  812A D6 20       		sub	20h
+0151+  812C FE 60       		cp	60h
+0152+  812E 38 02       		jr	c, Str_load_data
+0153+  8130 D6 60       		sub	60h
+0154+  8132             
+0155+  8132             Str_load_data: 
+0156+  8132 26 00       		ld	h, 0
+0157+  8134 6F          		ld	l, a
+0158+  8135 29          		add	hl, hl
+0159+  8136 29          		add	hl, hl
+0160+  8137 29          		add	hl, hl
+0161+  8138 29          		add	hl, hl
+0162+  8139 29          		add	hl, hl
+0163+  813A 01 66 8E    		ld	bc, Str_addr_font
+0164+  813D 09          		add	hl, bc
+0165+  813E ED 73 97 81 		ld	(Str_save_stack + 1),sp
+0166+  8142 F9          		ld	sp, hl
+0167+  8143 21 9E 81    		ld	hl, Str_buf_data
+0168+  8146 C1          		pop	bc
+0169+  8147 71          		ld	(hl), c
+0170+  8148 23          		inc	hl
+0171+  8149 70          		ld	(hl), b
+0172+  814A 23          		inc	hl
+0173+  814B C1          		pop	bc
+0174+  814C 71          		ld	(hl), c
+0175+  814D 23          		inc	hl
+0176+  814E 70          		ld	(hl), b
+0177+  814F 23          		inc	hl
+0178+  8150 C1          		pop	bc
+0179+  8151 71          		ld	(hl), c
+0180+  8152 23          		inc	hl
+0181+  8153 70          		ld	(hl), b
+0182+  8154 23          		inc	hl
+0183+  8155 C1          		pop	bc
+0184+  8156 71          		ld	(hl), c
+0185+  8157 23          		inc	hl
+0186+  8158 70          		ld	(hl), b
+0187+  8159 23          		inc	hl
+0188+  815A C1          		pop	bc
+0189+  815B 71          		ld	(hl), c
+0190+  815C 23          		inc	hl
+0191+  815D 70          		ld	(hl), b
+0192+  815E 23          		inc	hl
+0193+  815F C1          		pop	bc
+0194+  8160 71          		ld	(hl), c
+0195+  8161 23          		inc	hl
+0196+  8162 70          		ld	(hl), b
+0197+  8163 23          		inc	hl
+0198+  8164 C1          		pop	bc
+0199+  8165 71          		ld	(hl), c
+0200+  8166 23          		inc	hl
+0201+  8167 70          		ld	(hl), b
+0202+  8168 23          		inc	hl
+0203+  8169 C1          		pop	bc
+0204+  816A 71          		ld	(hl), c
+0205+  816B 23          		inc	hl
+0206+  816C 70          		ld	(hl), b
+0207+  816D 23          		inc	hl
+0208+  816E C1          		pop	bc
+0209+  816F 71          		ld	(hl), c
+0210+  8170 23          		inc	hl
+0211+  8171 70          		ld	(hl), b
+0212+  8172 23          		inc	hl
+0213+  8173 C1          		pop	bc
+0214+  8174 71          		ld	(hl), c
+0215+  8175 23          		inc	hl
+0216+  8176 70          		ld	(hl), b
+0217+  8177 23          		inc	hl
+0218+  8178 C1          		pop	bc
+0219+  8179 71          		ld	(hl), c
+0220+  817A 23          		inc	hl
+0221+  817B 70          		ld	(hl), b
+0222+  817C 23          		inc	hl
+0223+  817D C1          		pop	bc
+0224+  817E 71          		ld	(hl), c
+0225+  817F 23          		inc	hl
+0226+  8180 70          		ld	(hl), b
+0227+  8181 23          		inc	hl
+0228+  8182 C1          		pop	bc
+0229+  8183 71          		ld	(hl), c
+0230+  8184 23          		inc	hl
+0231+  8185 70          		ld	(hl), b
+0232+  8186 23          		inc	hl
+0233+  8187 C1          		pop	bc
+0234+  8188 71          		ld	(hl), c
+0235+  8189 23          		inc	hl
+0236+  818A 70          		ld	(hl), b
+0237+  818B 23          		inc	hl
+0238+  818C C1          		pop	bc
+0239+  818D 71          		ld	(hl), c
+0240+  818E 23          		inc	hl
+0241+  818F 70          		ld	(hl), b
+0242+  8190 23          		inc	hl
+0243+  8191 C1          		pop	bc
+0244+  8192 71          		ld	(hl), c
+0245+  8193 23          		inc	hl
+0246+  8194 70          		ld	(hl), b
+0247+  8195 23          		inc	hl
+0248+  8196             Str_save_stack: 
+0249+  8196 31 00 00    		ld	sp, 0
+0250+  8199 C9          		ret	
+0251+  819A             
+0252+  819A             
+0253+  819A             Str_flg_end: 
+0254+  819A 00          		db 	0
+0255+  819B             
+0256+  819B             Str_count_bit: 
+0257+  819B 00          		db 	0
+0258+  819C             Str_addr_work: 
+0259+  819C 00 00       		dw 	0
+0260+  819E             
+0261+  819E             Str_buf_data:    
+0262+  819E 00          		ds	512
+0263+  839E             
+0264+  839E             Str_addr_load: 
+0265+  839E             		db	'            *LOAD*     ',0
+0265+  839E 2020202020202020202020202A4C4F41442A202020202000
+0266+  83B6             
+0267+  83B6             Str_addr_text: 
+0268+  83B6             		db 	'                             œ–»¬≈“! —ÕŒ¬¿ ¬ ›‘»–≈ MICK. '
+0268+  83B6 2020202020202020202020202020202020202020202020202020202020CFD0C8
+0268+  83D6 C2C5D22120D1CDCEC2C020C220DDD4C8D0C5204D49434B2E20
+0269+  83EF             		db 	' ¬ ›“Œ“ –¿« ’Œ◊” œ–≈ƒÀŒ∆»“‹ ¬¿ÿ≈Ã” ¬Õ»Ã¿Õ»ﬁ Õ≈¡ŒÀ‹ÿ”ﬁ Ã”«€ ¿À‹Õ”ﬁ Œ“ –€“ ”'
+0269+  83EF 20C220DDD2CED220D0C0C720D5CED7D320CFD0C5C4CBCEC6C8D2DC20C2C0D8C5
+0269+  840F CCD320C2CDC8CCC0CDC8DE20CDC5C1CECBDCD8D3DE20CCD3C7DBCAC0CBDCCDD3
+0269+  842F DE20CED2CAD0DBD2CAD3
+0270+  8439             		db 	' ¬ œŒƒƒ≈–∆ ” —¬Œ≈… ÕŒ¬Œ… «¬” Œ¬Œ…  ¿–“€ *ZXM-MOONSOUND*, —≈–ƒ÷≈Ã  Œ“Œ–Œ… ﬂ¬Àﬂ≈“—ﬂ  –”“Œ…'
+0270+  8439 20C220CFCEC4C4C5D0C6CAD320D1C2CEC5C920CDCEC2CEC920C7C2D3CACEC2CE
+0270+  8459 C920CAC0D0D2DB202A5A584D2D4D4F4F4E534F554E442A2C20D1C5D0C4D6C5CC
+0270+  8479 20CACED2CED0CEC920DFC2CBDFC5D2D1DF20CAD0D3D2CEC9
+0271+  8491             		db	' «¬” Œ¬Œ… ◊»œ Œ“ ‘»–Ã€ ﬂÃ¿’¿ - YMF278.' 
+0271+  8491 20C7C2D3CACEC2CEC920D7C8CF20CED220D4C8D0CCDB20DFCCC0D5C0202D2059
+0271+  84B1 4D463237382E
+0272+  84B7             		db 	' ƒ¿ÕÕ¿ﬂ «¬” Œ¬¿ﬂ  ¿–“¿ —ƒ≈À¿Õ¿ œŒ ÃŒ“»¬¿Ã »«¬≈—“ÕŒ… ¬  –”√¿’ MSX œŒÀ‹«Œ¬¿“≈À≈… «¬” Œ¬Œ…  ¿–“€'
+0272+  84B7 20C4C0CDCDC0DF20C7C2D3CACEC2C0DF20CAC0D0D2C020D1C4C5CBC0CDC020CF
+0272+  84D7 CE20CCCED2C8C2C0CC20C8C7C2C5D1D2CDCEC920C220CAD0D3C3C0D5204D5358
+0272+  84F7 20CFCECBDCC7CEC2C0D2C5CBC5C920C7C2D3CACEC2CEC920CAC0D0D2DB
+0273+  8514             		db 	' œŒƒ Õ¿«¬¿Õ»≈Ã *WOZBLASTER* » œŒ«¬ŒÀﬂ≈“ ¬€¬≈—“» «¬”  Õ¿ÿ≈√Œ Àﬁ¡»ÃŒ√Œ —œ≈  » Õ¿ —Œ¬≈–ÿ≈ÕÕŒ ÕŒ¬€… »'
+0273+  8514 20CFCEC420CDC0C7C2C0CDC8C5CC202A574F5A424C41535445522A20C820CFCE
+0273+  8534 C7C2CECBDFC5D220C2DBC2C5D1D2C820C7C2D3CA20CDC0D8C5C3CE20CBDEC1C8
+0273+  8554 CCCEC3CE20D1CFC5CACAC820CDC020D1CEC2C5D0D8C5CDCDCE20CDCEC2DBC920
+0273+  8574 C8
+0274+  8575             		db 	'  ¿◊≈—“¬≈ÕÕ€… ”–Œ¬≈Õ‹. —Œ¡—¬≈ÕÕŒ ÃŒ∆≈“≈ —¿Ã» Œ÷≈Õ»“‹, œ–Œ—À”ÿ»¬¿ﬂ Ã≈ÀŒƒ»» ›“Œ… Œ“ –€“ ».'
+0274+  8575 20CAC0D7C5D1D2C2C5CDCDDBC920D3D0CEC2C5CDDC2E20D1CEC1D1C2C5CDCDCE
+0274+  8595 20CCCEC6C5D2C520D1C0CCC820CED6C5CDC8D2DC2C20CFD0CED1CBD3D8C8C2C0
+0274+  85B5 DF20CCC5CBCEC4C8C820DDD2CEC920CED2CAD0DBD2CAC82E
+0275+  85CD             		db	' ¬—≈ Ã≈ÀŒƒ»» Õ¿œ»—¿Õ€ ƒÀﬂ MSX Õ≈ »Ã  Œƒ≈–ŒÃ » Ã”«€ ¿Õ“ŒÃ NARUTO. ¬—≈√Œ Ã≈ÀŒƒ»… “”“ ◊≈“€–≈ »'
+0275+  85CD 20C2D1C520CCC5CBCEC4C8C820CDC0CFC8D1C0CDDB20C4CBDF204D535820CDC5
+0275+  85ED CAC8CC20CACEC4C5D0CECC20C820CCD3C7DBCAC0CDD2CECC204E415255544F2E
+0275+  860D 20C2D1C5C3CE20CCC5CBCEC4C8C920D2D3D220D7C5D2DBD0C520C8
+0276+  8628             		db	' œ≈–≈ Àﬁ◊¿ﬁ“—ﬂ ŒÕ» œ”“≈Ã Õ¿∆¿“»ﬂ  À¿¬»ÿ A,B,C,D. Õ¿«¬¿Õ»ﬂ Ã≈ÀŒƒ»… Õ≈»«¬≈—“Õ€, “ŒÀ‹ Œ ≈—“‹'
+0276+  8628 20CFC5D0C5CACBDED7C0DED2D1DF20CECDC820CFD3D2C5CC20CDC0C6C0D2C8DF
+0276+  8648 20CACBC0C2C8D820412C422C432C442E20CDC0C7C2C0CDC8DF20CCC5CBCEC4C8
+0276+  8668 C920CDC5C8C7C2C5D1D2CDDB2C20D2CECBDCCACE20C5D1D2DC
+0277+  8681             		db	' »ƒ≈Õ“»‘» ¿“Œ–€: "A" - O3D001.MDR,"B" - O3D002.MDR, "C" - O3D003.MDR, "D" - O3D004.MDR.'
+0277+  8681 20C8C4C5CDD2C8D4C8CAC0D2CED0DB3A20224122202D204F33443030312E4D44
+0277+  86A1 522C224222202D204F33443030322E4D44522C20224322202D204F3344303033
+0277+  86C1 2E4D44522C20224422202D204F33443030342E4D44522E
+0278+  86D8             		db	'  –ŒÃ≈ “Œ√Œ ≈—“‹ ≈Ÿ≈ ŒƒÕ¿  ÕŒœ ¿ "BREAK" - ¬€’Œƒ ¬ TR-DOS.'
+0278+  86D8 20CAD0CECCC520D2CEC3CE20C5D1D2DC20C5D9C520CEC4CDC020CACDCECFCAC0
+0278+  86F8 2022425245414B22202D20C2DBD5CEC420C22054522D444F532E
+0279+  8712             		db	' ’Œ◊” “¿ ∆≈ «¿Ã≈“»“‹, ◊“Œ  ¿  ¡€ ƒÀﬂ œ–Œ¡€ –≈ÿ»À —Ã≈Õ»“‹ ‘ŒÕ“. ≈√Œ ¬€ƒ–¿À »« «¿œ»ÀŒƒ≈ÃŒ  ¿¿¿.'
+0279+  8712 20D5CED7D320D2C0CAC6C520C7C0CCC5D2C8D2DC2C20D7D2CE20CAC0CA20C1DB
+0279+  8732 20C4CBDF20CFD0CEC1DB20D0C5D8C8CB20D1CCC5CDC8D2DC20D4CECDD22E20C5
+0279+  8752 C3CE20C2DBC4D0C0CB20C8C720C7C0CFC8CBCEC4C5CCCECA20C0C0C02E
+0280+  876F             		db	' “¿  ◊“Œ À≈√ Œ ÃŒ∆ÕŒ —œ”“¿“‹ ›“” ƒ≈Ã ” — œ–Œƒ” ÷»≈… «¿œ»Àﬂ“Œ–- ŒÃœ¿Õ», ÕŒ ›“Œ —Œ¬—≈Ã Õ≈ “¿ . :)   '
+0280+  876F 20D2C0CA20D7D2CE20CBC5C3CACE20CCCEC6CDCE20D1CFD3D2C0D2DC20DDD2D3
+0280+  878F 20C4C5CCCAD320D120CFD0CEC4D3CAD6C8C5C920C7C0CFC8CBDFD2CED02DCACE
+0280+  87AF CCCFC0CDC82C20CDCE20DDD2CE20D1CEC2D1C5CC20CDC520D2C0CA2E203A2920
+0280+  87CF 2020
+0281+  87D1             		db 	' Œ œ–Œ√–¿ÃÃ≈: Œ—ÕŒ¬Õ€≈ Ã¿“≈–»¿À€ ¡€À» œŒ«¿»Ã—“¬Œ¬¿Õ€ — œ–Œ√–¿ÃÃ  ŒÃœ‹ﬁ“≈–¿ "MSX" » ¬≈À» Œ…'
+0281+  87D1 20CE20CFD0CEC3D0C0CCCCC53A20CED1CDCEC2CDDBC520CCC0D2C5D0C8C0CBDB
+0281+  87F1 20C1DBCBC820CFCEC7C0C8CCD1D2C2CEC2C0CDDB20D120CFD0CEC3D0C0CCCC20
+0281+  8811 CACECCCFDCDED2C5D0C020224D53582220C820C2C5CBC8CACEC9
+0282+  882B             		db	' Ã”—Œ– » œŒƒ Õ¿«¬¿Õ»≈Ã »Õ“≈–Õ≈“.' 
+0282+  882B 20CCD3D1CED0CAC820CFCEC420CDC0C7C2C0CDC8C5CC20C8CDD2C5D0CDC5D22E
+0283+  884B             		db 	' ¬—≈ ›“Œ —Œ¡»–¿ÀŒ—‹ Õ¿ –— œ–» œŒÃŒŸ» ¿——≈Ã¡À≈–¿  SJASMPLUS.'
+0283+  884B 20C2D1C520DDD2CE20D1CEC1C8D0C0CBCED1DC20CDC020D0D120CFD0C820CFCE
+0283+  886B CCCED9C820C0D1D1C5CCC1CBC5D0C02020534A41534D504C55532E
+0284+  8886             		db	'             œ–»¬≈“€ » —œ¿—»¡€, ¿ “¿ ∆≈ FUCK!     '
+0284+  8886 20202020202020202020202020CFD0C8C2C5D2DB20C820D1CFC0D1C8C1DB2C20
+0284+  88A6 C020D2C0CAC6C5204655434B212020202020
+0285+  88B8             		db	' ¿¿¿,  ¿  ¬—≈√ƒ¿ » ¬≈«ƒ≈ √–ŒÃ¿ƒÕ€… œ–»¬≈“»Ÿ≈. Õ¿ —≈… –¿« “€ œŒ’Œ∆≈ »—œ€“¿≈ÿ‹ ¬»À» »… » ”∆¿—Õ€…'
+0285+  88B8 20C0C0C02C20CAC0CA20C2D1C5C3C4C020C820C2C5C7C4C520C3D0CECCC0C4CD
+0285+  88D8 DBC920CFD0C8C2C5D2C8D9C52E20CDC020D1C5C920D0C0C720D2DB20CFCED5CE
+0285+  88F8 C6C520C8D1CFDBD2C0C5D8DC20C2C8CBC8CAC8C920C820D3C6C0D1CDDBC9
+0286+  8916             		db	' Œ¡ÀŒÃ œ≈“–Œ¬»◊, “¿   ¿  ” “≈¡ﬂ ∆≈À≈« » Õ≈“, ¿ ÀﬂÃ”Àﬂ“Œ– » œŒƒ¿¬ÕŒ Õ≈ œŒƒ¬≈«À».'
+0286+  8916 20CEC1CBCECC20CFC5D2D0CEC2C8D72C20D2C0CA20CAC0CA20D320D2C5C1DF20
+0286+  8936 C6C5CBC5C7CAC820CDC5D22C20C020CBDFCCD3CBDFD2CED020C820CFCEC4C0C2
+0286+  8956 CDCE20CDC520CFCEC4C2C5C7CBC82E
+0287+  8965             		db	' ¬œ–Œ◊≈Ã ÃŒ∆≈ÿ‹ Õ≈ ”Õ€¬¿“‹, Õ≈ “€ “¿ Œ… Œƒ»Õ, »—œ€“¿¬ÿ»… —»≈ ◊”¬—“¬Œ :)'
+0287+  8965 20C2CFD0CED7C5CC20CCCEC6C5D8DC20CDC520D3CDDBC2C0D2DC2C20CDC520D2
+0287+  8985 DB20D2C0CACEC920CEC4C8CD2C20C8D1CFDBD2C0C2D8C8C920D1C8C520D7D3C2
+0287+  89A5 D1D2C2CE203A29
+0288+  89AC             		db	' NYUK, —œ¿—»¡Œ «¿ ‘ŒÕ“ »« “¬Œ≈√Œ ƒ≈ÃŒ-«¿œ»Àﬂ“Œ–¿.'
+0288+  89AC 204E59554B2C20D1CFC0D1C8C1CE20C7C020D4CECDD220C8C720D2C2CEC5C3CE
+0288+  89CC 20C4C5CCCE2DC7C0CFC8CBDFD2CED0C02E
+0289+  89DD             		db	' DJS3000, —œ¿—»¡Œ «¿  ŒÕ—”À‹“¿“»¬Õ”ﬁ œŒÃŒŸ‹ œ–» —Œ«ƒ¿Õ»» ›“Œ… «¬” Œ¬Œ…  ¿–“€.'
+0289+  89DD 20444A53333030302C20D1CFC0D1C8C1CE20C7C020CACECDD1D3CBDCD2C0D2C8
+0289+  89FD C2CDD3DE20CFCECCCED9DC20CFD0C820D1CEC7C4C0CDC8C820DDD2CEC920C7C2
+0289+  8A1D D3CACEC2CEC920CAC0D0D2DB2E
+0290+  8A2A             		db	' NARUTO, –≈—œ≈ “ «¿ “¿ Œ… Ã”«ŒÕ, ’Œ“‹ “€ » œ»ÿ≈ÿ‹ ƒÀﬂ MSX. ÕŒ œŒ¡À¿√Œƒ¿–»“‹ “Œ Õ¿ƒŒ.'
+0290+  8A2A 204E415255544F2C20D0C5D1CFC5CAD220C7C020D2C0CACEC920CCD3C7CECD2C
+0290+  8A4A 20D5CED2DC20D2DB20C820CFC8D8C5D8DC20C4CBDF204D53582E20CDCE20CFCE
+0290+  8A6A C1CBC0C3CEC4C0D0C8D2DC20D2CE20CDC0C4CE2E
+0291+  8A7E             		db	' MC68K, —œ¿—»¡Œ «¿ ∆≈À¿Õ»≈ œ–» –”“»“‹ YMF278   —œ≈  », ÕŒ ”∆ »«¬»Õ», “€  ¿  “Œ ÃŒ–ﬂ ,'
+0291+  8A7E 204D4336384B2C20D1CFC0D1C8C1CE20C7C020C6C5CBC0CDC8C520CFD0C8CAD0
+0291+  8A9E D3D2C8D2DC20594D4632373820CA20D1CFC5CACAC82C20CDCE20D3C620C8C7C2
+0291+  8ABE C8CDC82C20D2DB20CAC0CA20D2CE20CCCED0DFCA2C
+0292+  8AD3             		db	'  Œ“Œ–€… ƒŒÀ√Œ œÀ¿¬¿À. Õ¿ƒ≈ﬁ—‹ ◊“Œ — YM3812 ” “≈¡ﬂ ¡€—“–≈≈ ƒ≈ÀŒ œŒ…ƒ≈“.'
+0292+  8AD3 20CACED2CED0DBC920C4CECBC3CE20CFCBC0C2C0CB2E20CDC0C4C5DED1DC20D7
+0292+  8AF3 D2CE20D120594D3338313220D320D2C5C1DF20C1DBD1D2D0C5C520C4C5CBCE20
+0292+  8B13 CFCEC9C4C5D22E
+0293+  8B1A             		db	' ¬—≈Ã ¬À¿ƒ≈À‹÷¿Ã œ–Œƒ” ÷»» œŒƒ ¡–≈ÕƒŒÃ "ZXM" ¡ŒÀ‹ÿ”Ÿ»… œ–»¬≈“. ¬¿— “≈œ≈–‹ ÃÕŒ√Œ, ÃŒ∆ÕŒ Õ≈ ¡”ƒ” ¬¿— Õ¿«€¬¿“‹ ¬—≈’ œŒ»Ã≈ÕÕŒ.'
+0293+  8B1A 20C2D1C5CC20C2CBC0C4C5CBDCD6C0CC20CFD0CEC4D3CAD6C8C820CFCEC420C1
+0293+  8B3A D0C5CDC4CECC20225A584D2220C1CECBDCD8D3D9C8C920CFD0C8C2C5D22E20C2
+0293+  8B5A C0D120D2C5CFC5D0DC20CCCDCEC3CE2C20CCCEC6CDCE20CDC520C1D3C4D320C2
+0293+  8B7A C0D120CDC0C7DBC2C0D2DC20C2D1C5D520CFCEC8CCC5CDCDCE2E
+0294+  8B94             		db	' œ–»¬≈“ “¿ ∆≈ ¬—≈Ã —œ≈ “–”Ã»—“¿Ã, ¡€¬ÿ»Ã, Õ¿—“ŒﬂŸ»Ã » ¬Œ«ÃŒ∆ÕŒ ¡”ƒ”Ÿ»Ã.'
+0294+  8B94 20CFD0C8C2C5D220D2C0CAC6C520C2D1C5CC20D1CFC5CAD2D0D3CCC8D1D2C0CC
+0294+  8BB4 2C20C1DBC2D8C8CC2C20CDC0D1D2CEDFD9C8CC20C820C2CEC7CCCEC6CDCE20C1
+0294+  8BD4 D3C4D3D9C8CC2E
+0295+  8BDB             		db	' œŒƒ  ŒÕ≈÷ Œƒ»Õ “ŒÀ—“€… » ∆»–Õ€… FUCK!'
+0295+  8BDB 20CFCEC420CACECDC5D620CEC4C8CD20D2CECBD1D2DBC920C820C6C8D0CDDBC9
+0295+  8BFB 204655434B21
+0296+  8C01             		db	' VERY VERY VERY LONG LONG LONG BIG BIG FUCK œŒ—€À¿ﬁ VICTOR2312, —Œ«ƒ¿“≈Àﬁ “≈Œ–»… ¬”Õƒ≈– ¬¿‘À≈….'
+0296+  8C01 205645525920564552592056455259204C4F4E47204C4F4E47204C4F4E472042
+0296+  8C21 494720424947204655434B20CFCED1DBCBC0DE20564943544F52323331322C20
+0296+  8C41 D1CEC7C4C0D2C5CBDE20D2C5CED0C8C920C2D3CDC4C5D020C2C0D4CBC5C92E
+0297+  8C60             		db	' ¬»“ﬂ 0%,  Œ√ƒ¿ ∆≈ Õ¿Ã œŒ ¿∆≈ÿ‹ ¬”Õƒ≈– –¿«–¿¡Œ“ ” ÃÕŒ√Œœ–Œ÷≈——Œ–Õ€… ¬Ã»–.'
+0297+  8C60 20C2C8D2DF2030252C20CACEC3C4C020C6C520CDC0CC20CFCECAC0C6C5D8DC20
+0297+  8C80 C2D3CDC4C5D020D0C0C7D0C0C1CED2CAD320CCCDCEC3CECFD0CED6C5D1D1CED0
+0297+  8CA0 CDDBC920C2CCC8D02E
+0298+  8CA9             		db	' ¿ œŒ —”Ÿ≈—“¬”, ¬»“ﬂ “€ Ã”ƒ¿ !!!!'
+0298+  8CA9 20C020CFCE20D1D3D9C5D1D2C2D32C20C2C8D2DF20D2DB20CCD3C4C0CA212121
+0298+  8CC9 21
+0299+  8CCA             		db	'       » œŒ—À≈ƒÕ»… ¿¡«¿÷ :) :)'
+0299+  8CCA 20202020202020C820CFCED1CBC5C4CDC8C920C0C1C7C0D6203A29203A29
+0300+  8CE8             		db	' Õ≈ «¿¡€¬¿≈Ã œŒ—≈Ÿ¿“‹ —¿…“ WWW.MICKLAB.NAROD.RU “¿Ã ÃŒ∆ÕŒ Õ¿…“» œŒ—À≈ƒÕﬁﬁ »Õ‘Œ–Ã¿÷»ﬁ'
+0300+  8CE8 20CDC520C7C0C1DBC2C0C5CC20CFCED1C5D9C0D2DC20D1C0C9D2205757572E4D
+0300+  8D08 49434B4C41422E4E41524F442E525520D2C0CC20CCCEC6CDCE20CDC0C9D2C820
+0300+  8D28 CFCED1CBC5C4CDDEDE20C8CDD4CED0CCC0D6C8DE
+0301+  8D3C             		db	' œŒ ÃŒ»Ã œ–Œ≈ “¿Ã. —¬ﬂ«¿“—ﬂ —Œ ÃÕŒ… ÃŒ∆ÕŒ ◊≈–≈« —¿…“ WWW.ZX.PK.RU - Õ» Õ≈…Ã MICK »À» ◊≈–≈« Ã€ÀŒ'
+0301+  8D3C 20CFCE20CCCEC8CC20CFD0CEC5CAD2C0CC2E20D1C2DFC7C0D2D1DF20D1CE20CC
+0301+  8D5C CDCEC920CCCEC6CDCE20D7C5D0C5C720D1C0C9D2205757572E5A582E504B2E52
+0301+  8D7C 55202D20CDC8CACDC5C9CC204D49434B20C8CBC820D7C5D0C5C720CCDBCBCE
+0302+  8D9B             		db	' MICKLAB@MAIL.RU.'
+0302+  8D9B 204D49434B4C4142404D41494C2E52552E
+0303+  8DAC             		db	' œŒ–¿ œ–ŒŸ¿“‹—ﬂ. œŒ—ÃŒ–“»Ã ¡”ƒ”“ À» ≈Ÿ≈ œ–Œ√–¿ÃÃ » Œ“ Ã≈Õﬂ :) œŒ ¿! œŒ ¿!      '
+0303+  8DAC 20CFCED0C020CFD0CED9C0D2DCD1DF2E20CFCED1CCCED0D2C8CC20C1D3C4D3D2
+0303+  8DCC 20CBC820C5D9C520CFD0CEC3D0C0CCCCCAC820CED220CCC5CDDF203A2920CFCE
+0303+  8DEC CAC02120CFCECAC021202020202020
+0304+  8DFB             		db	'            JUNY *2015*    GRAPHICS AND CODE BY MICK         '
+0304+  8DFB 2020202020202020202020204A554E59202A323031352A202020204752415048
+0304+  8E1B 49435320414E4420434F4445204259204D49434B202020202020202020
+0305+  8E38             		db	'                                             ',0           		
+0305+  8E38 2020202020202020202020202020202020202020202020202020202020202020
+0305+  8E58 2020202020202020202020202000
+0306+  8E66             Str_addr_font: 
+0307+  8E66             		incbin "aaa_0.fnt"
+0308+  C4EE             Str_end_font: 
+0309+  C4EE             
+0222   C4EE             
+0223   C4EE             MoonSound_end: 
+0224   C4EE             		.savebin "moonsound.bin",MoonSound_Start, MoonSound_end - MoonSound_Start
+0225   C4EE             
+0226   C4EE             
+0227   C4EE             		.end
+0228   C4EE             
+0229   C4EE             
