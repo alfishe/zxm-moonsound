@@ -111,11 +111,13 @@ The PCM engine uses a system conceptually similar to the FM engine's F-Number/Bl
 The 10-bit F-Number is a mantissa that provides fine pitch control within an octave, and the 4-bit signed Octave (−8 to +7) is the exponent:
 
 ```
-Address increment per output sample = 2^Octave × (1024 + F-Number) / 1024
-Playback rate = 44100 × 2^Octave × (1024 + F-Number) / 1024   (33.8688 MHz clock)
+Address increment per output sample = 2^(Octave−1) × (1024 + F-Number) / 1024
+Playback rate = 22050 × 2^Octave × (1024 + F-Number) / 1024   (33.8688 MHz clock)
 ```
 
-With F-Number = 0 and Octave = 0 the sample advances one point per output sample (44.1 kHz). Increasing Octave by 1 doubles the playback speed, raising the pitch by one octave; the F-Number sweeps the rate across one octave above that (F-Number 1023 ≈ 2×).
+With F-Number = 0 and Octave = 0 the sample advances **half** a point per output sample (22.05 kHz); a sample recorded at 44.1 kHz plays at its own pitch at Octave = +1. Increasing Octave by 1 doubles the playback speed, raising the pitch by one octave; the F-Number sweeps the rate across one octave above that (F-Number 1023 ≈ 2×).
+
+This follows the step calculation in the ymfm and openMSX YMF278 cores (`((1024 | FN) << (OCT + 7)) >> 2` as a .16 step, i.e. 0.5 at OCT = 0, FN = 0). The unreal-ng emulator (ymfm) and Furnace (openMSX-derived core) both play PCM this way. Reading OCT = 0 as 44.1 kHz makes a model of the chip one octave too high.
 
 The negative Octave range (−8 to −1) provides sub-rate playback for pitches far below the sample's native pitch. At Octave = −8 with a minimum F-Number, the playback rate is extremely slow — useful for bass instruments or special effects, but the quality degrades as the pitch moves further from the sample's native recording pitch.
 

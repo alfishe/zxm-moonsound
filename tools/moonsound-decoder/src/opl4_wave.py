@@ -13,7 +13,9 @@ OPL4 PCM tone and pitch, and extracts the tone's waveform as 16-bit PCM:
               tone 384+x, freq word = RAM table[n] (Amiga / 44.1k / Turbo-R)
 
   ROM pitch: oct = n//12 - 5, F = fnums[n%12] (>=2048: oct+1, F-2048)
-  rate = 44100 * 2^oct * (1024 + F) / 1024   (33.8688 MHz / 768 base)
+  rate = 44100 * 2^(oct-1) * (1024 + F) / 1024   (33.8688 MHz / 768 base)
+  (the chip steps a sample by 1/2 per 44.1 kHz output at oct 0, F 0 -
+  ymfm and openMSX agree; datasheet-style 2^oct is an octave high)
 
 Tone headers (12 bytes; ROM at 0, RAM kit tones 384+ at 0x200000):
   b0 bits7-6 format (0=8, 1=12, 2=16 bit), b0-b2 22-bit start address,
@@ -36,11 +38,16 @@ PATCH_KIT_BASE = 176
 RAM_TONE_BASE = 384
 
 
+def chip_rate(octave: int, fnum: int) -> float:
+    """Sample playback rate of an OPL4 PCM channel (see module docstring)."""
+    return 22050.0 * (2.0 ** octave) * (1024 + fnum) / 1024.0
+
+
 def fw_to_rate(freq_word: int) -> float:
     """Rate of an OPL4 PCM register word (oct<<12 | F<<1)."""
     octave = (((freq_word >> 12) & 0xF) ^ 8) - 8
     fnum = (freq_word >> 1) & 0x3FF
-    return 44100.0 * (2.0 ** octave) * (1024 + fnum) / 1024.0
+    return chip_rate(octave, fnum)
 
 
 def word_rate(word: int) -> float:
@@ -48,7 +55,7 @@ def word_rate(word: int) -> float:
     in bits 10-1 (bit 11 is the pseudo-reverb position, not pitch)."""
     octave = (((word >> 12) & 0xF) ^ 8) - 8
     fnum = (word >> 1) & 0x3FF
-    return 44100.0 * (2.0 ** octave) * (1024 + fnum) / 1024.0
+    return chip_rate(octave, fnum)
 
 
 def rom_word(n: int, fnums: List[int]) -> int:
@@ -73,7 +80,7 @@ def rom_note_rate(n: int, fnums: List[int]) -> float:
     if fnum >= 2048:
         octave += 1
         fnum -= 2048
-    return 44100.0 * (2.0 ** octave) * (1024 + fnum) / 1024.0
+    return chip_rate(octave, fnum)
 
 
 @dataclass

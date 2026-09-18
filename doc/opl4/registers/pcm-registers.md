@@ -116,10 +116,10 @@ The wave number is a **9-bit** value (bit 8 lives in register 0x20+ch) that sele
 The F-Number is a 10-bit mantissa (bits 6:0 from register 0x20+ch, bits 9:7 from this register) and the Octave a signed exponent. At the standard 33.8688 MHz clock the playback rate is:
 
 ```
-Playback rate = 44100 × 2^OCT × (1024 + F-Number) / 1024   [samples per second]
+Playback rate = 22050 × 2^OCT × (1024 + F-Number) / 1024   [samples per second]
 ```
 
-So OCT=0, F-Number=0 plays one sample per output sample (44.1 kHz), each octave step doubles or halves the rate, and the F-Number spans one octave above that (F-Number 1023 ≈ 2×). The Octave is signed: negative values slow playback below 44.1 kHz, positive values speed it up.
+So OCT=0, F-Number=0 steps half a sample per 44.1 kHz output sample (22.05 kHz), and OCT=+1, F-Number=0 plays a sample at its recorded 44.1 kHz rate. Each octave step doubles or halves the rate, and the F-Number spans one octave above that (F-Number 1023 ≈ 2×). The Octave is signed: negative values slow playback further, positive values speed it up. (Step as computed by the ymfm and openMSX cores; see [PCM synthesis](../synthesis/pcm-synthesis.md#f-number-and-octave).)
 
 The **pseudo-reverb** bit (PR) enables a hardware reverb-like tail. This is a hardware-level effect — no additional processing or delay buffers are needed.
 

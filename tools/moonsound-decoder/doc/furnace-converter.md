@@ -132,7 +132,7 @@ The sample collection uses 0, 2, 3, 4 and 6.
 - **175: GM drum kit.** Notes a < 36 use the `drum_midi` patch. Otherwise `GM_DRUMS[a−36]` gives a fixed tone and pitch per note.
 - **176+: `.MWK` kit wave.** The record gives 8 splits, tone 384+x, and a frequency word from the Amiga, 44.1 kHz or Turbo-R table.
 
-Rate = 44100 · 2^oct · (1024+F)/1024.
+Rate = 22050 · 2^oct · (1024+F)/1024, the chip's own step (ymfm and openMSX: half a sample per 44.1 kHz output at oct 0). Using 44100 here made every PCM note an octave high.
 
 **Samples and instruments.** Each (patch, split) becomes one embedded sample plus one MultiPCM instrument (`INS2` type 28, with `SM` and `MP` features):
 
@@ -182,7 +182,7 @@ So real notes 0 and 100 are written as 12 / −1 and 88 / +1.
 | Check | Method | Result |
 |-------|--------|--------|
 | FM | Original player running in the unreal-ng emulator (`core-tests --gtest_filter='MoonSoundMfm2Guest_Test.*:MoonSoundMfm3Guest_Test.*'` dumps register CSVs), compared with Furnace's `-vgmout` export | 421/428 key-ons identical (tick, hardware channel, block, F-number) across 5 songs. The rest are 2.5-4 cents off, from Furnace float rounding in blocks 1-2. |
-| PCM | Every sounding tick of every wave note in Furnace's `-vgmout` export, vs the tick-exact player simulation (`wave_pitch.py`), all 240 songs at 50 Hz | 98.8% of 16.2 M ticks within 2 cents; 217 songs max ≤ 3 cents. Worse cases: instrument-sharing tolerance (≤ 12.5 cents), one-tick-late links in notes over 255 ticks, the `TWINPEAK` octave wrap |
+| PCM | Every sounding tick of every wave note in Furnace's `-vgmout` export, vs the tick-exact player simulation (`wave_pitch.py`), all 240 songs at 50 Hz. Both sides are decoded with the same chip formula, so a match means Furnace writes the player's octave and F-number | 98.8% of 16.2 M ticks within 2 cents; 217 songs max ≤ 3 cents. Worse cases: instrument-sharing tolerance (≤ 12.5 cents), one-tick-late links in notes over 255 ticks, the `TWINPEAK` octave wrap |
 | Batch | All demo-disk MFM/MWM files | 253/253 convert and load; largest sample payload 1.27 MB |
 
 ## Not yet translated

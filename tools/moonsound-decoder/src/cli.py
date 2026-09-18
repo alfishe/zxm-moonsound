@@ -284,10 +284,18 @@ def cmd_scan(args: argparse.Namespace) -> int:
     with open(summary_path, 'w') as f:
         json.dump(summary, f, indent=2)
 
-    # Write individual file outputs
+    # Write individual file outputs; a name found on several disks gets its
+    # folder as prefix so different songs sharing a name don't overwrite
+    name_counts: Dict[str, int] = {}
+    for result in results:
+        name = Path(result['file']).name
+        name_counts[name] = name_counts.get(name, 0) + 1
     for result in results:
         if result['status'] == 'success' and 'data' in result:
-            safe_name = Path(result['file']).name.replace(' ', '_')
+            rel = Path(result['file'])
+            safe_name = rel.name.replace(' ', '_')
+            if name_counts[rel.name] > 1:
+                safe_name = f"{rel.parent.name}__{safe_name}".replace(' ', '_')
             output_path = scratch_dir / f"{safe_name}.json"
             with open(output_path, 'w') as f:
                 json.dump(result['data'], f, indent=2)

@@ -119,22 +119,23 @@ class TestMfmConversion:
 @needs_rom
 @pytest.mark.skipif(not GALIOUS.exists(), reason="GALIOUS.MWM not available")
 class TestWaveResolution:
-    """Reference values independently derived from mwm_player.asm."""
+    """Reference values independently derived from mwm_player.asm; rates use
+    the chip's 22050 * 2^oct * (1024+F)/1024 (ymfm / openMSX)."""
 
     @pytest.fixture(scope="class")
     def resolver(self):
         return WaveResolver(WaveMemory(load_rom()))
 
     @pytest.mark.parametrize("patch,note_byte,tone,rate", [
-        (175, 47, 122, 72782),    # GM drum kit
-        (175, 83, 191, 27821),
-        (175, 84, 197, 41602),
-        (173, 37, 49, 45134),     # drum_7
+        (175, 47, 122, 36391),    # GM drum kit
+        (175, 83, 191, 13910.5),
+        (175, 84, 197, 20801),
+        (173, 37, 49, 22567),     # drum_7
     ])
     def test_rom_voices(self, resolver, patch, note_byte, tone, rate):
         voice, _ = resolver.resolve(patch, note_byte - 1)
         assert voice.tone == tone
-        assert abs(voice.ref_rate - rate) < 1.0
+        assert abs(voice.ref_rate - rate) < 0.5
 
     def test_piano_key_split(self, resolver):
         voice, _ = resolver.resolve(0, 30)     # a=30 -> split 28..33
@@ -153,6 +154,11 @@ class TestWaveResolution:
 
 class TestWavePitch:
     """Player pitch arithmetic (mwm_player.asm) and macro building."""
+
+    def test_chip_rate_is_half_speed_at_octave_zero(self):
+        from src.opl4_wave import chip_rate, word_rate
+        assert chip_rate(0, 0) == 22050.0              # ymfm/openMSX: step 0.5 per 44.1k sample
+        assert word_rate((1 << 12) | (0 << 1)) == 44100.0
 
     def test_carry_add_moves_fnum_overflow_into_octave(self):
         from src.opl4_wave import carry_add, word_rate
