@@ -56,7 +56,8 @@ from src.wave_pitch import played_rows, simulate
 from .fur_song import FurSong, FurChip, FUR_CHIP_OPL4
 from .fur_instrument import FurFMInstrument
 from .fur_pattern import FurPattern, FurPatternRow, FurEffect, FUR_NOTE_OFF
-from .fur_sample import FurSample, FurSampleInstrument
+from .fur_sample import (FurSample, FurSampleInstrument, DIV_SAMPLE_DEPTH_8BIT,
+                         DIV_SAMPLE_DEPTH_12BIT, DIV_SAMPLE_DEPTH_16BIT)
 from .fur_writer import FurWriter
 
 
@@ -334,7 +335,7 @@ class FurnaceConverter(Converter):
     def _setup_wave(self, song: FurSong, rom_kit_name: str):
         rom = load_rom(self.rom_path)
         self._resolver = WaveResolver(WaveMemory(rom, self._load_kit(rom_kit_name)))
-        self._voice_sample: Dict = {}
+        self._tone_sample: Dict = {}
         self._pcm_instrument: Dict = {}
         self._pcm_paths: List = []
         self._warned_ins_cap = False
@@ -348,22 +349,26 @@ class FurnaceConverter(Converter):
             self._resolver, played_rows(positions, rows_of, command_of, tempo),
             wave_events_of, n_tracks, wavnrs, init_presets, init_detune, modtab)
 
-    def _sample_for(self, song: FurSong, voice: Voice) -> int:
-        if voice.key in self._voice_sample:
-            return self._voice_sample[voice.key]
+    def _sample_for(self, song: FurSong, voice: Voice) -> Tuple[int, int]:
+        """One sample per tone (same wave data and loop), in the tone's own
+        depth; voices that share it differ only in pitch, which the note
+        and pitch macro carry. Returns (sample index, C-4 rate)."""
         h = voice.header
+        key = (voice.tone >= 384, h.start, h.bits, h.length, h.loop)
+        if key in self._tone_sample:
+            return self._tone_sample[key]
         # Furnace plays note f at c4_rate * 2^((f-48)/12) (0.6.8.3: note 48
-        # = C-4, verified by rendering). We emit f = a, so the sample's C-4
-        # rate is the voice's rate transposed from ref_a to note 48.
-        c4 = voice.ref_rate * 2.0 ** ((48 - voice.ref_a) / 12.0) * PCM_TUNING_COMP
+        # = C-4, verified by rendering). The first voice's rate transposed
+        # from ref_a to note 48 makes its notes land on whole semitones.
+        c4 = max(1, int(round(voice.ref_rate * 2.0 ** ((48 - voice.ref_a) / 12.0) * PCM_TUNING_COMP)))
         loop_start = h.loop if h.loop < h.length else -1
+        depth = {8: DIV_SAMPLE_DEPTH_8BIT, 12: DIV_SAMPLE_DEPTH_12BIT}.get(h.bits, DIV_SAMPLE_DEPTH_16BIT)
         song.samples.append(FurSample(
-            name=f"t{voice.tone} p{voice.key.patch}.{voice.key.split}",
-            c4_rate=max(1, int(round(c4))),
+            name=f"tone {voice.tone}", c4_rate=c4, depth=depth,
             loop_start=loop_start, loop_end=h.length if loop_start >= 0 else -1,
-            data=self._resolver.mem.pcm(h)))
-        self._voice_sample[voice.key] = len(song.samples) - 1
-        return self._voice_sample[voice.key]
+            data=self._resolver.mem.native(h), count=h.length))
+        self._tone_sample[key] = (len(song.samples) - 1, c4)
+        return self._tone_sample[key]
 
     @staticmethod
     def _macro_distance(a, b) -> int:
@@ -388,18 +393,25 @@ class FurnaceConverter(Converter):
             if best:
                 self._pcm_instrument[key] = best[1]
                 return best[1]
-        if macro and len(song.instruments) >= MAX_INSTRUMENTS:
+        if len(song.instruments) >= MAX_INSTRUMENTS:
             if not getattr(self, "_warned_ins_cap", False):
                 self.warnings.append(f"more than {MAX_INSTRUMENTS} instruments needed - "
-                                     "some pitch effects dropped")
+                                     "some pitch effects approximated")
                 self._warned_ins_cap = True
-            return self._instrument_for(song, voice)
+            # closest existing instrument of the same voice (its pitch path
+            # already includes the voice's offset from the shared sample)
+            same = [(self._macro_distance(m, macro or (0,)), idx) for vk, m, lp, sp, idx
+                    in self._pcm_paths if vk == voice.key]
+            same += [(self._macro_distance((0,), macro or (0,)), idx)
+                     for (vk, m, lp, sp), idx in self._pcm_instrument.items() if vk == voice.key and m is None]
+            if same:
+                return min(same)[1]
         variant = sum(1 for p in self._pcm_paths if p[0] == voice.key)
         name = f"PCM tone {voice.tone} (patch {voice.key.patch})"
         if macro:
             name += f" pitch {variant}"
         song.instruments.append(FurSampleInstrument(
-            name=name, sample_index=self._sample_for(song, voice),
+            name=name, sample_index=self._sample_for(song, voice)[0],
             attack_rate=voice.ar, decay1_rate=voice.d1r, decay_level=voice.dl,
             decay2_rate=voice.d2r, rate_correction=voice.rc, release_rate=voice.rr,
             lfo_speed=voice.lfo, vibrato_depth=voice.vib, tremolo_depth=voice.am,
@@ -418,11 +430,16 @@ class FurnaceConverter(Converter):
                 return
             voice, a, rates = sim
             note = voice.ref_a if voice.fixed_pitch else a
-            if not 0 <= note < 180:
+            target = voice.ref_rate * 2.0 ** ((note - voice.ref_a) / 12.0)
+            # nearest note on the (possibly shared) sample; the pitch macro
+            # carries the rest of the path
+            c4_rate = self._sample_for(song, voice)[1] / PCM_TUNING_COMP
+            fur_note = int(round(48 + 12 * math.log2(target / c4_rate)))
+            if not 0 <= fur_note < 180:
                 return
-            nominal = voice.ref_rate * 2.0 ** ((note - voice.ref_a) / 12.0)
-            macro, loop, speed = build_pitch_macro(rates, nominal) if rates else (None, 255, 1)
-            cell.note = note
+            nominal = c4_rate * 2.0 ** ((fur_note - 48) / 12.0)
+            macro, loop, speed = build_pitch_macro(rates or [target], nominal)
+            cell.note = fur_note
             cell.instrument = self._instrument_for(song, voice, macro, loop, speed)
             if state.volume is not None:
                 cell.volume = state.volume

@@ -2,8 +2,8 @@
 
 Every MoonBlaster song from [`demo-disks/`](../../demo-disks/) converted to [Furnace](https://github.com/tildearrow/furnace) tracker modules (`.fur`) for the Yamaha YMF278B (OPL4), so the music can be played, studied and edited on a modern machine without MoonSound hardware or an MSX / ZX Spectrum emulator.
 
-- **240 modules:** 38 from `.MFM` (MoonBlaster FM) and 202 from `.MWM` (MoonBlaster Wave), 79.0 MB in total.
-- **Converter:** [`tools/moonsound-decoder`](../../tools/moonsound-decoder/), repository commit `ad2b59a`. How it works and how it was verified: [furnace-converter.md](../../tools/moonsound-decoder/doc/furnace-converter.md).
+- **240 modules:** 38 from `.MFM` (MoonBlaster FM) and 202 from `.MWM` (MoonBlaster Wave), 63.6 MB in total.
+- **Converter:** [`tools/moonsound-decoder`](../../tools/moonsound-decoder/), repository commit `f476ea2`. How it works and how it was verified: [furnace-converter.md](../../tools/moonsound-decoder/doc/furnace-converter.md).
 - **Opens in:** Furnace **0.6.8.3** or newer (desktop app: *File → Open*). The files use Furnace's module format version 100, which newer releases load too.
 
 ## Folder layout

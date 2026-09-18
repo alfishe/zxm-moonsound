@@ -163,6 +163,22 @@ class WaveMemory:
             return self.kit.pcm(h)
         return decode_pcm(self.rom, h.start, h.bits, h.length)
 
+    def native(self, h: ToneHeader) -> bytes:
+        """The tone's data in its own depth, laid out as Furnace stores it:
+        8-bit and OPL4-packed 12-bit unchanged, 16-bit byte-swapped to
+        little-endian."""
+        if h.tone >= RAM_TONE_BASE:
+            mem, start = self.kit.raw(h.tone), 0
+        else:
+            mem, start = self.rom, h.start
+        size = {8: h.length, 12: (3 * h.length + 1) // 2}.get(h.bits, 2 * h.length)
+        raw = bytes(mem[start:start + size]).ljust(size, b'\x00')
+        if h.bits == 16:
+            swapped = bytearray(raw)
+            swapped[0::2], swapped[1::2] = raw[1::2], raw[0::2]
+            return bytes(swapped)
+        return raw
+
 
 class MwkKit:
     """MoonBlaster Wave Kit (.MWK): 'MBMS' 0x10 0x0D, 24-bit total size,
@@ -198,9 +214,11 @@ class MwkKit:
     def header(self, tone: int) -> ToneHeader:
         return self._headers[tone]
 
+    def raw(self, tone: int) -> bytes:
+        return self._data[tone]
+
     def pcm(self, h: ToneHeader) -> bytes:
-        raw = self._data[h.tone]
-        return decode_pcm(raw, 0, h.bits, h.length)
+        return decode_pcm(self.raw(h.tone), 0, h.bits, h.length)
 
     def freq_table(self, x: int) -> List[int]:
         sel = self.tones_data[x] & 6

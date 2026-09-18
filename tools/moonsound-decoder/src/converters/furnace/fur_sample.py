@@ -17,6 +17,7 @@ import struct
 DIV_INS_MULTIPCM = 28
 
 DIV_SAMPLE_DEPTH_8BIT = 8
+DIV_SAMPLE_DEPTH_12BIT = 14   # OPL4 packed: 3 bytes per 2 samples, copied to chip memory as-is
 DIV_SAMPLE_DEPTH_16BIT = 16
 
 # Number of per-sample "render on chip" bitmask words (sample.h
@@ -107,7 +108,8 @@ class FurSampleInstrument:
 class FurSample:
     """Embedded sample, written as an "SMP2" block.
 
-    `data` holds signed little-endian PCM at `depth` bits (8 or 16).
+    `data` holds signed PCM at `depth`: 8-bit, 16-bit little-endian, or
+    OPL4-packed 12-bit (then `count` gives the number of samples).
     `c4_rate` is the playback rate Furnace uses for note C-4; the note ->
     rate mapping is c4_rate * 2^((note - C4_NOTE)/12).
     """
@@ -117,9 +119,12 @@ class FurSample:
     loop_start: int = -1
     loop_end: int = -1
     data: bytes = b""
+    count: Optional[int] = None
 
     @property
     def num_samples(self) -> int:
+        if self.count is not None:
+            return self.count
         return len(self.data) // (2 if self.depth == DIV_SAMPLE_DEPTH_16BIT else 1)
 
     def to_furnace_bytes(self) -> bytes:

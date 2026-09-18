@@ -197,3 +197,31 @@ class TestWavePitch:
         stairs = [1000.0 * 2 ** ((i // 6) / 12) for i in range(600)]   # a link every 6-tick row
         vals, loop, speed = build_pitch_macro(stairs, 1000.0)   # row-aligned -> exact, no averaging
         assert speed == 3 and vals[::2] == [128 * i for i in range(100)]
+
+
+@needs_rom
+class TestSampleStorage:
+    """Samples are shared per tone and stored in the tone's own depth."""
+
+    def test_native_12bit_bytes_decode_like_the_chip(self):
+        mem = WaveMemory(load_rom())
+        h = mem.header(306)                              # piano, 12-bit
+        assert h.bits == 12
+        raw = mem.native(h)
+        assert len(raw) == (3 * h.length + 1) // 2
+        pcm = mem.pcm(h)
+        s0 = struct.unpack_from('<h', pcm, 0)[0] & 0xFFFF
+        s1 = struct.unpack_from('<h', pcm, 2)[0] & 0xFFFF
+        assert s0 == (raw[0] << 8) | ((raw[1] & 0x0F) << 4)
+        assert s1 == (raw[2] << 8) | (raw[1] & 0xF0)
+
+    @needs_mfm
+    def test_drum_keys_on_one_tone_share_a_12bit_sample(self):
+        path = DEMO_DIR / "mfm_sample_01" / "BCAREFUL.MFM"
+        if not path.exists():
+            pytest.skip("BCAREFUL.MFM not available")
+        conv = FurnaceConverter(compress=False, source_path=str(path))
+        parsed = FurReader().read(conv.convert_mfm(MFMParser.from_file(str(path))))
+        voices = {v.key for v, a, r in conv._wave_notes.values()}
+        tones = {(v.header.start, v.header.length) for v, a, r in conv._wave_notes.values()}
+        assert len(parsed['blocks']['SMP2']) == len(tones) < len(voices)

@@ -134,12 +134,13 @@ The sample collection uses 0, 2, 3, 4 and 6.
 
 Rate = 22050 · 2^oct · (1024+F)/1024, the chip's own step (ymfm and openMSX: half a sample per 44.1 kHz output at oct 0). Using 44100 here made every PCM note an octave high.
 
-**Samples and instruments.** Each (patch, split) becomes one embedded sample plus one MultiPCM instrument (`INS2` type 28, with `SM` and `MP` features):
+**Samples and instruments.** Each tone (ROM or kit wave) becomes one embedded sample, shared by every (patch, split) voice that plays it; each voice gets its own MultiPCM instrument (`INS2` type 28, with `SM` and `MP` features):
 
-- **Sample data:** ROM 8-, 12- or 16-bit data is decoded to 16-bit. For 12-bit, `s0 = b0<<8 | (b1&0x0F)<<4` and `s1 = b2<<8 | (b1&0xF0)`.
+- **Sample data:** stored in the tone's own depth, as Furnace 0.6.8.3's OPL4 driver copies it into chip memory unchanged. 8-bit and OPL4-packed 12-bit data are the raw ROM/kit bytes (depth 14, `(3n+1)/2` bytes; Furnace's emulator reads `s0 = b0<<8 | (b1&0x0F)<<4`, `s1 = b2<<8 | (b1&0xF0)`, the chip's own layout), and 16-bit data is byte-swapped to little-endian. Native storage doesn't change the sound: BCAREFUL, GALIOUS and DARKNESS render bit-identical to the earlier decoded 16-bit samples. Sharing a sample can move a voice's F-number by one rounding step (BELAIR, YS4LAVA, ALLPART2 differ slightly), with unchanged per-tick pitch results. Together, the collection's raw sample data drops by 38 % (68 MB instead of 110 MB).
 - **Loop:** taken from the tone header.
-- **C-4 rate:** chosen so that Furnace note a plays at the player's rate.
+- **C-4 rate:** chosen so that the first voice using the sample plays its notes on whole Furnace notes. Other voices get the nearest Furnace note, and their pitch macro carries the rest (a constant offset if nothing else).
 - **Envelope:** the tone header values, with the patch's register overrides applied (`0x98`, `0xB0`, `0xC8`, `0xE0`, and the LFO/VIB byte).
+- **Limits:** with its default 4 MB sample RAM, Furnace loads at most 511 samples per song; the collection's maximum is 60.
 
 **Sample sources:**
 
@@ -158,7 +159,7 @@ Furnace 0.6.8.3 can't express these with effect columns on OPL4 PCM. The slides 
    - The pitch word follows the player exactly, including its octave carry on F-number overflow.
 2. **Turn paths into macros.** Each note's per-tick rate becomes an **absolute pitch macro** in 1/128-semitone units against the note's nominal Furnace pitch, on its own instrument.
    - Measured on 0.6.8.3: value *i* applies *i* ticks after key-on, the last value holds, and a legato change doesn't restart it.
-   - Samples stay shared, one per voice.
+   - Samples stay shared, one per tone.
 3. **Handle long paths.** A macro holds at most 255 values, so a longer path:
    - loops its periodic tail (modulation), if it has one;
    - else runs at the smallest macro speed *k* that has every pitch change on a multiple of *k* ticks, which is exact (links, which change pitch only on row ticks);
@@ -183,7 +184,7 @@ So real notes 0 and 100 are written as 12 / −1 and 88 / +1.
 |-------|--------|--------|
 | FM | Original player running in the unreal-ng emulator (`core-tests --gtest_filter='MoonSoundMfm2Guest_Test.*:MoonSoundMfm3Guest_Test.*'` dumps register CSVs), compared with Furnace's `-vgmout` export | 421/428 key-ons identical (tick, hardware channel, block, F-number) across 5 songs. The rest are 2.5-4 cents off, from Furnace float rounding in blocks 1-2. |
 | PCM | Every sounding tick of every wave note in Furnace's `-vgmout` export, vs the tick-exact player simulation (`wave_pitch.py`), all 240 songs at 50 Hz. Both sides are decoded with the same chip formula, so a match means Furnace writes the player's octave and F-number | 98.8% of 16.2 M ticks within 2 cents; 217 songs max ≤ 3 cents. Worse cases: instrument-sharing tolerance (≤ 12.5 cents), one-tick-late links in notes over 255 ticks, the `TWINPEAK` octave wrap |
-| Batch | All demo-disk MFM/MWM files | 253/253 convert and load; largest sample payload 1.27 MB |
+| Batch | All 240 demo-disk MFM/MWM songs (`scripts/export_furnace_collection.py`) | 240/240 convert and load in Furnace; 63.6 MB compressed in total (79.0 MB before per-tone native-depth samples) |
 
 ## Not yet translated
 
