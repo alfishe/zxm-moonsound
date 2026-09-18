@@ -272,7 +272,7 @@ class VGMWriter:
         # VGM data offset
         struct.pack_into('<I', header, 0x34, data_offset)
 
-        # YMF278B (OPL4) clock at offset 0x5C
-        struct.pack_into('<I', header, 0x5C, self.clock)
+        # YMF278B (OPL4) clock lives at 0x60 (0x5C is YMF262/OPL3)
+        struct.pack_into('<I', header, 0x60, self.clock)
 
         return bytes(header) + bytes(data)

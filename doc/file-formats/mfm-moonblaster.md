@@ -87,36 +87,34 @@ into its workspace. Relative offsets below; add 6 for file offsets.
 | Relative | File | Size | Description |
 |----------|------|------|-------------|
 | 0x000 | 0x006 | 1 | Song length (last position index, `xleng`) |
-| 0x001 | 0x007 | 1 | Loop position (`xloop`) |
-| 0x002 | 0x008 | 552 | 24 FM instruments, 23 bytes each |
-| 0x22A | 0x230 | 1 | Tempo (`xtempo`; copied to `play_speed`, timer = tempo-2) |
-| 0x22B | 0x231 | 1 | Base frequency / Hz equalizer (`xhzequal`) |
-| 0x22C | 0x232 | 25 | Per-channel configuration |
+| 0x001 | 0x007 | 1 | Loop position (`xloop`, 255 = stop at end) |
+| 0x002 | 0x008 | 264 | 24 two-op FM patches, 11 bytes each |
+| 0x10A | 0x110 | 264 | 12 four-op FM patches, 22 bytes each |
+| 0x212 | 0x218 | 24 | Initial pan per step (FM steps 0-17, then wave tracks 0-5) |
+| 0x22A | 0x230 | 1 | Tempo (`xtempo`): a row every `xtempo` interrupts |
+| 0x22B | 0x231 | 1 | Hz equalizer (`xhzequal`): 1 = 50 Hz, 0 = 60 Hz |
+| 0x22C | 0x232 | 1 | Rhythm register 0xBD value (0 in every sample song) |
+| 0x22D | 0x233 | 18 | Initial detune per FM step (signed, F-number units) |
 | 0x245 | 0x24B | 1 | Number of 4-op FM chains, 0..6 (`chvol_1`), see below |
-| 0x246 | 0x24C | 7 | Channel configuration |
-| 0x24D | 0x253 | 129 | Per-channel detune/effect configuration (varies per song; sub-ranges at file offsets 0x25C-0x25F, 0x261-0x264, 0x27C-0x28B, 0x28F-0x2A0, 0x2B4-0x2C0 change across the sample collection, the rest is zero; ends at block offset 0x2CD) |
+| 0x276 | 0x27C | 24 | Initial instrument / wave preset per step (1-based) |
+| 0x28E | 0x294 | 32 | `xwavnrs`: wave preset → wave patch number |
+| 0x2AE | 0x2B4 | 32 | `xwavvols`: default attenuation per wave preset |
 
-The reference player's wave-number/volume arrays (`xwavnrs`/`xwavvols`) live
-**outside** this block in player RAM; they are not file fields of `.MFM`
-songs.
+Bytes not listed are unidentified (mostly zero). Offsets are verified against
+the player (`mfm_player.asm` copies this block to RAM `0x50F2` = file offset 6)
+and against converted output rendered in Furnace.
 
 #### `chvol_1` — 4-op chain count
 
-Despite its historical "FM channel count" mislabel, `MBPlayer_init_opl4`
-uses this byte as the **number of 4-op chains** (0..6): it indexes the table
-`{0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F}` and writes the result to OPL4
-bank-2 register **0x104** (4-op connection mask), then computes the 2-op
-voice count as `0x12 - 2*chvol_1`. All 18 channels remain FM in `.MFM` files;
-there are no wave channels. Observed values across the sample collection are
-always even (0, 2, 4, 6).
+`MBPlayer_init_opl4` uses this byte as the **number of 4-op chains** (0..6):
+it indexes `{0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F}` and writes the result
+to OPL4 bank-2 register **0x104**, then sets the 2-op voice count to
+`0x12 - 2*chvol_1`. Observed values: 0, 2, 3, 4, 6.
 
-### FM Instrument Definition (24 x 23 bytes at file offset 0x008)
+### FM Patches
 
-Each instrument consists of **two 11-byte operator-pair patches plus one
-extra byte**. The primary patch carries operators 1+2 (the whole voice for
-2-op instruments); the secondary patch carries operators 3+4 for 4-op
-instruments. Fields are stored **interleaved per register type** (all
-modulator/carrier pairs adjacent), as raw OPL4 register values:
+**2-op patches** (24 × 11 bytes at 0x008) hold raw OPL4 register values,
+interleaved modulator / carrier:
 
 | Patch offset | OPL4 Register | Description |
 |--------------|---------------|-------------|
@@ -126,20 +124,21 @@ modulator/carrier pairs adjacent), as raw OPL4 register values:
 | 0x06 / 0x07 | 0x80+op | Sustain Level<<4 \| Release Rate, modulator / carrier |
 | 0x08 / 0x09 | 0xE0+op | Waveform Select, modulator / carrier |
 | 0x0A | 0xC0+ch | Feedback / connection |
-| record +22 | — | Extra byte after both patches (purpose not identified) |
 
-Cross-check: CRYOGENT.MFM instrument 0 primary = `71 31 0A 05 AF C7 14 24 00
-00 0D`, which is exactly the lead patch captured at runtime on channels
-15-17 (TL 10/5, AR/DR 10-15 / 12-7, SL/RR 1-4 / 2-4, WS 0/0). The runtime
-AM/VIB bits may differ from the stored bytes because the player ORs pattern
-effect flags into register 0x20 writes.
+**4-op patches** (12 × 22 bytes at 0x110): the master pair's 10 operator
+bytes (same order as above), the slave pair's 10 bytes, then C0 for the
+master and C0 for the slave (their connection bits combine into the 4-op
+algorithm). The player loads them via `loc_0_46FB` (table at RAM `0x51FC`).
+
+Cross-check: CRYOGENT.MFM 2-op patch 0 = `71 31 0A 05 AF C7 14 24 00 00 0D`,
+exactly the lead patch captured at runtime on channels 15-17.
 
 ### Trailer (94 bytes at file offset 0x02D4)
 
 | Relative | Size | Description |
 |----------|------|-------------|
 | +0x00 | 50 | Metadata string, space padded |
-| +0x32 | 36 | Configuration (incl. drum/kit settings; content varies per song) |
+| +0x32 | 36 | Configuration (content varies per song; not decoded) |
 | +0x56 | 8 | Sample kit name, space padded (`NONE` = ROM only) |
 
 #### Info String Format
@@ -165,70 +164,76 @@ loader computes it as `max(position table)+1` (helper routine at runtime
 
 ### Pattern Pointer Table
 
-Follows the position table. One little-endian 16-bit entry per pattern
-(`pattern_count = max(positions)+1` entries):
+Follows the position table. One little-endian 16-bit entry per pattern:
 
-- bits 13:0 — offset of the pattern **relative to the track-block base**
-  (the player resolves `songdata + (ptr & 0x3FFF)`; file offset = value + 6)
+- bits 13:0 — pattern offset; **file offset = value + 9**. Pattern data is
+  loaded in chunks, each preceded by a 3-byte header (LE16 length, then a
+  continue/bank byte, 0 = last), and pointers are relative to the start of
+  the chunk data. Verified over the whole sample collection: only +9 makes
+  every 16-row pattern consume exactly its byte span with valid command
+  values (earlier revisions of this document said +6, which misaligns every
+  row).
 - bits 15:14 — RAM bank index into `songdata_bank1[]` for songs spanning
   multiple 16 KB mapper banks (0 for all files under 16 KB)
 
-In the sample collection patterns are stored in index order immediately
-after the pointer table (pattern 0's pointer equals the table end).
-
 ### Pattern Data
 
-Each pattern holds **16 rows** (the player's step counter wraps with
-`and 0x0F`). Rows are bit-packed per tick into a 25-entry step buffer
-(channel 0 plus 24 mask-covered channels):
+Each pattern holds **16 rows** (the step counter wraps with `and 0x0F`).
+Each row fills a 25-entry step buffer:
 
 ```
 Row encoding:
   0xFF                      -> empty row (no events, single byte)
   otherwise:
-    byte 0                   -> channel 0 event
-    bytes 1-3                -> bit masks for channels 1-8, 9-16, 17-24
-                                (MSB = lowest channel number of each group)
-    following bytes          -> one event byte per set mask bit, in channel
-                                order (only present for set bits)
+    byte 0                   -> step 0
+    bytes 1-3                -> bit masks for steps 1-8, 9-16, 17-24
+                                (MSB = lowest step of each group)
+    following bytes          -> one event byte per set mask bit, in order
 ```
 
-Pattern sizes are variable (20-208 bytes observed) and are delimited by the
-next pointer in memory order, not by terminators.
+All 24 mask bits consume an event byte, including the wave and command steps.
 
-Each event byte can contain:
+| Steps | Meaning |
+|-------|---------|
+| 0 .. 17-chvol_1 | FM voices, in allocation order (see Channel Layout) |
+| 18-23 | Six PCM wave tracks (same event taxonomy as `.MWM` wave tracks) |
+| 24 | Command channel |
 
-| Value Range | Meaning |
-|-------------|---------|
-| 0x00 | No action |
-| 0x01-0x60 | Note (C-0 to B-7) |
-| 0x61 | Note off |
-| 0x62-0x79 | Instrument change |
-| 0x7A-0xB9 | Volume change |
-| 0xBA-0xBC | Stereo panning |
-| 0xC0-0xCF | Pitch bend |
-| 0xD0-0xE2 | Vibrato/modulation |
-| 0xE3-0xEF | Detune |
-| 0xF0-0xF6 | Special effects |
-| 0xF7-0xF9 | Portamento |
-| 0xFA-0xFF | Speed/tempo commands |
+FM step events (dispatch in `MBPlayer_play_music`):
+
+| Value | Meaning |
+|-------|---------|
+| 0 | No action |
+| 1-96 | Note (C-0 to B-7), plus the current transpose |
+| 97 | Key off |
+| 98-121 | Instrument (2-op patch; 4-op tracks select from the 12 four-op patches) |
+| 122-185 | Carrier total level (attenuation, `value - 122`); ignored on 4-op tracks |
+| 186-188 | Stereo: left / right / both |
+| 189-226 | Pitch / modulation effects (`loc_0_47B8`, `loc_0_47F5`; not decoded here) |
+| 227-239 | Modulator level adjust (2-op tracks) |
+| 240-246 | Detune = 2 × (value − 243), applied from the next note |
+| 247-249 | Effect mode (`loc_0_4851`; not decoded here) |
+
+Command step events: 1-23 set speed = 25 − value; 24 ends the pattern;
+25-75 set transpose = value − 52 (from the next row).
 
 ### Channel Layout
 
-All 18 OPL4 FM channels are used by `.MFM` songs (the format is FM-only;
-wave channels exist only in `.MWM`). The 4-op chains selected by `chvol_1`
-occupy the OPL4 standard master channels (0, 1, 2, 9, 10, 11 with slaves
-+3); the remaining channels play 2-op voices. For CRYOGENT.MFM
-(`chvol_1` = 6) the runtime capture shows:
+FM steps are allocated in order: the first `chvol_1` steps become 4-op voices
+on master channels 0, 1, 2, 9, 10, 11 (`MBPlayer_play_table_wav_1`; slaves are
+master + 3). The remaining steps take hardware channels in
+`MBPlayer_play_table_wav_2` order, 17, 16, 15, 8, 7, 6, 14, 11, 13, 10, 12, 9,
+5, 2, 4, 1, 3, 0, skipping none because the prefix never overlaps the active
+chains. For CRYOGENT.MFM (`chvol_1` = 6) the runtime capture shows:
 
 - masters 0/1/2 — drum bed (three of the six chains), keyed via the
   master's 0xB0 with fnum 517/513/517
 - masters 9/10/11 — the other three chains (accompaniment)
 - channels 15/16/17 — 2-op lead voices
 
-FM drum voices are not stored among the 24 song instruments: their patches
-come from the player's internal patch table (`patch_table.inc`) combined
-with the trailer's drum configuration bytes.
+4-op voices take their patches from the 12 four-op patches at 0x110. An
+earlier note here said FM drum voices come from `patch_table.inc`; that table
+is the PCM wave patch table.
 
 ### Metadata
 
@@ -241,7 +246,7 @@ free-form separators chosen by the composer).
 | Extension | Format | Description |
 |-----------|--------|-------------|
 | .MBM | MoonBlaster 1.4 | Original format for MSX-MUSIC/MSX-AUDIO |
-| .MFM | MoonBlaster FM | OPL4 FM-only music |
+| .MFM | MoonBlaster FM | OPL4 FM music (+ 6 PCM wave tracks) |
 | .MWM | MoonBlaster Wave | OPL4 full music (FM + PCM) |
 | .MWK | MoonBlaster Wave Kit | Sample kit for MWM files |
 | .PAK | Packed Music | Compressed MFM/MWM for playback |
@@ -304,7 +309,7 @@ struct WaveChannel {
 ## Compatible Software
 
 ### Trackers
-- **MoonBlaster FM** - FM-only editor for OPL4
+- **MoonBlaster FM** - FM editor for OPL4 (with 6 wave tracks)
 - **MoonBlaster Wave** - Full OPL4 editor with sample support (by Remco Schrijvers, Marcel Delorme)
 
 ### Players (Real Hardware)
@@ -409,6 +414,15 @@ useful to any emulator author validating an OPL4 FM core against this collection
   the trailer (50-byte metadata string + 36 config + 8-byte kit name) sits at 0x02D4;
   the pattern count is derived as `max(position table)+1`; pattern pointers are
   track-block-relative with bank bits 15:14; patterns are 16 bit-packed rows.
+
+- 2026-09-18: Corrected against `mfm_player.asm` while building the Furnace
+  converter: pattern pointers are file offset **+9** (3-byte chunk header),
+  not +6; instruments are **24 two-op (11 B) + 12 four-op (22 B)** patches,
+  not 24 × 23 B; rows carry **6 PCM wave tracks** (steps 18-23) and a command
+  step 24, so `.MFM` is not FM-only; `xwavnrs`/`xwavvols`, initial
+  pan/instrument and per-step detune are file fields; a row lasts `xtempo`
+  interrupts (not `xtempo - 2`). Verified by matching 421/428 FM key-ons of the
+  original player (emulator capture) in converted output.
 
 ### Verification method
 

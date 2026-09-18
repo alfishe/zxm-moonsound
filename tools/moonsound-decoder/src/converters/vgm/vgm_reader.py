@@ -81,8 +81,10 @@ class VGMReader:
             self._offset = 0x34 + data_offset
 
         # Chip clocks (if present based on version)
-        if len(self._raw) > 0x5C + 4:
-            self.data.opl4_clock = struct.unpack_from('<I', self._raw, 0x5C)[0]
+        if len(self._raw) > 0x60 + 4:
+            # 0x60 = YMF278B (OPL4) clock; 0x5C (YMF262) as fallback for old files
+            self.data.opl4_clock = (struct.unpack_from('<I', self._raw, 0x60)[0]
+                                    or struct.unpack_from('<I', self._raw, 0x5C)[0])
 
         if len(self._raw) > 0x50 + 4:
             self.data.opl3_clock = struct.unpack_from('<I', self._raw, 0x50)[0]

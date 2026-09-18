@@ -1,180 +1,162 @@
-# Furnace Converter Design
+# Furnace Converter
 
-## Overview
+Converts MoonBlaster `.MFM` (FM + 6 wave tracks) and `.MWM` (24 wave tracks) songs to Furnace `.fur` modules for the Yamaha YMF278B (OPL4).
 
-Converts MFM/MWM files to Furnace tracker `.fur` format, preserving pattern structure, instruments, and playback characteristics.
+Code: `src/converters/furnace/` (`converter.py` holds the translation, the `fur_*.py` modules hold the file format) and `src/opl4_wave.py` (wave preset, tone and sample resolution).
 
-## Furnace .fur Format
+## Ground truth
 
-### File Structure
-```
-┌────────────────────────────────┐
-│ Header: "-Furnace MODULE-"     │  16 bytes
-├────────────────────────────────┤
-│ Format version (u16 LE)        │  2 bytes
-├────────────────────────────────┤
-│ INFO block                     │  Song metadata, chip config
-├────────────────────────────────┤
-│ INST blocks                    │  Instrument definitions
-├────────────────────────────────┤
-│ WAVETABLE blocks               │  (not used for OPL4 FM)
-├────────────────────────────────┤
-│ SAMPLE blocks                  │  PCM samples (MWM)
-├────────────────────────────────┤
-│ PATTERN blocks                 │  Pattern data
-├────────────────────────────────┤
-│ END block                      │
-└────────────────────────────────┘
-```
+The semantics come from the reference Z80 players, not from the format documents. Several statements in older docs and specs turned out to be wrong.
 
-### Block Format (version ≥100)
-```
-┌──────────────┬──────────────┬──────────────────┐
-│ Block ID     │ Block Size   │ Block Data       │
-│ 4 bytes      │ 4 bytes LE   │ variable         │
-└──────────────┴──────────────┴──────────────────┘
-```
+- **Player sources:** `demo-disks/*/mfm_player.asm` and `mwm_player.asm`. Their tables are in `patch_table.inc` and `freq_table_*.inc`. The sources are CP1251-encoded.
+- **Generated tables:** `src/moonblaster_tables.py` is produced from those `.inc` files by `scripts/gen_moonblaster_tables.py`. Do not edit it by hand.
+- **Target Furnace:** the installed release is **Furnace 0.6.8.3**. It behaves differently from current GitHub master in places noted below.
 
-## Chip Configuration
+## Output file
 
-### OPL4 in Furnace
-- System ID: `0xae` (OPL4)
-- FM channels: 18 (2-op) or fewer with 4-op mode
-- PCM channels: 24
-- Clock: 33868800 Hz (standard)
+| Item | Value |
+|------|-------|
+| Header | `-Furnace module-`, format version **100**; infoSeek = 32 |
+| Blocks | `INFO`, `INS2` × instruments, `SMP2` × samples, `PATR` × patterns, `END-` |
+| Compression | zlib over the whole file (optional) |
+| System | Always OPL4, `0xAE`: 42 channels (logical 0-17 FM, 18-41 PCM) |
+| Pointers | Instrument, sample and pattern pointers in `INFO` are absolute file offsets, patched in after the blocks are written |
 
-### 4-op Chain Mapping
-| MFM chains | OPL4 0x104 | Furnace config |
-|------------|------------|----------------|
-| 0 | 0x00 | 18× 2-op |
-| 2 | 0x03 | 2× 4-op + 14× 2-op |
-| 4 | 0x0F | 4× 4-op + 10× 2-op |
-| 6 | 0x3F | 6× 4-op + 6× 2-op |
+`INFO` follows the v100 reader in Furnace's `fur.cpp` field by field. Chip flags are the raw old-flags words. There are 20 compat flags, then 28 extended compat flags, virtual tempo and a subsong header.
 
-## Module Components
+## Song layout
 
-### fur_writer.py
-Main entry point for .fur generation.
+- **Rows:** a pattern row is the player's 25-step buffer. The pattern length is 16 rows.
+- **Pattern data:** pattern pointer + 9 gives the file offset (not +6). This skips a 3-byte chunk header. Every pattern decodes to exactly its byte span except slack at end of file.
+- **Positions are unrolled:** Furnace pattern index = position index on every channel, so transposition and pattern breaks are baked in exactly.
+- **Timing:** speed1 = speed2 = `xtempo`. Ticks run at 50 Hz if `xhzequal` is set, 60 Hz otherwise.
+- **Command step 24:** written to a dedicated global channel with 3 effect columns. For MFM this is channel 41; for MWM it is channel 0.
 
-```python
-class FurWriter:
-    def __init__(self, version: int = 181)
-    def write(self, song: FurSong) -> bytes
-    def write_block(self, block_id: str, data: bytes) -> bytes
-```
+| Command | Meaning | Furnace |
+|---------|---------|---------|
+| 1-23 | Tempo: speed = 25 − cmd | `09xx` + `0Fxx` |
+| 24 | End of pattern | `0D00` (omitted on the last position) |
+| 25-75 | Transpose = cmd − 52, from the next row | Applied to note values |
+| (song end) | `xloop` = 255 means stop; otherwise loop | `FF00`, or `0Bxx` to `xloop` |
 
-### fur_song.py
-Song-level data structure matching Furnace INFO block.
+- **Tuning:** the song tuning is ~438.6 Hz. MoonBlaster's FM F-number table (C…B = 345…651) is tuned to A4 = 438.22 Hz. With a +0.087 % bias, Furnace's floored F-numbers reproduce all 12 table entries from block 3 up. Song tuning also scales PCM in Furnace, so PCM sample rates are compensated.
+- **Notes:** MoonBlaster note byte N maps to Furnace note N−1 (0 = C-0, 48 = C-4).
 
-```python
-@dataclass
-class FurSong:
-    name: str
-    author: str
-    tempo: int
-    speed: int
-    pattern_length: int
-    orders: List[List[int]]  # [channel][position] → pattern index
-    chips: List[FurChip]
-    instruments: List[FurInstrument]
-    patterns: List[FurPattern]
-```
+## MFM
 
-### fur_instrument.py
-FM instrument definition for OPL4.
+### FM channel allocation
 
-```python
-@dataclass
-class FurFMOperator:
-    am: int      # Amplitude modulation
-    vib: int     # Vibrato
-    sus: int     # Sustain
-    ksr: int     # Key scale rate
-    mult: int    # Frequency multiplier
-    ksl: int     # Key scale level
-    tl: int      # Total level (volume)
-    ar: int      # Attack rate
-    dr: int      # Decay rate
-    sl: int      # Sustain level
-    rr: int      # Release rate
-    ws: int      # Waveform select
+- **Chain count:** `chvol_1` is at file offset `0x24B`.
+- **Voice count:** there are `18 − chvol_1` FM steps.
+- **4-op voices:** steps `0..chvol_1−1` are 4-op voices on hardware channels 0, 1, 2, 9, 10, 11. Each slave is the master + 3.
+- **2-op voices:** the remaining steps take hardware channels in `play_table_wav_2` order: 17, 16, 15, 8, 7, 6, 14, 11, 13, 10, 12, 9, 5, 2, 4, 1, 3, 0.
+- **Furnace channels:** hardware channels map to Furnace logical channels via `HW_TO_FURNACE_LOGICAL`, the inverse of Furnace's `outChanMapOPL3`.
+- **Hidden channels:** unused channels are hidden.
 
-@dataclass  
-class FurFMInstrument:
-    name: str
-    operators: List[FurFMOperator]  # 2 or 4 operators
-    feedback: int
-    connection: int  # algorithm
-    four_op: bool
-```
+| `chvol_1` | Reg 0x104 | Voices | FM steps used | 4-op masters (hw) |
+|-----------|-----------|--------|---------------|-------------------|
+| 0 | 0x00 | 18 × 2-op | 18 | — |
+| 2 | 0x03 | 2 × 4-op + 14 × 2-op | 16 | 0, 1 |
+| 3 | 0x07 | 3 × 4-op + 12 × 2-op | 15 | 0, 1, 2 |
+| 4 | 0x0F | 4 × 4-op + 10 × 2-op | 14 | 0, 1, 2, 9 |
+| 6 | 0x3F | 6 × 4-op + 6 × 2-op | 12 | 0, 1, 2, 9, 10, 11 |
 
-### fur_pattern.py
-Pattern data structure.
+The sample collection uses 0, 2, 3, 4 and 6.
 
-```python
-@dataclass
-class FurPatternRow:
-    note: int      # 0-119, 180=note off, 0=empty
-    octave: int    # derived from note
-    instrument: int
-    volume: int
-    effects: List[Tuple[int, int]]  # (effect_type, value)
+### Instruments
 
-@dataclass
-class FurPattern:
-    channel: int
-    index: int
-    rows: List[FurPatternRow]
-```
+| Furnace ins | Source | Layout |
+|-------------|--------|--------|
+| 0-23 | 24 × 11-byte 2-op patches at `0x008` | Registers 20/23, 40/43, 60/63, 80/83, E0/E3, C0 |
+| 24-35 | 12 × 22-byte 4-op patches at `0x110` | Master pair (10 bytes), slave pair (10 bytes), then C0 and C3 |
 
-### opl4_mapping.py
-MFM/MWM to Furnace OPL4 translation.
+- **Operator order (4-op):** operators are stored as [Op1, Op3, Op2, Op4]. This follows Furnace's `orderedOpsL = {0, 2, 1, 3}`.
+- **Algorithm (4-op):** `alg = CNT1 | CNT2 << 1`.
+- **Feedback (4-op):** taken from the master pair.
 
-```python
-def mfm_note_to_furnace(note_index: int) -> Tuple[int, int]:
-    """Convert MFM note (0-95) to Furnace (note, octave)."""
-    
-def mfm_instrument_to_furnace(inst: MFMInstrument) -> FurFMInstrument:
-    """Convert MFM FM instrument to Furnace format."""
-    
-def mfm_effect_to_furnace(event_type: str, value: int) -> Tuple[int, int]:
-    """Map MFM effects to Furnace effect codes."""
-```
+### Initial state
 
-## Effect Mapping
+| Setting | File offset | Notes |
+|---------|-------------|-------|
+| Instrument per step | `0x27C` | 1-based |
+| Pan per step | `0x218` | 1 = left, 2 = right, 3 = both |
+| Detune per step | `0x233` | Signed |
 
-| MFM Effect | Value Range | Furnace Effect | Code |
-|------------|-------------|----------------|------|
-| Volume | 0x7A-0xB9 | Volume | 0Cxx |
-| Note Off | 0x61 | Note Off | === |
-| Tempo | 0xFA-0xFF | Speed | 0Fxx |
-| Vibrato | 0xD0-0xE2 | Vibrato | 04xy |
-| Portamento | 0xF0-0xF6 | Porta | 03xx |
-| Detune | 0xE3-0xEF | Fine tune | E5xx |
-| Pan | 0xBA-0xBC | Panning | 80xx |
+### FM events
 
-## Conversion Pipeline
+| Byte | Meaning | Furnace |
+|------|---------|---------|
+| 1-96 | Note, a = N−1 + transpose | Note; instrument i (2-op) or 24+i (4-op) |
+| 97 | Key off | `OFF` |
+| 98-121 | Instrument | Applied on next note; 4-op tracks clamp to 11 |
+| 122-185 | Carrier TL (attenuation) | Volume column; ignored on 4-op tracks, like the player |
+| 186 / 187 / 188 | Pan: left / right / both | `8000` / `80FF` / `8080` |
+| 240-246 | Detune = 2·(N−243) | From the next note |
 
-```
-MFMParser.from_file("song.mfm")
-    │
-    ▼
-MFMToFurnace.convert(mfm: MFMParser) → FurSong
-    │
-    ├── map_metadata()      # title, author, tempo
-    ├── map_instruments()   # FM operator params
-    ├── map_patterns()      # note/effect translation
-    └── configure_chip()    # OPL4, 4-op mode
-    │
-    ▼
-FurWriter.write(song: FurSong) → bytes
-    │
-    ▼
-output.fur
-```
+- **Detune:** the player adds detune to the F-number low byte with a quirk (`inc de`, `e += det`, `dec de`). This is emitted as a per-note `E5xx` fine pitch.
+- **Wave tracks:** steps 18-23 are PCM wave tracks and go to Furnace channels 18-23. They use `xwavnrs` at `0x294` (32 entries) and `xwavvols` at `0x2B4`.
 
-## Testing Strategy
+## MWM
 
-1. **Unit tests**: Individual mapping functions
-2. **Integration tests**: Full MFM→.fur conversion
-3. **Validation**: Load generated .fur in Furnace, verify playback
+- **Channels:** tracks 0-23 go to Furnace PCM channels 18-41. FM channels 0-17 are hidden.
+- **Track-info fields** (offsets relative to file offset 6):
+  - `xwvstpr` at +0x02: initial pan nibble per track.
+  - `xbegwav` at +0x64: initial preset per track, 1-based.
+  - `xwavnrs` at +0x7C: 48 presets, each mapped to a patch.
+  - `xwavvols` at +0xAC: attenuation per preset.
+- **Title and kit:** title at `0xE2` (50 bytes); kit name at `0xE2+50` (8 bytes).
+
+## Wave tracks (both formats)
+
+| Byte | Meaning | Furnace |
+|------|---------|---------|
+| 1-96 | Note | Note + instrument of the resolved voice |
+| 97 | Key off | `OFF` |
+| 98-145 | Preset | Sets the pending volume: 127 − 2·xwavvols |
+| 146-177 | Volume v | Volume column 3 + 4·v |
+| 178-192 | Pan nibble (N−185) & 15 | `80xx`; value chosen so Furnace writes the same nibble |
+
+### Voice resolution (`opl4_wave.py`)
+
+`patch = xwavnrs[preset]`:
+
+- **0-174: ROM patch.** The patch has key splits `[bound, tone, tnote, fnums]`, and the first split with a < bound is used. Then n = tnote + a − lo, octave = n // 12 − 5 and F = fnums[n % 12].
+- **175: GM drum kit.** Notes a < 36 use the `drum_midi` patch. Otherwise `GM_DRUMS[a−36]` gives a fixed tone and pitch per note.
+- **176+: `.MWK` kit wave.** The record gives 8 splits, tone 384+x, and a frequency word from the Amiga, 44.1 kHz or Turbo-R table.
+
+Rate = 44100 · 2^oct · (1024+F)/1024.
+
+**Samples and instruments.** Each (patch, split) becomes one embedded sample plus one MultiPCM instrument (`INS2` type 28, with `SM` and `MP` features):
+
+- **Sample data:** ROM 8-, 12- or 16-bit data is decoded to 16-bit. For 12-bit, `s0 = b0<<8 | (b1&0x0F)<<4` and `s1 = b2<<8 | (b1&0xF0)`.
+- **Loop:** taken from the tone header.
+- **C-4 rate:** chosen so that Furnace note a plays at the player's rate.
+- **Envelope:** the tone header values, with the patch's register overrides applied (`0x98`, `0xB0`, `0xC8`, `0xE0`, and the LFO/VIB byte).
+
+**Sample sources:**
+
+- **ROM:** `hardware/firmware/YRW801-M - Yamaha - 1993.rom`. Override the path with `FurnaceConverter(rom_path=...)`.
+- **Kits:** `<kit>.MWK` is looked up in the song's directory. `convert_file` sets this automatically; otherwise pass `source_path`. If the kit is missing, a warning is added and its waves stay silent.
+
+## Pattern encoding (`PATR`, Furnace 0.6.8.3)
+
+The note field is used directly as the note (note + octave·12, no +60 as in master's `splitNoteToNote`). The sentinels are:
+
+- note 0 with octave 0 means empty;
+- note 100 means `OFF`.
+
+So real notes 0 and 100 are written as 12 / −1 and 88 / +1.
+
+## Verification
+
+| Check | Method | Result |
+|-------|--------|--------|
+| FM | Original player running in the unreal-ng emulator (`core-tests --gtest_filter='MoonSoundMfm2Guest_Test.*:MoonSoundMfm3Guest_Test.*'` dumps register CSVs), compared with Furnace's `-vgmout` export | 421/428 key-ons identical (tick, hardware channel, block, F-number) across 5 songs. The rest are 2.5-4 cents off, from Furnace float rounding in blocks 1-2. |
+| PCM | Furnace VGM PCM key-ons vs the player pitch model, GALIOUS.MWM | 2809/2809 notes, max 1.9 cents |
+| Batch | All demo-disk MFM/MWM files | 253/253 convert and load; largest sample payload 1.27 MB |
+
+## Not yet translated
+
+- **Wave tracks:** link (193-211), pitch bend (212-230), detune (231-237), modulation (238-240), damp (241-242).
+- **FM tracks:** pitch bend (189-207), modulation (208-226), portamento (227-239) and effects 247-249.
+- **Missing kits:** `REMEMBER.MWM` and `SPRING.MWM` reference `HARDBASS.MWK` and `SPRING.MWK`, which are not in the collection.

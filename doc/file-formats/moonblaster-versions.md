@@ -27,7 +27,7 @@ MoonBlaster 1.0 (1992)
             └─► MoonBlaster 1.4 / MoonSound (1995)
                     OPL4 FM + PCM
                     "MBMS" signature
-                    Split into FM-only (.MFM) and Wave (.MWM)
+                    Split into FM (.MFM, + 6 wave tracks) and Wave (.MWM)
 ```
 
 ## MoonBlaster 1.0 / 1.1 (MBM)
@@ -104,7 +104,7 @@ All MoonSound files use `MBMS` (MoonBlaster MoonSound) signature.
 
 | Extension | Full Name | Channels | Content |
 |-----------|-----------|----------|---------|
-| .MFM | MoonBlaster FM Music | 18 FM | FM-only music |
+| .MFM | MoonBlaster FM Music | 18 FM + 6 PCM | FM music with 6 wave tracks |
 | .MWM | MoonBlaster Wave Music | 18 FM + 24 PCM | Full music with samples |
 | .MWK | MoonBlaster Wave Kit | — | Sample bank |
 

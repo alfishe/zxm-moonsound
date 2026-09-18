@@ -25,6 +25,11 @@ Bidirectional converter between MFM/MWM and VGM (Video Game Music) format. VGM i
 - Extracts instruments from operator settings
 - Reconstructs pattern structure
 
+> **Status:** export writes FM only (primary 2-op patch per channel, MIDI-style
+> tuning) and does not yet use the corrected MFM layout the Furnace converter
+> uses (12 4-op patches at 0x110, player channel allocation, 438.2 Hz table
+> tuning, PCM wave tracks). See [furnace-converter.md](furnace-converter.md).
+
 ## VGM Format
 
 ### Header (version 1.51+)
@@ -32,18 +37,20 @@ Bidirectional converter between MFM/MWM and VGM (Video Game Music) format. VGM i
 Offset  Size  Description
 0x00    4     "Vgm " magic
 0x04    4     EOF offset - 4
-0x08    4     Version (0x00000151)
+0x08    4     Version (written as 0x00000171)
 0x0C    4     SN76489 clock (0 = unused)
 ...
-0x5C    4     YMF278B clock (OPL4)
+0x34    4     VGM data offset (relative to 0x34)
+0x5C    4     YMF262 clock (OPL3) - not used by this converter
+0x60    4     YMF278B clock (OPL4), 33868800
 ```
 
 ### Data Commands
 | Command | Bytes | Description |
 |---------|-------|-------------|
-| 0x5E xx yy | 3 | OPL2 write (port 0) |
-| 0x5F xx yy | 3 | OPL2 write (port 1) |
-| 0xD0 pp aa dd | 4 | YMF278B write |
+| 0x5E xx yy | 3 | YMF262 write, port 0 (not emitted) |
+| 0x5F xx yy | 3 | YMF262 write, port 1 (not emitted) |
+| 0xD0 pp aa dd | 4 | YMF278B write (pp 0/1 = FM banks, 2 = PCM) |
 | 0x61 nn nn | 3 | Wait n samples |
 | 0x62 | 1 | Wait 735 samples (1/60s) |
 | 0x63 | 1 | Wait 882 samples (1/50s) |
@@ -78,9 +85,8 @@ Exports MFM to VGM format.
 ```python
 class VGMWriter:
     def write(self, mfm: MFMParser) -> bytes
-    def write_header(self) -> bytes
-    def write_register(self, reg: int, val: int)
-    def write_wait(self, samples: int)
+    # internal: _build_file(), _write_opl4_fm(port, reg, val), _write_wait(samples),
+    #           _note_to_fnum(note_index), _write_instrument_to_channel(...)
 ```
 
 ### vgm_reader.py
@@ -89,8 +95,9 @@ Parses VGM files for import.
 ```python
 class VGMReader:
     def read(self, data: bytes) -> VGMData
-    def parse_commands(self) -> List[VGMCommand]
-    def extract_chip_writes(self, chip: str) -> List[Tuple[int, int, int]]
+    def get_opl4_fm_writes(self) -> List[Tuple[int, int, int, int]]
+    def get_opl4_pcm_writes(self) -> List[Tuple[int, int, int, int]]
+    # internal: _parse_header(), _parse_commands()
 ```
 
 ### vgm_to_mfm.py
@@ -99,9 +106,8 @@ Converts VGM back to MFM format (pattern reconstruction).
 ```python
 class VGMToMFM:
     def convert(self, vgm: VGMData) -> MFMAssemblerData
-    def detect_tempo(self, commands: List) -> int
-    def extract_instruments(self, writes: List) -> List[AssemblerInstrument]
-    def reconstruct_patterns(self, writes: List) -> List[AssemblerPattern]
+    # internal: _detect_tempo(vgm), _process_fm_write(...), _fnum_to_note(fnum, block),
+    #           _build_instrument_from_ops(ops), _build_mfm_data(vgm)
 ```
 
 ## VGM → MFM Reconstruction Algorithm

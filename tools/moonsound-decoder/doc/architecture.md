@@ -24,7 +24,7 @@ The MoonSound Decoder toolkit parses MoonBlaster MFM/MWM files and converts them
 ## Core Principles
 
 1. **Round-trip fidelity**: Parser + Assembler must produce bit-identical output
-2. **No raw byte storage**: All fields must be semantically parsed
+2. **Semantic parsing**: All fields are decoded to typed values; the parsed file also keeps its `raw` bytes so converters can read fixed player tables (instrument patches, wave presets) by file offset
 3. **Separation of concerns**: Parsers, assemblers, and converters are independent modules
 4. **Testability**: Each component tested in isolation
 
@@ -37,6 +37,8 @@ src/
 ├── mfm_verify.py       # Round-trip verification
 ├── mwm_parser.py       # MWM binary → MWMParser dataclass
 ├── mwm_verify.py       # MWM parse verification
+├── opl4_wave.py        # Wave preset -> OPL4 tone/pitch, ROM + .MWK sample decoding
+├── moonblaster_tables.py  # Generated player tables (scripts/gen_moonblaster_tables.py)
 ├── converters/
 │   ├── base.py         # Abstract converter interface
 │   ├── furnace/        # Furnace .fur format output
@@ -64,17 +66,20 @@ src/
 
 ## Chip Mapping
 
-### MFM → OPL4 FM
-| MFM Concept | OPL4 Register | Furnace Equivalent |
-|-------------|---------------|-------------------|
-| Channel 0-17 | 2-op FM voices | OPL4 FM channels |
-| 4-op chains | 0x104 connection | 4-op mode flag |
-| Instrument | Operator params | FM instrument macro |
-| Note | F-num + block | Note + octave |
+Details and verification: [furnace-converter.md](furnace-converter.md).
+
+### MFM → OPL4
+| MFM Concept | OPL4 | Furnace Equivalent |
+|-------------|------|-------------------|
+| FM steps 0..17−chvol_1 | Allocated to hw channels by the player (`play_table_wav_1/_2`) | Logical channel via `HW_TO_FURNACE_LOGICAL` |
+| 4-op chains (`chvol_1`) | Register 0x104, masters 0/1/2/9/10/11 | 4-op instruments 24-35 on master channels |
+| 2-op / 4-op patches | 24 × 11 bytes at 0x008 / 12 × 22 bytes at 0x110 | `INS2` FM instruments |
+| Wave steps 18-23 | PCM voices | Channels 18-23, MultiPCM instruments + samples |
+| Command step 24 | Tempo / pattern end / transpose | `09xx`/`0Fxx`/`0D00` on a global channel |
 
 ### MWM → OPL4 PCM
-| MWM Concept | OPL4 Register | Furnace Equivalent |
-|-------------|---------------|-------------------|
-| Sample slot | Wave table RAM | Sample instrument |
-| Channel 0-23 | PCM voices | OPL4 PCM channels |
-| Loop points | Start/end addr | Sample loop |
+| MWM Concept | OPL4 | Furnace Equivalent |
+|-------------|------|-------------------|
+| Tracks 0-23 | PCM voices | Channels 18-41 (FM 0-17 hidden) |
+| Wave preset → patch | Key splits → ROM tone or `.MWK` RAM tone | One sample + MultiPCM instrument per (patch, split) |
+| Loop points / envelope | Tone header + patch register overrides | Sample loop, `MP` envelope |

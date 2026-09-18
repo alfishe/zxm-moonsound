@@ -24,7 +24,7 @@ def convert_to_furnace(args):
         results = converter.convert_directory(
             input_path,
             output_path,
-            pattern="*.MFM" if args.mfm_only else "*.[MmFfWw][MmFfMm]"
+            pattern="*.[Mm][Ff][Mm]" if args.mfm_only else "*.[Mm][FfWw][Mm]"
         )
         passed = sum(1 for r in results if r.success)
         print(f"Converted {passed}/{len(results)} files")
