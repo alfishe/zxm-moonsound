@@ -34,8 +34,15 @@ class TestWaveEventDecoding:
         assert event.event_type == WaveEventType.INSTRUMENT
         assert event.instrument == 14
 
-    def test_volume(self):
+    def test_preset_range_is_48_wide(self):
+        # mwm_player.asm play_int_wlus: 98-145 select wave preset 0-47
         event = MWMEvent.decode(0x8A, channel=0)
+        assert event.event_type == WaveEventType.INSTRUMENT
+        assert event.instrument == 40
+
+    def test_volume(self):
+        # 146-177: volume 0-31
+        event = MWMEvent.decode(146 + 16, channel=0)
         assert event.event_type == WaveEventType.VOLUME
         assert event.volume == 16
 

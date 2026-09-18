@@ -29,6 +29,8 @@ MFM_INSTRUMENT_SIZE = 23
 MFM_TRACK_INFO_SIZE = 718
 MFM_TRAILER_SIZE = 94
 MFM_METADATA_SIZE = 50
+# File offset of pattern-pointer value 0 (see _parse_patterns).
+PATTERN_BASE_OFFSET = 9
 
 NOTE_NAMES = ['C-', 'C#', 'D-', 'D#', 'E-', 'F-', 'F#', 'G-', 'G#', 'A-', 'A#', 'B-']
 
@@ -151,12 +153,22 @@ class MFMEvent:
 
 @dataclass
 class MFMRow:
-    """Single pattern row"""
+    """Single pattern row.
+
+    A row is the player's 25-entry step buffer: steps 0-17 feed FM voices
+    (in allocation order, see MBPlayer_play_table_wav_1/_2), steps 18-23
+    are the six PCM wave tracks, step 24 is the command channel. `events`
+    holds the FM steps (decoded with the FM taxonomy); `wave_events` maps
+    wave track 0-5 -> raw event byte (wave taxonomy, same as .MWM);
+    `command` is the raw command byte (0 = none).
+    """
 
     row_index: int = 0
     events: List[MFMEvent] = field(default_factory=list)
     is_empty: bool = False
-    # Original mask values for exact round-trip (mask3 has unused bits in MFM)
+    wave_events: Dict[int, int] = field(default_factory=dict)
+    command: int = 0
+    # Original mask values for exact round-trip
     mask1: int = 0
     mask2: int = 0
     mask3: int = 0
@@ -302,6 +314,7 @@ class MFMInstrument:
 @dataclass
 class MFMFile:
     """Complete MFM file structure"""
+    raw: bytes = b''  # whole file, for table lookups by the converters
 
     # Header
     signature: str = ""
@@ -410,6 +423,7 @@ class MFMParser:
         self._data = data
         self.file = MFMFile()
         self.file.file_size = len(data)
+        self.file.raw = bytes(data)
 
         if len(data) < 6:
             raise ValueError("File too small to be valid MFM")
@@ -518,7 +532,12 @@ class MFMParser:
             if ptr_offset + 2 <= len(data):
                 ptr = data[ptr_offset] | (data[ptr_offset + 1] << 8)
                 # bits 13:0 = offset relative to track-block base (file offset 6)
-                file_offset = (ptr & 0x3FFF) + 6
+                # Pattern base is file offset +9, not +6 as older docs
+                # claimed: verified by decoding every pattern of the
+                # sample collection - only +9 makes all 16-row patterns
+                # consume exactly their byte span with valid command-
+                # channel values (153/153 vs <=31/153 for any other base).
+                file_offset = (ptr & 0x3FFF) + PATTERN_BASE_OFFSET
                 pattern_offsets.append(file_offset)
 
         # Parse each pattern
@@ -535,76 +554,60 @@ class MFMParser:
                 self.file.patterns.append(pattern)
 
     def _parse_pattern(self, data: bytes, offset: int, size: int, index: int) -> MFMPattern:
-        """Parse a single pattern - reads ALL rows until size exhausted"""
+        """Parse a single pattern: exactly 16 rows (the player's step
+        counter wraps with `and 0Fh`).
+
+        Mirrors the reference row unpacker (mfm_player.asm, after
+        MBPlayer_play_step): byte 0 -> step 0, then three mask bytes whose
+        bits (MSB first) select steps 1-24, each set bit consuming one
+        event byte. ALL 24 mask bits must consume their byte - steps 18-23
+        (wave tracks) and 24 (command channel) included. Skipping them
+        (as an earlier version did, treating mask3 bits 6-0 as unused)
+        desynchronised every subsequent row of the pattern.
+        """
         pattern = MFMPattern(index=index, raw_size=size)
         pattern_data = data[offset:offset + size]
         pattern.raw_data = pattern_data  # Keep for reference
 
         pos = 0
-        row_idx = 0
-        # Parse ALL rows in the pattern data, not just 16
-        while pos < len(pattern_data):
-            if pos >= len(pattern_data):
-                break
-
+        for row_idx in range(MFM_ROWS_PER_PATTERN):
             row = MFMRow(row_index=row_idx)
 
-            # Check for empty row marker
+            if pos >= len(pattern_data):
+                row.is_empty = True
+                pattern.rows.append(row)
+                continue
+
             if pattern_data[pos] == 0xFF:
                 row.is_empty = True
                 pos += 1
                 pattern.rows.append(row)
-                row_idx += 1
                 continue
 
-            # Need at least 4 bytes for a non-empty row (ch0 + 3 masks)
-            if pos + 4 > len(pattern_data):
-                # Not enough data for a complete row, stop parsing
-                break
-
-            # Channel 0 event
-            ch0_event = MFMEvent.decode(pattern_data[pos], channel=0)
-            row.events.append(ch0_event)
+            steps = [0] * 25
+            steps[0] = pattern_data[pos]
             pos += 1
-
-            # Bit masks for channels 1-8, 9-16, 17 (mask3 bits 6-0 unused in MFM)
-            mask1 = pattern_data[pos]      # Channels 1-8
-            mask2 = pattern_data[pos + 1]  # Channels 9-16
-            mask3 = pattern_data[pos + 2]  # Channel 17 (bit 7), bits 6-0 unused
+            masks = list(pattern_data[pos:pos + 3]) + [0] * (3 - len(pattern_data[pos:pos + 3]))
+            row.mask1, row.mask2, row.mask3 = masks
             pos += 3
 
-            # Store original masks for exact round-trip
-            row.mask1 = mask1
-            row.mask2 = mask2
-            row.mask3 = mask3
-
-            # Decode events for set bits (MSB = lowest channel in group)
-            for ch in range(1, 9):
-                if mask1 & (0x80 >> (ch - 1)):
-                    if pos < len(pattern_data):
-                        event = MFMEvent.decode(pattern_data[pos], channel=ch)
-                        row.events.append(event)
+            for group, mask in enumerate(masks):
+                for bit in range(8):
+                    if mask & (0x80 >> bit):
+                        if pos < len(pattern_data):
+                            steps[1 + group * 8 + bit] = pattern_data[pos]
                         pos += 1
 
-            for ch in range(9, 17):
-                if mask2 & (0x80 >> (ch - 9)):
-                    if pos < len(pattern_data):
-                        event = MFMEvent.decode(pattern_data[pos], channel=ch)
-                        row.events.append(event)
-                        pos += 1
-
-            # MFM has only 18 channels (0-17), so mask3 only uses bit 7 for ch17
-            # Bits 6-0 of mask3 are unused/reserved in MFM format
-            if mask3 & 0x80:  # Only check bit 7 for ch17
-                if pos < len(pattern_data):
-                    event = MFMEvent.decode(pattern_data[pos], channel=17)
-                    row.events.append(event)
-                    pos += 1
+            for ch in range(MFM_CHANNELS):
+                if steps[ch]:
+                    row.events.append(MFMEvent.decode(steps[ch], channel=ch))
+            for wave_track in range(6):
+                if steps[18 + wave_track]:
+                    row.wave_events[wave_track] = steps[18 + wave_track]
+            row.command = steps[24]
 
             pattern.rows.append(row)
-            row_idx += 1
 
-        # Store any trailing bytes that didn't form a complete row
         if pos < len(pattern_data):
             pattern.trailing_bytes = pattern_data[pos:]
 

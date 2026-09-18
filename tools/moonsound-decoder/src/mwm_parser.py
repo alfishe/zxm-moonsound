@@ -27,8 +27,18 @@ MWM_FM_CHANNELS = 18
 MWM_PCM_CHANNELS = 24
 MWM_TOTAL_CHANNELS = MWM_FM_CHANNELS + MWM_PCM_CHANNELS
 MWM_FM_INSTRUMENTS = 24
-MWM_PCM_INSTRUMENTS = 24
+MWM_PCM_INSTRUMENTS = 48
 MWM_ROWS_PER_PATTERN = 16
+
+# Wave track-info block (at file offset 0x0006) is 220 bytes, followed by a
+# 58-byte trailer (info string + kit name), so the position table starts at
+# 0x0006 + 220 + 58 = 0x011C - NOT 0x0332 (that's the MFM offset; MFM's
+# track-info+trailer blocks are a different, larger size: 718+94 bytes).
+MWM_TRACK_INFO_SIZE = 220
+MWM_TRAILER_SIZE = 58
+MWM_POSITION_TABLE_OFFSET = 6 + MWM_TRACK_INFO_SIZE + MWM_TRAILER_SIZE  # 0x011C
+# xtempo lives at track-info offset +0x01A, i.e. absolute 0x0006+0x01A=0x0020.
+MWM_TEMPO_OFFSET = 6 + 0x01A
 
 NOTE_NAMES = ['C-', 'C#', 'D-', 'D#', 'E-', 'F-', 'F#', 'G-', 'G#', 'A-', 'A#', 'B-']
 
@@ -63,7 +73,9 @@ class MWMEvent:
     midi_note: Optional[int] = None
     instrument: Optional[int] = None
     volume: Optional[int] = None
-    pan: Optional[str] = None
+    pan: Optional[int] = None  # 0-14 (15-step MWM pan), not MFM's L/C/R string
+    portamento: Optional[int] = None
+    pitch_bend: Optional[int] = None
 
     @classmethod
     def decode(cls, value: int, channel: int = 0, is_pcm: bool = False) -> 'MWMEvent':
@@ -83,28 +95,26 @@ class MWMEvent:
             event.midi_note = note_num + 24
         elif value == 0x61:
             event.event_type = WaveEventType.NOTE_OFF
-        elif 0x62 <= value <= 0x79:
+        elif 0x62 <= value <= 0x91:
+            # MWM has 48 wave-preset slots (vs. MFM's 24 FM instruments),
+            # so this range is twice as wide as the MFM equivalent.
             event.event_type = WaveEventType.INSTRUMENT
             event.instrument = value - 0x62
-        elif 0x7A <= value <= 0xB9:
+        elif 0x92 <= value <= 0xB1:
+            # 32-step volume (0-31), not MFM's 64-step (0-63).
             event.event_type = WaveEventType.VOLUME
-            event.volume = value - 0x7A
-        elif 0xBA <= value <= 0xBC:
+            event.volume = value - 0x92
+        elif 0xB2 <= value <= 0xC0:
+            # 15-step pan (0-14), not MFM's 3-step L/C/R.
             event.event_type = WaveEventType.PAN
-            pan_val = value - 0xBA
-            event.pan = ['Left', 'Center', 'Right'][pan_val]
-        elif 0xC0 <= value <= 0xCF:
-            event.event_type = WaveEventType.PITCH_BEND
-        elif 0xD0 <= value <= 0xE2:
-            event.event_type = WaveEventType.VIBRATO
-        elif 0xE3 <= value <= 0xEF:
-            event.event_type = WaveEventType.DETUNE
-        elif 0xF0 <= value <= 0xF6:
-            event.event_type = WaveEventType.EFFECT
-        elif 0xF7 <= value <= 0xF9:
+            event.pan = value - 0xB2
+        elif 0xC1 <= value <= 0xD3:
             event.event_type = WaveEventType.PORTAMENTO
-        elif 0xFA <= value <= 0xFE:
-            event.event_type = WaveEventType.TEMPO
+            event.portamento = value - 0xC1
+        elif 0xD4 <= value <= 0xE6:
+            # Pitch bend, signed around the middle of the range (-9..+9).
+            event.event_type = WaveEventType.PITCH_BEND
+            event.pitch_bend = (value - 0xD4) - 9
 
         return event
 
@@ -121,8 +131,12 @@ class MWMEvent:
             result['instrument'] = self.instrument
         if self.volume is not None:
             result['volume'] = self.volume
-        if self.pan:
+        if self.pan is not None:
             result['pan'] = self.pan
+        if self.portamento is not None:
+            result['portamento'] = self.portamento
+        if self.pitch_bend is not None:
+            result['pitch_bend'] = self.pitch_bend
         return result
 
 
@@ -253,6 +267,7 @@ class MWMPCMInstrument:
 @dataclass
 class MWMFile:
     """Complete MWM file structure"""
+    raw: bytes = b''  # whole file, for table lookups by the converters
 
     signature: str = ""
     version_high: int = 0
@@ -261,6 +276,7 @@ class MWMFile:
     song_length: int = 0
     loop_position: int = 0
     tempo: int = 0
+    hz_equalizer: int = 0  # xhzequal: 0 = 60 Hz NTSC, 1 = 50 Hz PAL
 
     title: str = ""
     author: str = ""
@@ -336,6 +352,7 @@ class MWMParser:
         """Parse MWM file from bytes"""
         self.file = MWMFile()
         self.file.file_size = len(data)
+        self.file.raw = bytes(data)
 
         if len(data) < 6:
             raise ValueError("File too small to be valid MWM")
@@ -362,8 +379,11 @@ class MWMParser:
         self.file.song_length = data[6]
         self.file.loop_position = data[7]
 
-        if len(data) > 0x230:
-            self.file.tempo = data[0x230]
+        if len(data) > MWM_TEMPO_OFFSET:
+            self.file.tempo = data[MWM_TEMPO_OFFSET]
+        # xhzequal is the byte right after xtempo (track-info +0x01B)
+        if len(data) > MWM_TEMPO_OFFSET + 1:
+            self.file.hz_equalizer = data[MWM_TEMPO_OFFSET + 1]
 
         # Note: MWM files don't have metadata at 0x2D4 like MFM files
         # That offset contains pattern data in MWM format
@@ -381,12 +401,17 @@ class MWMParser:
                 self.file.pcm_instruments.append(inst)
 
     def _parse_positions(self, data: bytes) -> None:
-        """Parse position table"""
-        if len(data) < 0x0332:
+        """Parse position table.
+
+        MWM's track-info (220B) + trailer (58B) are much shorter than
+        MFM's (718B + 94B), so the position table starts at a different,
+        earlier absolute offset (0x011C, not MFM's 0x0332).
+        """
+        if len(data) < MWM_POSITION_TABLE_OFFSET:
             return
 
         count = self.file.song_length + 1
-        offset = 0x0332
+        offset = MWM_POSITION_TABLE_OFFSET
 
         for i in range(count):
             if offset + i < len(data):
@@ -399,7 +424,7 @@ class MWMParser:
 
         pattern_count = max(self.file.positions) + 1 if self.file.positions else 0
 
-        pos_table_end = 0x0332 + len(self.file.positions)
+        pos_table_end = MWM_POSITION_TABLE_OFFSET + len(self.file.positions)
         ptr_table_offset = pos_table_end
 
         pattern_offsets = []
@@ -407,7 +432,10 @@ class MWMParser:
             ptr_offset = ptr_table_offset + (i * 2)
             if ptr_offset + 2 <= len(data):
                 ptr = data[ptr_offset] | (data[ptr_offset + 1] << 8)
-                file_offset = (ptr & 0x3FFF) + 6
+                # Pattern base is +9 (same as .MFM): verified across the
+                # sample collection - only +9 decodes all 391 patterns to
+                # exactly their byte span with valid command values.
+                file_offset = (ptr & 0x3FFF) + 9
                 pattern_offsets.append(file_offset)
 
         for i, offset in enumerate(pattern_offsets):
