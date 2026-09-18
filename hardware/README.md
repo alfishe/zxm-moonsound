@@ -132,9 +132,16 @@ Service utility for ZXM-MoonSound diagnostics and programming.
 
 ### CPLD Programming
 
+See [cpld-sources/README.md](cpld-sources/README.md) for detailed instructions.
+
+**Quick steps:**
 1. Open project in Quartus II
 2. Compile to generate POF/JED
 3. Program EPM7032STC44 via JTAG (ByteBlaster or compatible)
+
+**CPLD Sources:** Extracted in `cpld-sources/`:
+- `v0100-original/` - Original board (2015)
+- `v0100-rev01/` - Revised board (2016)
 
 ### Flash ROM Programming
 

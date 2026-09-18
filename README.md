@@ -122,7 +122,7 @@ See [`doc/overview.md`](doc/overview.md) for detailed technical information.
 
 | Chip | Document |
 |------|----------|
-| YMF278B (OPL4) | [`doc/datasheets/opl4.pdf`](doc/datasheets/opl4.pdf) |
+| YMF278B (OPL4) | [`doc/datasheets/opl4-application-manual.pdf`](doc/datasheets/opl4-application-manual.pdf) |
 | YMF262 (OPL3) | [`doc/datasheets/ymf262-OPL3.pdf`](doc/datasheets/ymf262-OPL3.pdf) |
 | YM3812 (OPL2) | [`doc/datasheets/ym3812-OPL2.pdf`](doc/datasheets/ym3812-OPL2.pdf) |
 | YAC513 (DAC) | [`doc/datasheets/yac513.pdf`](doc/datasheets/yac513.pdf) |

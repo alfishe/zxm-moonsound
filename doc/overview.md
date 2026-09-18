@@ -139,7 +139,7 @@ The built binary needs to be placed on a TR-DOS disk image (`.trd`). Pre-built i
 For implementing OPL4 emulation, see:
 
 - [`opl4-reference-implementations.md`](opl4-reference-implementations.md) - Comparison of ymfm, Nuked-OPL3, VGMPlay
-- [`datasheets/opl4.pdf`](datasheets/opl4.pdf) - Yamaha YMF278B datasheet
+- [`datasheets/opl4-application-manual.pdf`](datasheets/opl4-application-manual.pdf) - Yamaha YMF278B datasheet
 - [`datasheets/yac513.pdf`](datasheets/yac513.pdf) - DAC datasheet
 
 ## Demo Controls
