@@ -13,6 +13,7 @@ moonsound-demo/
 │   ├── mfm_sample_01-04/    # MFM (FM synthesis) demos
 │   ├── moonmusic_01-02/     # MWM (wavetable) demos  
 │   └── moonsound_01-14/     # MWM demos series
+├── converted/furnace/       # All 240 songs as Furnace (.fur) modules
 ├── doc/                     # Documentation (9 files)
 │   ├── datasheets/          # Yamaha OPL2/3/4 PDFs
 │   ├── file-formats/        # MFM/MWM format specs
@@ -108,6 +109,10 @@ See [`doc/overview.md`](doc/overview.md) for detailed technical information.
 - `*.MFM` / `*.MWM` — Music files
 - `melody-mapping.md` — Track order mapping
 - `preview.png` — Screenshot
+
+### Furnace Conversions
+
+Every song on the demo disks is also available as a [Furnace](https://github.com/tildearrow/furnace) tracker module (OPL4, samples embedded) in [`converted/furnace/`](converted/furnace/), in folders that mirror `demo-disks/`. The [index](converted/furnace/README.md) maps each module to its source file, disk image and demo melody number.
 
 ## Documentation
 
