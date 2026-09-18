@@ -103,6 +103,12 @@ class TestMfmConversion:
             for r in p.rows:
                 assert r.command == 0 or 1 <= r.command <= 75
 
+    def test_tick_rate_is_zx_frame_rate_unless_msx_timing(self):
+        conv = FurnaceConverter(compress=False, tick_rate=None)
+        assert conv._new_song("t", "", 6, 0, 1).tick_rate == 60.0
+        assert conv._new_song("t", "", 6, 1, 1).tick_rate == 50.0
+        assert FurnaceConverter(compress=False)._new_song("t", "", 6, 0, 1).tick_rate == 50.0
+
     def test_compressed_output_round_trips(self):
         raw, _ = _convert_mfm(MFM_FILES[0], compress=False)
         packed, _ = _convert_mfm(MFM_FILES[0], compress=True)
@@ -139,5 +145,49 @@ class TestWaveResolution:
         conv = FurnaceConverter(compress=False, source_path=str(GALIOUS))
         data = conv.convert_mwm(MWMParser.from_file(str(GALIOUS)))
         parsed = FurReader().read(data)
-        assert len(parsed['blocks']['SMP2']) == len(parsed['blocks']['INS2']) == 20
+        # one sample per voice; extra instruments carry per-note pitch paths
+        assert len(parsed['blocks']['SMP2']) == 20
+        assert len(parsed['blocks']['INS2']) >= 20
         assert not conv.warnings
+
+
+class TestWavePitch:
+    """Player pitch arithmetic (mwm_player.asm) and macro building."""
+
+    def test_carry_add_moves_fnum_overflow_into_octave(self):
+        from src.opl4_wave import carry_add, word_rate
+        w = (2 << 12) | (1020 << 1)                    # octave 2, F 1020
+        up = carry_add(w, 20)                          # +10 F -> wraps
+        assert (up >> 12) == 3 and ((up >> 1) & 0x3FF) == 6
+        assert word_rate(up) > word_rate(w)
+        down = carry_add((2 << 12) | (4 << 1), -20)    # F 4 - 10 -> borrow
+        assert (down >> 12) == 1 and ((down >> 1) & 0x3FF) == 1018
+
+    def test_bend_and_link_in_simulation(self):
+        from src.opl4_wave import WaveMemory, WaveResolver, load_rom, word_rate
+        from src.wave_pitch import simulate
+        res = WaveResolver(WaveMemory(load_rom()))
+        rows = [(0, 0, 'r0', 0, 0, 4), (0, 1, 'r1', 0, 0, 4), (0, 2, 'r2', 0, 0, 4)]
+        events = {'r0': {0: 50}, 'r1': {0: 230}, 'r2': {0: 203}}   # note, bend +9, link +1
+        notes = simulate(res, rows, lambda r: events[r], 1, [0], [0], [0], b"")
+        voice, a, rates = notes[(0, 0, 0)]
+        _, w0, _ = res.note_word(0, 49)
+        assert rates[:5] == [word_rate(w0)] * 5          # bend starts the tick after the event
+        assert rates[5] > rates[4]                        # 18 F-units per tick up
+        _, w1, _ = res.note_word(0, 50)
+        assert rates[8] == pytest.approx(word_rate(w1))  # link lands on the next semitone
+
+    def test_macro_builder(self):
+        from src.converters.furnace.converter import build_pitch_macro
+        assert build_pitch_macro([1000.0] * 10, 1000.0) == (None, 255, 1)
+        vals, loop, speed = build_pitch_macro([1000.0, 1000.0 * 2 ** (1 / 12)], 1000.0)
+        assert vals == [0, 128] and loop == 255 and speed == 1
+        wobble = [1000.0 * 2 ** ((i % 4) / 1200) for i in range(600)]
+        vals, loop, speed = build_pitch_macro(wobble, 1000.0)   # periodic -> looped
+        assert loop != 255 and len(vals) <= 255
+        glide = [1000.0 * 2 ** (i / 1200) for i in range(600)]
+        vals, loop, speed = build_pitch_macro(glide, 1000.0)    # long non-periodic -> slower macro
+        assert speed == 3 and len(vals) <= 255
+        stairs = [1000.0 * 2 ** ((i // 6) / 12) for i in range(600)]   # a link every 6-tick row
+        vals, loop, speed = build_pitch_macro(stairs, 1000.0)   # row-aligned -> exact, no averaging
+        assert speed == 3 and vals[::2] == [128 * i for i in range(100)]

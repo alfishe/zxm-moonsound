@@ -12,7 +12,8 @@ from src.converters.vgm import VGMConverter, VGMImporter
 
 def convert_to_furnace(args):
     """Convert MFM/MWM to Furnace .fur format."""
-    converter = FurnaceConverter(compress=not args.no_compress)
+    converter = FurnaceConverter(compress=not args.no_compress,
+                                 tick_rate=None if args.msx_timing else 50.0)
 
     input_path = Path(args.input)
     if args.output:
@@ -111,6 +112,9 @@ Examples:
     fur_parser.add_argument('-o', '--output', help='Output file or directory')
     fur_parser.add_argument('--no-compress', action='store_true', help='Disable zlib compression')
     fur_parser.add_argument('--mfm-only', action='store_true', help='Only convert MFM files')
+    fur_parser.add_argument('--msx-timing', action='store_true',
+                            help='Tick at 60 Hz unless the song sets its 50 Hz flag, as on MSX '
+                                 '(default: 50 Hz, as the ZX Spectrum players run)')
     fur_parser.set_defaults(func=convert_to_furnace)
 
     # VGM converter

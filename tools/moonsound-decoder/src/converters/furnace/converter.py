@@ -9,8 +9,14 @@ Song layout (both formats):
   * A pattern row is the player's 25-entry step buffer; step 24 is the
     command channel: 1-23 tempo (speed = 25 - cmd), 24 end of pattern,
     25-75 transpose (tspval = cmd - 52, from the next row on).
-  * Rows advance every `speed` ticks (initial speed = xtempo); ticks run at
-    50 Hz when xhzequal is set, else 60 Hz.
+  * Rows advance every `speed` ticks (initial speed = xtempo). On the
+    ZX Spectrum every demo disk runs one player tick per 50 Hz frame
+    interrupt, whatever xhzequal says: the MFM/most MWM handlers call the
+    player unconditionally, and the moonmusic/moonsound_02-03 ones gate it
+    on the OPL4 timer flag, but the card never routes the OPL4 IRQ to the
+    Z80, so the 59.5 Hz timer is only polled on 50 Hz frames. Hence the
+    default tick rate is 50 Hz; tick_rate=None follows the MSX meaning of
+    xhzequal (set = 50 Hz, clear = 60 Hz).
   * Positions are unrolled: Furnace pattern index == position index, so
     transposition state and pattern breaks are baked in exactly.
 
@@ -45,6 +51,7 @@ from src.mfm_parser import MFMOperatorPatch
 from src.converters.base import Converter
 from src.opl4_wave import (WaveMemory, WaveResolver, MwkKit, Voice, load_rom,
                            PATCH_DRUMS)
+from src.wave_pitch import played_rows, simulate
 
 from .fur_song import FurSong, FurChip, FUR_CHIP_OPL4
 from .fur_instrument import FurFMInstrument
@@ -71,10 +78,14 @@ MFM_INIT_INSTRUMENT = 0x27C   # 24 bytes (1-based): FM steps, wave tracks
 MFM_XWAVNRS = 0x294           # 32 wave presets -> patch number
 MFM_XWAVVOLS = 0x2B4          # 32 default attenuations
 MFM_CHVOL1 = 0x24B
+MFM_WAVE_DETUNE = 0x245       # 6 bytes: initial detune per wave track
+MFM_MODTAB = 0x24C            # 3 x 16-byte wave modulation tables
 MFM_KIT_NAME = 0x2D4 + 0x56
 
 # --- MWM file layout (track-info block at 6) --------------------------------
 MWM_XWVSTPR = 6 + 0x02        # 24 initial pan nibbles
+MWM_XDETUNE = 6 + 0x1C        # 24 initial detune bytes
+MWM_XMODTAB = 6 + 0x34        # 3 x 16-byte modulation tables
 MWM_XBEGWAV = 6 + 0x64        # 24 initial presets (1-based)
 MWM_XWAVNRS = 6 + 0x7C        # 48 presets -> patch number
 MWM_XWAVVOLS = 6 + 0xAC       # 48 default attenuations
@@ -103,6 +114,44 @@ SONG_TUNING = MB_TUNING * TUNING_BIAS
 PCM_TUNING_COMP = 440.0 / SONG_TUNING * 2 ** (-1.44 / 1200)
 FUR_CHANNELS = 42
 GLOBAL_FX_COLS = 3            # [speed1, speed2, flow control]
+ZX_TICK_RATE = 50.0           # ZX frame interrupt (see module docstring)
+MAX_INSTRUMENTS = 256         # Furnace rejects files with more
+# Pitch paths within this many 1/128-semitone units share an instrument.
+# 2 (~1.6 cents) is inaudible; songs that would still exceed 256
+# instruments are re-converted with the next, coarser tolerance.
+MACRO_TOLERANCES = (2, 4, 8, 16)
+PITCH_UNITS_PER_OCTAVE = 1536 # pitch macro unit = 1/128 semitone (measured)
+
+
+def build_pitch_macro(rates: List[float], nominal: float):
+    """Turn a note's per-tick player pitch into an absolute Furnace pitch
+    macro (1/128 semitone vs the note's nominal Furnace pitch; value i
+    applies i ticks after key-on, the last value holds).
+
+    Returns (values, loop, speed), or (None, 255, 1) when the note needs no
+    correction. Paths longer than a macro can hold (255 values) loop their
+    periodic tail (modulation) or are played every `speed` ticks: exactly
+    when all changes fall on multiples of `speed` (links on row ticks),
+    else as block medians (long bends; a step lands at most one
+    block early or late instead of passing through a wrong pitch)."""
+    vals = [round(PITCH_UNITS_PER_OCTAVE * math.log2(r / nominal)) for r in rates]
+    while len(vals) > 1 and vals[-1] == vals[-2]:
+        vals.pop()
+    if all(abs(v) <= 1 for v in vals):
+        return None, 255, 1
+    if len(vals) <= 255:
+        return vals, 255, 1
+    for period in range(1, 65):
+        for start in range(0, 255 - period + 1):
+            if all(vals[i] == vals[i - period] for i in range(start + period, len(vals))):
+                return vals[:start + period], start, 1
+    speed = -(-len(vals) // 255)
+    changes = [i for i in range(1, len(vals)) if vals[i] != vals[i - 1]]
+    for exact in range(speed, 256):
+        if all(i % exact == 0 for i in changes):
+            return vals[::exact], 255, exact
+    blocks = [vals[i:i + speed] for i in range(0, len(vals), speed)]
+    return [sorted(b)[len(b) // 2] for b in blocks], 255, speed
 
 
 def _furnace_pan_value_for_nibble() -> Dict[int, int]:
@@ -178,11 +227,14 @@ class FurnaceConverter(Converter):
         return ".fur"
 
     def __init__(self, compress: bool = True, rom_path: Optional[str] = None,
-                 source_path: Optional[str] = None):
+                 source_path: Optional[str] = None,
+                 tick_rate: Optional[float] = ZX_TICK_RATE):
         self.compress = compress
+        self.tick_rate = tick_rate
         self.rom_path = rom_path
         self.source_path = source_path
         self.warnings: List[str] = []
+        self._macro_tolerance = MACRO_TOLERANCES[0]
 
     def convert_file(self, input_path, output_path=None):
         # The song's directory is where its .MWK sample kit is looked up.
@@ -210,7 +262,7 @@ class FurnaceConverter(Converter):
         song.chips = [FurChip(chip_id=FUR_CHIP_OPL4)]
         song.tuning = SONG_TUNING
         song.speed = song.speed2 = max(1, tempo)
-        song.tick_rate = 50.0 if hz_equalizer else 60.0
+        song.tick_rate = self.tick_rate or (50.0 if hz_equalizer else 60.0)
         song.pattern_length = ROWS
         song.order_length = n_positions
         song.orders = [[pos] * FUR_CHANNELS for pos in range(n_positions)]
@@ -282,51 +334,96 @@ class FurnaceConverter(Converter):
     def _setup_wave(self, song: FurSong, rom_kit_name: str):
         rom = load_rom(self.rom_path)
         self._resolver = WaveResolver(WaveMemory(rom, self._load_kit(rom_kit_name)))
-        self._voice_instrument: Dict = {}
+        self._voice_sample: Dict = {}
+        self._pcm_instrument: Dict = {}
+        self._pcm_paths: List = []
+        self._warned_ins_cap = False
+        self._wave_notes: Dict = {}
 
-    def _voice_to_instrument(self, song: FurSong, voice: Voice) -> int:
-        if voice.key in self._voice_instrument:
-            return self._voice_instrument[voice.key]
+    def _simulate_wave(self, positions, rows_of, command_of, tempo, wave_events_of,
+                       n_tracks, wavnrs, init_presets, init_detune, modtab):
+        """Tick-exact player pitch for every wave note (see wave_pitch.py);
+        bends, links, detune and modulation become per-note pitch macros."""
+        self._wave_notes = simulate(
+            self._resolver, played_rows(positions, rows_of, command_of, tempo),
+            wave_events_of, n_tracks, wavnrs, init_presets, init_detune, modtab)
+
+    def _sample_for(self, song: FurSong, voice: Voice) -> int:
+        if voice.key in self._voice_sample:
+            return self._voice_sample[voice.key]
         h = voice.header
-        pcm = self._resolver.mem.pcm(h)
         # Furnace plays note f at c4_rate * 2^((f-48)/12) (0.6.8.3: note 48
         # = C-4, verified by rendering). We emit f = a, so the sample's C-4
         # rate is the voice's rate transposed from ref_a to note 48.
         c4 = voice.ref_rate * 2.0 ** ((48 - voice.ref_a) / 12.0) * PCM_TUNING_COMP
         loop_start = h.loop if h.loop < h.length else -1
-        sample = FurSample(name=f"t{voice.tone} p{voice.key.patch}.{voice.key.split}",
-                           c4_rate=max(1, int(round(c4))),
-                           loop_start=loop_start, loop_end=h.length if loop_start >= 0 else -1,
-                           data=pcm)
-        song.samples.append(sample)
-        inst = FurSampleInstrument(
-            name=f"PCM tone {voice.tone} (patch {voice.key.patch})",
-            sample_index=len(song.samples) - 1,
+        song.samples.append(FurSample(
+            name=f"t{voice.tone} p{voice.key.patch}.{voice.key.split}",
+            c4_rate=max(1, int(round(c4))),
+            loop_start=loop_start, loop_end=h.length if loop_start >= 0 else -1,
+            data=self._resolver.mem.pcm(h)))
+        self._voice_sample[voice.key] = len(song.samples) - 1
+        return self._voice_sample[voice.key]
+
+    @staticmethod
+    def _macro_distance(a, b) -> int:
+        n = max(len(a), len(b))
+        ext = lambda m: list(m) + [m[-1]] * (n - len(m))
+        return max(abs(x - y) for x, y in zip(ext(a), ext(b)))
+
+    def _instrument_for(self, song: FurSong, voice: Voice, macro=None, loop: int = 255,
+                        speed: int = 1) -> int:
+        key = (voice.key, tuple(macro) if macro else None, loop, speed)
+        if key in self._pcm_instrument:
+            return self._pcm_instrument[key]
+        if macro and self._macro_tolerance:
+            # nearest existing same-voice path within tolerance (compared only
+            # against each instrument's own path, so merges can't drift)
+            best = None
+            for vk, m, lp, sp, idx in self._pcm_paths:
+                if vk == voice.key and lp == loop and sp == speed:
+                    d = self._macro_distance(m, macro)
+                    if d <= self._macro_tolerance and (best is None or d < best[0]):
+                        best = (d, idx)
+            if best:
+                self._pcm_instrument[key] = best[1]
+                return best[1]
+        if macro and len(song.instruments) >= MAX_INSTRUMENTS:
+            if not getattr(self, "_warned_ins_cap", False):
+                self.warnings.append(f"more than {MAX_INSTRUMENTS} instruments needed - "
+                                     "some pitch effects dropped")
+                self._warned_ins_cap = True
+            return self._instrument_for(song, voice)
+        variant = sum(1 for p in self._pcm_paths if p[0] == voice.key)
+        name = f"PCM tone {voice.tone} (patch {voice.key.patch})"
+        if macro:
+            name += f" pitch {variant}"
+        song.instruments.append(FurSampleInstrument(
+            name=name, sample_index=self._sample_for(song, voice),
             attack_rate=voice.ar, decay1_rate=voice.d1r, decay_level=voice.dl,
             decay2_rate=voice.d2r, rate_correction=voice.rc, release_rate=voice.rr,
-            lfo_speed=voice.lfo, vibrato_depth=voice.vib, tremolo_depth=voice.am)
-        song.instruments.append(inst)
-        idx = len(song.instruments) - 1
-        self._voice_instrument[voice.key] = idx
-        return idx
+            lfo_speed=voice.lfo, vibrato_depth=voice.vib, tremolo_depth=voice.am,
+            pitch_macro=list(macro) if macro else None, pitch_loop=loop, pitch_speed=speed))
+        self._pcm_instrument[key] = len(song.instruments) - 1
+        if macro:
+            self._pcm_paths.append((voice.key, tuple(macro), loop, speed, len(song.instruments) - 1))
+        return self._pcm_instrument[key]
 
     def _wave_event(self, song, grid, pos, r, fur_ch, state: _WaveTrackState, ev: int,
                     tsp: int, wavnrs: List[int], wavvols: List[int]):
         cell = self._cell(grid, pos, r, fur_ch)
         if 1 <= ev <= 96:
-            patch = wavnrs[state.preset] if state.preset < len(wavnrs) else 0
-            a = ev - 1
-            if self._resolver.patch_obeys_transpose(patch):
-                a += tsp
-            res = self._resolver.resolve(patch, a)
-            if res is None:
+            sim = self._wave_notes.get((pos, r, fur_ch - PCM_BASE))
+            if sim is None:
                 return
-            voice, a = res
+            voice, a, rates = sim
             note = voice.ref_a if voice.fixed_pitch else a
             if not 0 <= note < 180:
                 return
+            nominal = voice.ref_rate * 2.0 ** ((note - voice.ref_a) / 12.0)
+            macro, loop, speed = build_pitch_macro(rates, nominal) if rates else (None, 255, 1)
             cell.note = note
-            cell.instrument = self._voice_to_instrument(song, voice)
+            cell.instrument = self._instrument_for(song, voice, macro, loop, speed)
             if state.volume is not None:
                 cell.volume = state.volume
                 state.volume = None
@@ -346,11 +443,12 @@ class FurnaceConverter(Converter):
         elif 178 <= ev <= 192:
             self._set_fx(cell, 0, 0x80, PAN_NIBBLE_TO_80XX.get((ev - 185) & 0x0F, 0x80))
             state.pan_nibble = None
-        # link / pitch bend / detune / modulation / damp: not translated yet
+        # link / pitch bend / detune / modulation: carried by the note's
+        # pitch macro (see _simulate_wave); damp: not translated yet
 
     # --------------------------------------------------------------------- MFM
 
-    def convert_mfm(self, mfm) -> bytes:
+    def _convert_mfm_once(self, mfm) -> bytes:
         self.warnings = []
         raw = mfm.raw
         chvol_1 = raw[MFM_CHVOL1]
@@ -405,6 +503,12 @@ class FurnaceConverter(Converter):
 
         grid = self._grid(len(positions))
         patterns = {p.index: p for p in mfm.patterns}
+        rows_of = lambda i: patterns[i].rows if i in patterns else []
+        self._simulate_wave(positions, rows_of, lambda row: row.command, mfm.tempo,
+                            lambda row: row.wave_events, 6, wavnrs,
+                            [st.preset for st in wave_state],
+                            list(raw[MFM_WAVE_DETUNE:MFM_WAVE_DETUNE + 6]),
+                            raw[MFM_MODTAB:MFM_MODTAB + 64])
 
         def on_row(pos, r, row, tsp):
             for ev in row.events:
@@ -419,6 +523,23 @@ class FurnaceConverter(Converter):
                         lambda row: row.command, grid, global_ch, raw[7], on_row)
         self._emit_patterns(song, grid)
         return FurWriter(compress=self.compress).write(song)
+
+    def _with_tolerance_retry(self, convert_once, song) -> bytes:
+        for tol in MACRO_TOLERANCES:
+            self._macro_tolerance = tol
+            data = convert_once(song)
+            if not self._warned_ins_cap:
+                if tol != MACRO_TOLERANCES[0]:
+                    self.warnings.append(f"pitch paths merged at {tol / 128 * 100:.1f}-cent "
+                                         "tolerance to stay within 256 instruments")
+                return data
+        return data
+
+    def convert_mfm(self, mfm) -> bytes:
+        return self._with_tolerance_retry(self._convert_mfm_once, mfm)
+
+    def convert_mwm(self, mwm) -> bytes:
+        return self._with_tolerance_retry(self._convert_mwm_once, mwm)
 
     def _fm_event(self, grid, pos, r, track, state: _FmTrackState, ev: int, tsp: int, patches_2op):
         ch, is4 = track
@@ -457,7 +578,7 @@ class FurnaceConverter(Converter):
 
     # --------------------------------------------------------------------- MWM
 
-    def convert_mwm(self, mwm) -> bytes:
+    def _convert_mwm_once(self, mwm) -> bytes:
         self.warnings = []
         raw = mwm.raw
         positions = list(mwm.positions)
@@ -487,6 +608,14 @@ class FurnaceConverter(Converter):
                 if ev.channel == 24:
                     return ev.raw_value
             return 0
+
+        rows_of = lambda i: patterns[i].rows if i in patterns else []
+        self._simulate_wave(positions, rows_of, command, mwm.tempo,
+                            lambda row: {e.channel: e.raw_value for e in row.events
+                                         if e.channel < 24 and e.raw_value},
+                            24, wavnrs, [st.preset for st in wave_state],
+                            list(raw[MWM_XDETUNE:MWM_XDETUNE + 24]),
+                            raw[MWM_XMODTAB:MWM_XMODTAB + 64])
 
         def on_row(pos, r, row, tsp):
             for ev in row.events:

@@ -10,6 +10,7 @@ silently leaves the channel mute.
 """
 
 from dataclasses import dataclass
+from typing import List, Optional
 import struct
 
 
@@ -49,6 +50,25 @@ class FurSampleInstrument:
     vibrato_depth: int = 0
     tremolo_depth: int = 0
 
+    # Optional pitch macro (Furnace macro code 4): per-tick values,
+    # `pitch_mode` 0 = absolute, 1 = relative; `pitch_loop` = loop start
+    # index or 255 for none.
+    pitch_macro: Optional[List[int]] = None
+    pitch_mode: int = 0
+    pitch_loop: int = 255
+    pitch_speed: int = 1        # ticks per macro step
+
+    def _macro_feature(self) -> bytes:
+        vals = self.pitch_macro or []
+        body = bytearray(struct.pack('<H', 8))          # macro header length
+        body += bytes([4, len(vals), self.pitch_loop & 0xFF, 255,
+                       self.pitch_mode, 0x80,            # word size 2 (int16)
+                       0, max(1, self.pitch_speed)])     # delay 0, speed
+        for v in vals:
+            body += struct.pack('<h', max(-32768, min(32767, v)))
+        body.append(255)                                 # end of macro list
+        return _feature(b"MA", bytes(body))
+
     def to_furnace_bytes(self) -> bytes:
         """Encode as an "INS2" body (everything after the 4-byte magic)."""
         na_feat = _feature(b"NA", self.name.encode('utf-8', errors='replace') + b"\x00")
@@ -76,6 +96,8 @@ class FurSampleInstrument:
         body.extend(na_feat)
         body.extend(sm_feat)
         body.extend(mp_feat)
+        if self.pitch_macro:
+            body.extend(self._macro_feature())
         body.extend(b"EN" + struct.pack('<H', 0))
 
         return struct.pack('<I', len(body)) + bytes(body)

@@ -29,7 +29,10 @@ The semantics come from the reference Z80 players, not from the format documents
 - **Rows:** a pattern row is the player's 25-step buffer. The pattern length is 16 rows.
 - **Pattern data:** pattern pointer + 9 gives the file offset (not +6). This skips a 3-byte chunk header. Every pattern decodes to exactly its byte span except slack at end of file.
 - **Positions are unrolled:** Furnace pattern index = position index on every channel, so transposition and pattern breaks are baked in exactly.
-- **Timing:** speed1 = speed2 = `xtempo`. Ticks run at 50 Hz if `xhzequal` is set, 60 Hz otherwise.
+- **Timing:** speed1 = speed2 = `xtempo`. Ticks run at **50 Hz** whatever `xhzequal` says, as the ZX Spectrum demo disks play:
+  - The MFM demos and moonsound_04-14 call `MBPlayer_play` from every 50 Hz frame interrupt (IM 2), and the player's `xhzequal` code is commented out.
+  - moonmusic_01/02 and moonsound_02/03 program OPL4 timer 1 from `xhzequal`: 0 gives 208 × 80.8 µs (59.5 Hz), 1 gives 248 × 80.8 µs (49.9 Hz), and any other value is the count itself. They then run the player only when the frame handler finds the timer flag set. The card leaves the YMF278B IRQ unconnected (the CPLD `C_IRQ`/`C_IRQ0` input is unused), so the flag is polled at 50 Hz, and a 59.5 Hz timer is always ready.
+  - `FurnaceConverter(tick_rate=None)` (CLI `--msx-timing`) restores the MSX meaning of the flag: set = 50 Hz, clear = 60 Hz.
 - **Command step 24:** written to a dedicated global channel with 3 effect columns. For MFM this is channel 41; for MWM it is channel 0.
 
 | Command | Meaning | Furnace |
@@ -115,6 +118,11 @@ The sample collection uses 0, 2, 3, 4 and 6.
 | 98-145 | Preset | Sets the pending volume: 127 − 2·xwavvols |
 | 146-177 | Volume v | Volume column 3 + 4·v |
 | 178-192 | Pan nibble (N−185) & 15 | `80xx`; value chosen so Furnace writes the same nibble |
+| 193-211 | Note link: N−202 semitones, same split, no retrigger | Pitch macro of the sounding note |
+| 212-230 | Pitch bend: F += 2·(N−221) per tick | Pitch macro |
+| 231-237 | Detune = 4·(N−234) F-units, from the next note or link | Pitch macro |
+| 238-240 | Modulation: per-tick deltas from song table N−238 | Pitch macro |
+| 241-242 | Damp | Not translated |
 
 ### Voice resolution (`opl4_wave.py`)
 
@@ -138,6 +146,28 @@ Rate = 44100 · 2^oct · (1024+F)/1024.
 - **ROM:** `hardware/firmware/YRW801-M - Yamaha - 1993.rom`. Override the path with `FurnaceConverter(rom_path=...)`.
 - **Kits:** `<kit>.MWK` is looked up in the song's directory. `convert_file` sets this automatically; otherwise pass `source_path`. If the kit is missing, a warning is added and its waves stay silent.
 
+### Wave pitch effects (`wave_pitch.py`)
+
+Furnace 0.6.8.3 can't express these with effect columns on OPL4 PCM. The slides `01xx`/`02xx`/`03xx`/`E1xx` don't move PCM pitch at all, and `E5xx` is reset by a note on the same row. So every wave note gets its exact pitch path instead:
+
+1. **Simulate.** The player is simulated tick by tick:
+   - Each interrupt runs `MBPlayer_play_pitch` first, then the row's events on row ticks.
+   - A new note, note off, preset, pan, link or damp stops bend and modulation.
+   - Detune starts at 2 × the song's per-track byte (MWM track-info +0x1C, MFM `0x245`).
+   - The modulation tables are MWM +0x34 and MFM `0x24C`.
+   - The pitch word follows the player exactly, including its octave carry on F-number overflow.
+2. **Turn paths into macros.** Each note's per-tick rate becomes an **absolute pitch macro** in 1/128-semitone units against the note's nominal Furnace pitch, on its own instrument.
+   - Measured on 0.6.8.3: value *i* applies *i* ticks after key-on, the last value holds, and a legato change doesn't restart it.
+   - Samples stay shared, one per voice.
+3. **Handle long paths.** A macro holds at most 255 values, so a longer path:
+   - loops its periodic tail (modulation), if it has one;
+   - else runs at the smallest macro speed *k* that has every pitch change on a multiple of *k* ticks, which is exact (links, which change pitch only on row ticks);
+   - else uses the minimum speed with block medians (long bends). A step then lands at most one block early or late, never on a pitch in between.
+4. **Fit the instrument cap.** Paths within 2 units (~1.6 cents) share an instrument. A song that would still exceed Furnace's 256-instrument limit is re-converted at 4/8/16 units, and the converter reports a warning. In the collection:
+   - `YS4LAVA.MWM` needs 3.1 cents.
+   - `FOTI.MWM` needs 6.2 cents.
+   - `ALLPART2.MWM` needs 12.5 cents.
+
 ## Pattern encoding (`PATR`, Furnace 0.6.8.3)
 
 The note field is used directly as the note (note + octave·12, no +60 as in master's `splitNoteToNote`). The sentinels are:
@@ -152,11 +182,11 @@ So real notes 0 and 100 are written as 12 / −1 and 88 / +1.
 | Check | Method | Result |
 |-------|--------|--------|
 | FM | Original player running in the unreal-ng emulator (`core-tests --gtest_filter='MoonSoundMfm2Guest_Test.*:MoonSoundMfm3Guest_Test.*'` dumps register CSVs), compared with Furnace's `-vgmout` export | 421/428 key-ons identical (tick, hardware channel, block, F-number) across 5 songs. The rest are 2.5-4 cents off, from Furnace float rounding in blocks 1-2. |
-| PCM | Furnace VGM PCM key-ons vs the player pitch model, GALIOUS.MWM | 2809/2809 notes, max 1.9 cents |
+| PCM | Every sounding tick of every wave note in Furnace's `-vgmout` export, vs the tick-exact player simulation (`wave_pitch.py`), all 240 songs at 50 Hz | 98.8% of 16.2 M ticks within 2 cents; 217 songs max ≤ 3 cents. Worse cases: instrument-sharing tolerance (≤ 12.5 cents), one-tick-late links in notes over 255 ticks, the `TWINPEAK` octave wrap |
 | Batch | All demo-disk MFM/MWM files | 253/253 convert and load; largest sample payload 1.27 MB |
 
 ## Not yet translated
 
-- **Wave tracks:** link (193-211), pitch bend (212-230), detune (231-237), modulation (238-240), damp (241-242).
+- **Wave tracks:** damp (241-242). Bends that run past the top of the OPL4 pitch range (`TWINPEAK.MWM` track 18) wrap the player's 4-bit octave to −8, while Furnace clamps at its maximum.
 - **FM tracks:** pitch bend (189-207), modulation (208-226), portamento (227-239) and effects 247-249.
 - **Missing kits:** `REMEMBER.MWM` and `SPRING.MWM` reference `HARDBASS.MWK` and `SPRING.MWK`, which are not in the collection.

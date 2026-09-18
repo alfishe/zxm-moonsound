@@ -43,6 +43,30 @@ def fw_to_rate(freq_word: int) -> float:
     return 44100.0 * (2.0 ** octave) * (1024 + fnum) / 1024.0
 
 
+def word_rate(word: int) -> float:
+    """Rate of a player pitch word: octave in bits 15-12 (signed), F-number
+    in bits 10-1 (bit 11 is the pseudo-reverb position, not pitch)."""
+    octave = (((word >> 12) & 0xF) ^ 8) - 8
+    fnum = (word >> 1) & 0x3FF
+    return 44100.0 * (2.0 ** octave) * (1024 + fnum) / 1024.0
+
+
+def rom_word(n: int, fnums: List[int]) -> int:
+    """Player pitch word for ROM-patch note index n (MBPlayer_calc_wave:
+    tabdiv12 octave nibble + fnum<<1; entries >= 2048 carry into the octave)."""
+    return ((((n // 12) - 5) & 0xF) << 12) + (fnums[n % 12] << 1) & 0xFFFF
+
+
+def carry_add(word: int, delta: int) -> int:
+    """Add to a pitch word the way the player does for detune, bends and
+    modulation: an F-number overflow lands in bit 11 and is moved into the
+    octave (upward) or dropped after the octave borrow (downward)."""
+    w = (word + delta) & 0xFFFF
+    if w & 0x800:
+        w = (w + 0x800) & 0xFFFF if delta >= 0 else w & ~0x800
+    return w
+
+
 def rom_note_rate(n: int, fnums: List[int]) -> float:
     octave = n // 12 - 5
     fnum = fnums[n % 12]
@@ -287,6 +311,42 @@ class WaveResolver:
         fw = table[min(n, len(table) - 1)]
         return self._voice(VoiceKey(patch, idx), RAM_TONE_BASE + x, a, fw_to_rate(fw),
                            bool(rec[0] & 1), None, None), a
+
+    def note_word(self, patch: int, a: int):
+        """Like resolve(), but also returns the player's pitch word for the
+        note and a link context (kind, table, n) that lets a note link
+        re-pitch within the same split: ('rom', fnums, n) / ('ram', frqtab,
+        n), or None for GM drum notes (fixed pitch words)."""
+        res = self.resolve(patch, a)
+        if res is None:
+            return None
+        voice, a = res
+        a &= 0xFF
+        if patch < PATCH_DRUMS or (patch == PATCH_DRUMS and a < 36):
+            rec = T.PATCHES[patch] if patch < PATCH_DRUMS else T.DRUM_MIDI
+            _, lo, (bound, tone, tnote, fnums) = self._find_split(rec['splits'], a)
+            n = (tnote + a - lo) & 0xFF
+            return voice, rom_word(n, fnums), ('rom', fnums, n)
+        if patch == PATCH_DRUMS:
+            return voice, T.GM_DRUMS[min(a, 0x56) - 36][1], None
+        rec = self.mem.kit.wave_records[patch - PATCH_KIT_BASE]
+        lo = 0
+        for idx in range(8):
+            bound, x, tnote = rec[1 + 3 * idx], rec[2 + 3 * idx], rec[3 + 3 * idx]
+            if a < bound or bound == 255 or idx == 7:
+                break
+            lo = bound
+        n = (tnote + a - lo) & 0xFF
+        table = self.mem.kit.freq_table(x)
+        return voice, table[min(n, len(table) - 1)], ('ram', table, n)
+
+    @staticmethod
+    def link_word(ctx, n: int) -> int:
+        kind, table, _ = ctx
+        n &= 0xFF
+        if kind == 'rom':
+            return rom_word(n, table)
+        return table[min(n, len(table) - 1)]
 
     def voices(self) -> List[Voice]:
         return list(self._voices.values())
