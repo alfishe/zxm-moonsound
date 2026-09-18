@@ -64,3 +64,5 @@ __pycache__/
 
 # Logs
 *.log
+scratch/
+.pytest_cache/

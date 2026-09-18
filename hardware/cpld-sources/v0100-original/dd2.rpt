@@ -1,0 +1,578 @@
+Project Information                    d:\max2work\zxm-moonsound v0100\dd2.rpt
+
+MAX+plus II Compiler Report File
+Version 10.2 RC4 07/10/2002
+Compiled: 06/29/2015 09:41:14
+
+Copyright (C) 1988-2002 Altera Corporation
+Any megafunction design, and related net list (encrypted or decrypted),
+support information, device programming or simulation file, and any other
+associated documentation or information provided by Altera or a partner
+under Altera's Megafunction Partnership Program may be used only to
+program PLD devices (but not masked PLD devices) from Altera.  Any other
+use of such megafunction design, net list, support information, device
+programming or simulation file, or any other related documentation or
+information is prohibited for any other purpose, including, but not
+limited to modification, reverse engineering, de-compiling, or use with
+any other silicon devices, unless such use is explicitly licensed under
+a separate agreement with Altera or a megafunction partner.  Title to
+the intellectual property, including patents, copyrights, trademarks,
+trade secrets, or maskworks, embodied in any such megafunction design,
+net list, support information, device programming or simulation file, or
+any other related documentation or information provided by Altera or a
+megafunction partner, remains with Altera, the megafunction partner, or
+their respective licensors.  No other licenses, including any licenses
+needed under any third party's intellectual property, are provided herein.
+
+
+
+***** Project compilation was successful
+
+
+ZXM-SounCard Middle System Logic
+
+
+** DEVICE SUMMARY **
+
+Chip/                     Input   Output   Bidir         Shareable
+POF       Device          Pins    Pins     Pins     LCs  Expanders  % Utilized
+
+dd2       EPM7032STC44-10  26       5        0      7       0           21 %
+
+User Pins:                 26       5        0  
+
+
+
+Project Information                    d:\max2work\zxm-moonsound v0100\dd2.rpt
+
+** PROJECT COMPILATION MESSAGES **
+
+Warning: Line 14, File d:\max2work\zxm-moonsound v0100\dd2.tdf:
+   Symbolic name "CD0" was declared but never used
+Warning: Line 14, File d:\max2work\zxm-moonsound v0100\dd2.tdf:
+   Symbolic name "CD1" was declared but never used
+Warning: Line 20, File d:\max2work\zxm-moonsound v0100\dd2.tdf:
+   Symbolic name "C_RESET" was declared but never used
+Warning: Line 17, File d:\max2work\zxm-moonsound v0100\dd2.tdf:
+   Symbolic name "C_RD" was declared but never used
+Warning: Line 14, File d:\max2work\zxm-moonsound v0100\dd2.tdf:
+   Symbolic name "CD2" was declared but never used
+Warning: Line 14, File d:\max2work\zxm-moonsound v0100\dd2.tdf:
+   Symbolic name "CD3" was declared but never used
+Warning: Line 14, File d:\max2work\zxm-moonsound v0100\dd2.tdf:
+   Symbolic name "CD4" was declared but never used
+Warning: Line 14, File d:\max2work\zxm-moonsound v0100\dd2.tdf:
+   Symbolic name "CD5" was declared but never used
+Warning: Line 14, File d:\max2work\zxm-moonsound v0100\dd2.tdf:
+   Symbolic name "CD6" was declared but never used
+Warning: Line 41, File d:\max2work\zxm-moonsound v0100\dd2.tdf:
+   Symbolic name "CS_Addr" was declared but never used
+Warning: Line 14, File d:\max2work\zxm-moonsound v0100\dd2.tdf:
+   Symbolic name "CD7" was declared but never used
+Warning: Line 26, File d:\max2work\zxm-moonsound v0100\dd2.tdf:
+   Symbolic name "C_IRQ" was declared but never used
+Warning: Line 16, File d:\max2work\zxm-moonsound v0100\dd2.tdf:
+   Symbolic name "C_WR" was declared but never used
+Info: Reserved unused input pin 'CD7' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'CD6' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'CD5' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'CD4' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'CD3' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'CD2' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'CD1' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'CD0' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'C_WR' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'C_RD' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'C_RESET' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'C_IRQ' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+
+
+Project Information                    d:\max2work\zxm-moonsound v0100\dd2.rpt
+
+** PIN/LOCATION/CHIP ASSIGNMENTS **
+
+                  Actual                  
+    User       Assignments                
+Assignments   (if different)     Node Name
+
+dd2@22                            CA0
+dd2@25                            CA1
+dd2@27                            CA2
+dd2@30                            CA3
+dd2@44                            CA4
+dd2@42                            CA5
+dd2@38                            CA6
+dd2@37                            CA7
+dd2@20                            C_DOS
+dd2@13                            CD0
+dd2@14                            CD1
+dd2@15                            CD2
+dd2@18                            CD3
+dd2@28                            CD4
+dd2@23                            CD5
+dd2@21                            CD6
+dd2@19                            CD7
+dd2@35                            C_IODOS
+dd2@33                            C_IORQ
+dd2@34                            C_IORQG
+dd2@11                            C_IRQ
+dd2@31                            C_MREQ
+dd2@43                            C_M1
+dd2@40                            C_PEVO
+dd2@3                             C_RD
+dd2@39                            C_RESET
+dd2@5                             CSYM
+dd2@2                             C_WR
+dd2@10                            YA0
+dd2@8                             YA1
+dd2@6                             YA2
+
+
+Project Information                    d:\max2work\zxm-moonsound v0100\dd2.rpt
+
+** FILE HIERARCHY **
+
+
+
+|2mux1:58|
+|2mux1:63|
+
+
+Device-Specific Information:           d:\max2work\zxm-moonsound v0100\dd2.rpt
+dd2
+
+***** Logic for device 'dd2' compiled without errors.
+
+
+
+
+Device: EPM7032STC44-10
+
+Device Options:
+    Turbo Bit                                    = ON
+    Security Bit                                 = OFF
+    Enable JTAG Support                        = ON
+    User Code                                  = ffff
+
+
+
+Device-Specific Information:           d:\max2work\zxm-moonsound v0100\dd2.rpt
+dd2
+
+** ERROR SUMMARY **
+
+Info: Chip 'dd2' in device 'EPM7032STC44-10' has less than 20% of pins available for future logic changes -- if your project is likely to change, Altera recommends using a larger device
+                                               
+                             C           C  C  
+                          C  _           _  _  
+                          _  R           I  I  
+                 C        P  E           O  O  
+              C  _  C  V  E  S  C  C  G  D  R  
+              A  M  A  C  V  E  A  A  N  O  Q  
+              4  1  5  C  O  T  6  7  D  S  G  
+            -----------------------------------_ 
+          /  44 43 42 41 40 39 38 37 36 35 34   | 
+    #TDI |  1                                33 | C_IORQ 
+    C_WR |  2                                32 | #TDO 
+    C_RD |  3                                31 | C_MREQ 
+     GND |  4                                30 | CA3 
+    CSYM |  5                                29 | VCC 
+     YA2 |  6        EPM7032STC44-10         28 | CD4 
+    #TMS |  7                                27 | CA2 
+     YA1 |  8                                26 | #TCK 
+     VCC |  9                                25 | CA1 
+     YA0 | 10                                24 | GND 
+   C_IRQ | 11                                23 | CD5 
+         |_  12 13 14 15 16 17 18 19 20 21 22  _| 
+           ------------------------------------ 
+              R  C  C  C  G  V  C  C  C  C  C  
+              E  D  D  D  N  C  D  D  _  D  A  
+              S  0  1  2  D  C  3  7  D  6  0  
+              E                       O        
+              R                       S        
+              V                                
+              E                                
+              D                                
+
+
+N.C. = No Connect. This pin has no internal connection to the device.
+VCC = Dedicated power pin, which MUST be connected to VCC.
+GND = Dedicated ground pin or unused dedicated input, which MUST be connected to GND.
+RESERVED = Unused I/O pin, which MUST be left unconnected.
+
+^ = Dedicated configuration pin.
++ = Reserved configuration pin, which is tri-stated during user mode.
+* = Reserved configuration pin, which drives out in user mode.
+PDn = Power Down pin. 
+@ = Special-purpose pin. 
+# = JTAG Boundary-Scan Testing/In-System Programming or Configuration Pin. The JTAG inputs TMS and TDI should be tied to VCC and TCK should be tied to GND when not in use.
+& = JTAG pin used for I/O. When used as user I/O, JTAG pins must be kept stable before and during configuration.  JTAG pin stability prevents accidental loading of JTAG instructions.
+
+
+Device-Specific Information:           d:\max2work\zxm-moonsound v0100\dd2.rpt
+dd2
+
+** RESOURCE USAGE **
+
+                                                Shareable     External
+Logic Array Block     Logic Cells   I/O Pins    Expanders   Interconnect
+
+A:     LC1 - LC16     6/16( 37%)  15/16( 93%)   0/16(  0%)  16/36( 44%) 
+B:    LC17 - LC32     1/16(  6%)  16/16(100%)   0/16(  0%)   5/36( 13%) 
+
+
+Total dedicated input pins used:                 4/4      (100%)
+Total I/O pins used:                            31/32     ( 96%)
+Total logic cells used:                          7/32     ( 21%)
+Total shareable expanders used:                  0/32     (  0%)
+Total Turbo logic cells used:                    7/32     ( 21%)
+Total shareable expanders not available (n/a):   0/32     (  0%)
+Average fan-in:                                  4.42
+Total fan-in:                                    31
+
+Total input pins required:                      26
+Total fast input logic cells required:           0
+Total output pins required:                      5
+Total bidirectional pins required:               0
+Total reserved pins required                     4
+Total logic cells required:                      7
+Total flipflops required:                        0
+Total product terms required:                   14
+Total logic cells lending parallel expanders:    0
+Total shareable expanders in database:           0
+
+Synthesized logic cells:                         0/  32   (  0%)
+
+
+
+Device-Specific Information:           d:\max2work\zxm-moonsound v0100\dd2.rpt
+dd2
+
+** INPUTS **
+
+                                         Shareable
+                                         Expanders     Fan-In    Fan-Out
+ Pin     LC  LAB  Primitive    Code   Total Shared n/a INP  FBK  OUT  FBK  Name
+  22   (28)  (B)      INPUT               0      0   0    0    0    1    0  CA0
+  25   (26)  (B)      INPUT               0      0   0    0    0    1    1  CA1
+  27   (24)  (B)      INPUT               0      0   0    0    0    1    2  CA2
+  30   (22)  (B)      INPUT               0      0   0    0    0    0    2  CA3
+  44    (3)  (A)      INPUT               0      0   0    0    0    0    2  CA4
+  42    (1)  (A)      INPUT               0      0   0    0    0    0    2  CA5
+  38      -   -       INPUT               0      0   0    0    0    0    2  CA6
+  37      -   -       INPUT               0      0   0    0    0    0    2  CA7
+  20   (30)  (B)      INPUT               0      0   0    0    0    2    0  C_DOS
+  13   (14)  (A)      INPUT               0      0   0    0    0    0    0  CD0
+  14   (15)  (A)      INPUT               0      0   0    0    0    0    0  CD1
+  15   (16)  (A)      INPUT               0      0   0    0    0    0    0  CD2
+  18   (32)  (B)      INPUT               0      0   0    0    0    0    0  CD3
+  28   (23)  (B)      INPUT               0      0   0    0    0    0    0  CD4
+  23   (27)  (B)      INPUT               0      0   0    0    0    0    0  CD5
+  21   (29)  (B)      INPUT               0      0   0    0    0    0    0  CD6
+  19   (31)  (B)      INPUT               0      0   0    0    0    0    0  CD7
+  35   (17)  (B)      INPUT               0      0   0    0    0    2    0  C_IODOS
+  33   (19)  (B)      INPUT               0      0   0    0    0    1    0  C_IORQ
+  11   (12)  (A)      INPUT               0      0   0    0    0    0    0  C_IRQ
+  31   (21)  (B)      INPUT               0      0   0    0    0    1    0  C_MREQ
+  43    (2)  (A)      INPUT               0      0   0    0    0    1    0  C_M1
+  40      -   -       INPUT               0      0   0    0    0    2    0  C_PEVO
+   3    (6)  (A)      INPUT               0      0   0    0    0    0    0  C_RD
+  39      -   -       INPUT               0      0   0    0    0    0    0  C_RESET
+   2    (5)  (A)      INPUT               0      0   0    0    0    0    0  C_WR
+
+
+Code:
+
+s = Synthesized pin or logic cell
+t = Turbo logic cell
++ = Synchronous flipflop
+/ = Slow slew-rate output
+! = NOT gate push-back
+r = Fitter-inserted logic cell
+
+
+Device-Specific Information:           d:\max2work\zxm-moonsound v0100\dd2.rpt
+dd2
+
+** OUTPUTS **
+
+                                         Shareable
+                                         Expanders     Fan-In    Fan-Out
+ Pin     LC  LAB  Primitive    Code   Total Shared n/a INP  FBK  OUT  FBK  Name
+  34     18    B     OUTPUT      t        0      0   0    3    2    0    0  C_IORQG
+   5      7    A     OUTPUT      t        0      0   0    6    2    0    0  CSYM
+  10     11    A     OUTPUT      t        0      0   0    1    0    0    0  YA0
+   8     10    A     OUTPUT      t        0      0   0    1    1    0    0  YA1
+   6      8    A     OUTPUT      t        0      0   0    1    1    0    0  YA2
+
+
+Code:
+
+s = Synthesized pin or logic cell
+t = Turbo logic cell
++ = Synchronous flipflop
+/ = Slow slew-rate output
+! = NOT gate push-back
+r = Fitter-inserted logic cell
+
+
+Device-Specific Information:           d:\max2work\zxm-moonsound v0100\dd2.rpt
+dd2
+
+** BURIED LOGIC **
+
+                                         Shareable
+                                         Expanders     Fan-In    Fan-Out
+ Pin     LC  LAB  Primitive    Code   Total Shared n/a INP  FBK  OUT  FBK  Name
+ (44)     3    A      LCELL      t        0      0   0    6    0    4    0  CSC4_Sel
+ (43)     2    A      LCELL      t        0      0   0    7    0    2    0  CS7E_Sel
+
+
+Code:
+
+s = Synthesized pin or logic cell
+t = Turbo logic cell
++ = Synchronous flipflop
+/ = Slow slew-rate output
+! = NOT gate push-back
+r = Fitter-inserted logic cell
+
+
+Device-Specific Information:           d:\max2work\zxm-moonsound v0100\dd2.rpt
+dd2
+
+** LOGIC CELL INTERCONNECTIONS **
+
+Logic Array Block 'A':
+
+                     Logic cells placed in LAB 'A'
+        +----------- LC3 CSC4_Sel
+        | +--------- LC7 CSYM
+        | | +------- LC2 CS7E_Sel
+        | | | +----- LC11 YA0
+        | | | | +--- LC10 YA1
+        | | | | | +- LC8 YA2
+        | | | | | | 
+        | | | | | |   Other LABs fed by signals
+        | | | | | |   that feed LAB 'A'
+LC      | | | | | | | A B |     Logic cells that feed LAB 'A':
+LC3  -> - * - - * * | * * | <-- CSC4_Sel
+LC2  -> - * - - - - | * * | <-- CS7E_Sel
+
+Pin
+22   -> - - - * - - | * - | <-- CA0
+25   -> - - * - * - | * - | <-- CA1
+27   -> * - * - - * | * - | <-- CA2
+30   -> * - * - - - | * - | <-- CA3
+44   -> * - * - - - | * - | <-- CA4
+42   -> * - * - - - | * - | <-- CA5
+38   -> * - * - - - | * - | <-- CA6
+37   -> * - * - - - | * - | <-- CA7
+20   -> - * - - - - | * * | <-- C_DOS
+35   -> - * - - - - | * * | <-- C_IODOS
+33   -> - * - - - - | * - | <-- C_IORQ
+31   -> - * - - - - | * - | <-- C_MREQ
+43   -> - * - - - - | * - | <-- C_M1
+40   -> - * - - - - | * * | <-- C_PEVO
+39   -> - - - - - - | - - | <-- C_RESET
+
+
+* = The logic cell or pin is an input to the logic cell (or LAB) through the PIA.
+- = The logic cell or pin is not an input to the logic cell (or LAB).
+
+
+Device-Specific Information:           d:\max2work\zxm-moonsound v0100\dd2.rpt
+dd2
+
+** LOGIC CELL INTERCONNECTIONS **
+
+Logic Array Block 'B':
+
+           Logic cells placed in LAB 'B'
+        +- LC18 C_IORQG
+        | 
+        |   Other LABs fed by signals
+        |   that feed LAB 'B'
+LC      | | A B |     Logic cells that feed LAB 'B':
+
+Pin
+38   -> - | * - | <-- CA6
+37   -> - | * - | <-- CA7
+20   -> * | * * | <-- C_DOS
+35   -> * | * * | <-- C_IODOS
+40   -> * | * * | <-- C_PEVO
+39   -> - | - - | <-- C_RESET
+LC3  -> * | * * | <-- CSC4_Sel
+LC2  -> * | * * | <-- CS7E_Sel
+
+
+* = The logic cell or pin is an input to the logic cell (or LAB) through the PIA.
+- = The logic cell or pin is not an input to the logic cell (or LAB).
+
+
+Device-Specific Information:           d:\max2work\zxm-moonsound v0100\dd2.rpt
+dd2
+
+** EQUATIONS **
+
+CA0      : INPUT;
+CA1      : INPUT;
+CA2      : INPUT;
+CA3      : INPUT;
+CA4      : INPUT;
+CA5      : INPUT;
+CA6      : INPUT;
+CA7      : INPUT;
+C_DOS    : INPUT;
+CD0      : INPUT;
+CD1      : INPUT;
+CD2      : INPUT;
+CD3      : INPUT;
+CD4      : INPUT;
+CD5      : INPUT;
+CD6      : INPUT;
+CD7      : INPUT;
+C_IODOS  : INPUT;
+C_IORQ   : INPUT;
+C_IRQ    : INPUT;
+C_MREQ   : INPUT;
+C_M1     : INPUT;
+C_PEVO   : INPUT;
+C_RD     : INPUT;
+C_RESET  : INPUT;
+C_WR     : INPUT;
+
+-- Node name is 'C_IORQG' 
+-- Equation name is 'C_IORQG', location is LC018, type is output.
+ C_IORQG = LCELL( _EQ001 $ !C_IODOS);
+  _EQ001 =  C_IODOS &  CSC4_Sel &  CS7E_Sel
+         # !C_DOS &  C_IODOS &  C_PEVO;
+
+-- Node name is 'CSC4_Sel' from file "dd2.tdf" line 39, column 5
+-- Equation name is 'CSC4_Sel', location is LC003, type is buried.
+CSC4_Sel = LCELL( _EQ002 $  VCC);
+  _EQ002 =  CA2 & !CA3 & !CA4 & !CA5 &  CA6 &  CA7;
+
+-- Node name is 'CSYM' 
+-- Equation name is 'CSYM', location is LC007, type is output.
+ CSYM    = LCELL( _EQ003 $  VCC);
+  _EQ003 =  C_DOS &  C_IODOS & !C_IORQ &  C_MREQ &  C_M1 & !CSC4_Sel
+         #  C_DOS &  C_IODOS & !C_IORQ &  C_MREQ &  C_M1 & !CS7E_Sel
+         #  C_IODOS & !C_IORQ &  C_MREQ &  C_M1 & !C_PEVO & !CSC4_Sel
+         #  C_IODOS & !C_IORQ &  C_MREQ &  C_M1 & !C_PEVO & !CS7E_Sel;
+
+-- Node name is 'CS7E_Sel' from file "dd2.tdf" line 38, column 5
+-- Equation name is 'CS7E_Sel', location is LC002, type is buried.
+CS7E_Sel = LCELL( _EQ004 $  VCC);
+  _EQ004 =  CA1 &  CA2 &  CA3 &  CA4 &  CA5 &  CA6 & !CA7;
+
+-- Node name is 'YA0' 
+-- Equation name is 'YA0', location is LC011, type is output.
+ YA0     = LCELL( CA0 $  GND);
+
+-- Node name is 'YA1' 
+-- Equation name is 'YA1', location is LC010, type is output.
+ YA1     = LCELL( CA1 $  CSC4_Sel);
+
+-- Node name is 'YA2' 
+-- Equation name is 'YA2', location is LC008, type is output.
+ YA2     = LCELL(!CA2 $  CSC4_Sel);
+
+
+
+--     Shareable expanders that are duplicated in multiple LABs:
+--     (none)
+
+
+
+
+Project Information                    d:\max2work\zxm-moonsound v0100\dd2.rpt
+
+** COMPILATION SETTINGS & TIMES **
+
+Processing Menu Commands
+------------------------
+
+Design Doctor                             = off
+
+Logic Synthesis:
+
+   Synthesis Type Used                    = Standard
+
+   Default Synthesis Style                = NORMAL
+
+      Logic option settings in 'NORMAL' style for 'MAX7000S' family
+
+      DECOMPOSE_GATES                     = on
+      DUPLICATE_LOGIC_EXTRACTION          = on
+      MINIMIZATION                        = full
+      MULTI_LEVEL_FACTORING               = off
+      NOT_GATE_PUSH_BACK                  = off
+      PARALLEL_EXPANDERS                  = off
+      REDUCE_LOGIC                        = on
+      REFACTORIZATION                     = off
+      REGISTER_OPTIMIZATION               = off
+      RESYNTHESIZE_NETWORK                = on
+      SLOW_SLEW_RATE                      = off
+      SOFT_BUFFER_INSERTION               = on
+      SUBFACTOR_EXTRACTION                = off
+      TURBO_BIT                           = on
+      XOR_SYNTHESIS                       = on
+      IGNORE_SOFT_BUFFERS                 = off
+      USE_LPM_FOR_AHDL_OPERATORS          = off
+
+   Other logic synthesis settings:
+
+      Automatic Global Clock              = off
+      Automatic Global Clear              = off
+      Automatic Global Preset             = off
+      Automatic Global Output Enable      = off
+      Automatic Fast I/O                  = off
+      Automatic Register Packing          = off
+      Automatic Open-Drain Pins           = on
+      Automatic Implement in EAB          = off
+      One-Hot State Machine Encoding      = off
+      Optimize                            = 3
+
+Default Timing Specifications: None
+
+Cut All Bidir Feedback Timing Paths       = on
+Cut All Clear & Preset Timing Paths       = on
+
+Ignore Timing Assignments                 = off
+
+Functional SNF Extractor                  = off
+
+Linked SNF Extractor                      = off
+Timing SNF Extractor                      = on
+Optimize Timing SNF                       = off
+Generate AHDL TDO File                    = off
+Fitter Settings                           = NORMAL
+Smart Recompile                           = off
+Total Recompile                           = off
+
+Interfaces Menu Commands
+------------------------
+
+EDIF Netlist Writer                       = off
+Verilog Netlist Writer                    = off
+VHDL Netlist Writer                       = off
+
+Compilation Times
+-----------------
+
+   Compiler Netlist Extractor             00:00:00
+   Database Builder                       00:00:00
+   Logic Synthesizer                      00:00:00
+   Partitioner                            00:00:00
+   Fitter                                 00:00:00
+   Timing SNF Extractor                   00:00:00
+   Assembler                              00:00:01
+   --------------------------             --------
+   Total Time                             00:00:01
+
+
+Memory Allocated
+-----------------
+
+Peak memory allocated during compilation  = 3,658K

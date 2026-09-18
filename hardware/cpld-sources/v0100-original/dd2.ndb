@@ -1,0 +1,89 @@
+NDB006
+The number of symbol table entries is: 3
+The length of the symbol table is: 35
+
+Index Hierarchy Path
+----- --------------
+!	&null_hpath&
+.	|2mux1:58|
+9	|2mux1:63|
+
+The number of name info structs is : 75
+
+InsOrder BitField SymTableIndex NextSyn SynParent Loc ChainType NextChain ChainParent FanOut DirExp ParExp ShareExp NodeName
+-------- -------- ------------- ------- --------- --- --------- --------- ----------- ------ ------ ------ -------- --------
+"	IeEA	!	58	24	:100	"Z
+#	IeEA	!	58	24	:101	"[
+$	IeEA	!	58	24	:102	"\
+%	IeEA	!	65	20	:103	"]
+&	IeEA	!	65	32	:104	"^
+'	IeEA	!	63	32	:105	"_
+(	IeEA	!	62	32	:106	"`
+)	IeEA	!	45	21	:73	"?
+*	IeEA	!	45	21	:74	"@
++	IeEA	!	45	31	:75	"A
+,	IeEA	!	48	19	:77	"C
+-	IeEA	!	48	36	:78	"D
+.	IeEA	!	48	27	:79	"E
+/	IeEA	!	51	22	:81	"G
+0	IeEA	!	51	34	:82	"H
+1	IeEA	!	55	24	:83	"I
+2	IeEA	!	55	24	:84	"J
+3	IeEA	!	55	24	:85	"K
+4	IeEA	!	55	24	:86	"L
+5	IeEA	!	55	24	:87	"M
+6	IeEA	!	55	24	:88	"N
+7	IeEA	!	55	24	:89	"O
+8	IeEA	!	55	24	:90	"P
+9	IeEA	!	55	24	:91	"Q
+:	IeEA	!	55	24	:92	"R
+;	IeEA	!	55	24	:93	"S
+<	IeEA	!	55	24	:94	"T
+=	IeEA	!	58	24	:95	"U
+>	IeEA	!	58	24	:96	"V
+?	IeEA	!	58	24	:97	"W
+@	IeEA	!	58	24	:98	"X
+A	IeEA	!	58	24	:99	"Y
+B	L8ef	!	23	3	2	E	_	C_DOS	"'
+C	L8ef	!	24	3	2	E	_	C_IODOS	"(
+D	L8ef	!	19	3	1	_	C_IORQ	"$
+E	IeE[	!	51	2	C_IORQG	"+
+F	IeEZ	!	26	3	C_IRQ	")
+G	L8ef	!	21	3	1	_	C_M1	"&
+H	L8ef	!	18	3	1	_	C_MREQ	"#
+I	(@\6H	!	27	3	2	E	_	C_PEVO	"*
+J	IeEZ	!	17	3	C_RD	""
+K	(>*t<	!	20	3	C_RESET	"%
+L	IeEZ	!	16	3	C_WR	"!
+M	L8ef	!	13	5	1	b	CA0	v
+N	L8ef	!	13	5	2	]	c	CA1	u
+O	L8ef	!	13	5	3	^	]	d	CA2	t
+P	L8ef	!	13	5	2	^	]	CA3	s
+Q	L8ef	!	13	5	2	^	]	CA4	r
+R	L8ef	!	13	5	2	^	]	CA5	q
+S	(@\6H	!	13	5	2	^	]	CA6	p
+T	(@\6H	!	13	5	2	^	]	CA7	o
+U	IeEZ	!	14	5	CD0	~
+V	IeEZ	!	14	5	CD1	}
+W	IeEZ	!	14	5	CD2	|
+X	IeEZ	!	14	5	CD3	{
+Y	IeEZ	!	14	5	CD4	z
+Z	IeEZ	!	14	5	CD5	y
+[	IeEZ	!	14	5	CD6	x
+\	IeEZ	!	14	5	CD7	w
+]	L8f/	!	38	5	2	E	_	CS7E_Sel	"<
+^	L8f/	!	39	5	4	E	_	c	d	CSC4_Sel	"=
+_	IeE[	!	65	2	CSYM	"/
+`	IeEA	!	45	31	ENDOS	"B
+a	IeEA	!	48	27	ENIO	"F
+b	IeE[	!	61	4	YA0	".
+c	IeE[	!	62	7	YA1	"-
+d	IeE[	!	63	7	YA2	",
+e	IeEA	.	9	22	:31	"m
+f	IeEA	.	9	22	:32	"n
+g	IeEA	.	10	13	:33	"o
+h	IeEA	.	10	13	:34	"p
+i	IeEA	9	9	22	:31	"z
+j	IeEA	9	9	22	:32	"{
+k	IeEA	9	10	13	:33	"|
+l	IeEA	9	10	13	:34	"}
